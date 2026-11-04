@@ -14,7 +14,7 @@
 
 **Отложено:** reopen F1 + F2 одним заходом в конце этапа 1, перед F8 (решение Ivan) — по спискам F3-Q3 и правкам из F4–F7.
 | F4 | `docs/API_CONVENTIONS.md` | весь | v0.3, утверждён Ivan 2026-11-04; 🟠 r2 → F4-Q5..Q7 разработчику |
-| F5 | `docs/DESIGN_SYSTEM.md` | весь | — |
+| F5 | `docs/DESIGN_SYSTEM.md` | весь | v0.3, утверждён Ivan 2026-11-04 (Chezz, chessground GPL-3.0) |
 | F6 | `docs/TESTING.md` | весь | — |
 | F7 | `docs/OPERATIONS.md` | весь | — |
 | F8 | `.claude/profile.md` и др. | — | — |
@@ -23,8 +23,8 @@
 
 | Модель | Вызовов |
 |---|---|
-| opus | 28 |
-| sonnet | 15 |
+| opus | 32 |
+| sonnet | 18 |
 
 ## Вызовы
 
@@ -73,3 +73,10 @@
 | 41 | critic agentability | sonnet | setup-critic | F4 r2 | 🔴0 🟠1 🟡2 |
 | 42 | critic consistency | sonnet | setup-critic | F4 r2, весь документ | 🔴0 🟠2 🟡3 |
 | 43 | foundation-author | opus | setup-author | F4: ответы человека Q1–Q3 | v0.3 |
+| 44 | foundation-author | opus | setup-author | F5 draft | DESIGN_SYSTEM.md v0.1 |
+| 45 | critic tz | opus | setup-critic | F5 r1 | 🔴0 🟠0 🟡5 |
+| 46 | critic agentability | sonnet | setup-critic | F5 r1 | 🔴1 🟠4 🟡3 |
+| 47 | foundation-author | opus | setup-author | F5 respond r1 | 14 принято, 1 человеку; v0.2 |
+| 48 | critic agentability | sonnet | setup-critic | F5 r2 | 🔴0 🟠2 🟡3 |
+| 49 | critic consistency | sonnet | setup-critic | F5 r2, весь документ | 🔴0 🟠3 🟡7 |
+| 50 | foundation-author | opus | setup-author | F5 respond r2 + ответы человека | 15 принято, v0.3 |
