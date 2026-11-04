@@ -16,15 +16,15 @@
 | F4 | `docs/API_CONVENTIONS.md` | весь | v0.3, утверждён Ivan 2026-11-04; 🟠 r2 → F4-Q5..Q7 разработчику |
 | F5 | `docs/DESIGN_SYSTEM.md` | весь | v0.3, утверждён Ivan 2026-11-04 (Chezz, chessground GPL-3.0) |
 | F6 | `docs/TESTING.md` | весь | v0.3, утверждён Ivan 2026-11-04 (публичный репозиторий) |
-| F7 | `docs/OPERATIONS.md` | весь | — |
+| F7 | `docs/OPERATIONS.md` | весь | v0.4, утверждён Ivan 2026-11-05 (fine-grained токен, `bootstrap=true`); 🟡 consistency-10…14 → задача devops; F7-Q8 открыт до этапа 5 |
 | F8 | `.claude/profile.md` и др. | — | — |
 
 ## Счётчик вызовов
 
 | Модель | Вызовов |
 |---|---|
-| opus | 35 |
-| sonnet | 21 |
+| opus | 45 |
+| sonnet | 25 |
 
 ## Вызовы
 
@@ -86,3 +86,17 @@
 | 54 | foundation-author | opus | setup-author | F6 respond r1 + ответы человека (прерван лимитом API, продолжен) | 16 принято, v0.2 |
 | 55 | critic consistency | sonnet | setup-critic | F6 r2, весь документ | 🔴0 🟠2 🟡3 |
 | 56 | foundation-author | opus | setup-author | F6 respond r2 (точечно) | 5 принято, v0.3 |
+| 57 | foundation-author | opus | setup-author | F7 draft | OPERATIONS.md v0.1 |
+| 58 | critic tz | opus | setup-critic | F7 r1 | 🔴1 🟠2 🟡1 |
+| 59 | critic security | opus | setup-critic | F7 r1 | 🔴1 🟠5 🟡3 |
+| 60 | critic proportionality | opus | setup-critic | F7 r1 | 🔴0 🟠2 🟡2 |
+| 61 | critic agentability | sonnet | setup-critic | F7 r1 | 🔴2 🟠5 🟡1 |
+| 62 | foundation-author | opus | setup-author | F7 respond r1 | 29 принято, 1 человеку; v0.2 |
+| 63 | critic tz | opus | setup-critic | F7 r2 | 🔴0 🟠0 🟡1 |
+| 64 | critic security | opus | setup-critic | F7 r2 | 🔴1 🟠2 🟡2 |
+| 65 | critic agentability | sonnet | setup-critic | F7 r2 | 🔴0 🟠1 🟡3 |
+| 66 | critic consistency | sonnet | setup-critic | F7 r2, весь документ | 🔴0 🟠4 🟡3 |
+| 67 | foundation-author | opus | setup-author | F7 respond r2 | 20 принято; v0.3 |
+| 68 | critic security | opus | setup-critic | F7 r3 | 🔴1 🟠0 🟡1 |
+| 69 | critic consistency | sonnet | setup-critic | F7 r3, весь документ | 🔴1 🟠1 🟡5 |
+| 70 | foundation-author | opus | setup-author | F7 respond r3 по решениям Ivan | 4 принято, 🟡 → devops; v0.4 |
