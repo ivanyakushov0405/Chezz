@@ -13,7 +13,7 @@
 | F3 | `docs/SECURITY.md` | весь | v0.3, утверждён Ivan 2026-11-04; F3-Q4 по умолчанию (текст Feedback остаётся) |
 
 **Отложено:** reopen F1 + F2 одним заходом в конце этапа 1, перед F8 (решение Ivan) — по спискам F3-Q3 и правкам из F4–F7.
-| F4 | `docs/API_CONVENTIONS.md` | весь | — |
+| F4 | `docs/API_CONVENTIONS.md` | весь | v0.3, утверждён Ivan 2026-11-04; 🟠 r2 → F4-Q5..Q7 разработчику |
 | F5 | `docs/DESIGN_SYSTEM.md` | весь | — |
 | F6 | `docs/TESTING.md` | весь | — |
 | F7 | `docs/OPERATIONS.md` | весь | — |
@@ -23,8 +23,8 @@
 
 | Модель | Вызовов |
 |---|---|
-| opus | 23 |
-| sonnet | 11 |
+| opus | 28 |
+| sonnet | 15 |
 
 ## Вызовы
 
@@ -64,3 +64,12 @@
 | 32 | foundation-author | opus | setup-author | F3 respond r2 | 13 принято, v0.3 |
 | 33 | critic security | opus | setup-critic | F3 r3 | 🔴0 🟠0 🟡0 |
 | 34 | critic consistency | sonnet | setup-critic | F3 r3, весь документ | 🔴0 🟠0 🟡4 |
+| 35 | foundation-author | opus | setup-author | F4 draft | API_CONVENTIONS.md v0.1 |
+| 36 | critic tz | opus | setup-critic | F4 r1 | 🔴0 🟠1 🟡6 |
+| 37 | critic security | opus | setup-critic | F4 r1 | 🔴0 🟠4 🟡5 |
+| 38 | critic consistency | sonnet | setup-critic | F4 r1 | 🔴0 🟠5 🟡4 |
+| 39 | critic agentability | sonnet | setup-critic | F4 r1 | 🔴2 🟠4 🟡3 |
+| 40 | foundation-author | opus | setup-author | F4 respond r1 | 36 принято, 1 отклонено, 1 человеку; v0.2 |
+| 41 | critic agentability | sonnet | setup-critic | F4 r2 | 🔴0 🟠1 🟡2 |
+| 42 | critic consistency | sonnet | setup-critic | F4 r2, весь документ | 🔴0 🟠2 🟡3 |
+| 43 | foundation-author | opus | setup-author | F4: ответы человека Q1–Q3 | v0.3 |
