@@ -10,7 +10,9 @@
 | — | `docs/setup/BUSINESS.md` | весь | создан (только по ТЗ, допущения D1–D11) |
 | F1 | `docs/GLOSSARY.md` | весь | v0.3, утверждён Ivan 2026-11-04 |
 | F2 | `docs/ARCHITECTURE.md` | весь | v0.4 (Node.js + TS, SEO), утверждён Ivan 2026-11-04 как есть; 🟠 consistency-21 (packages/i18n) и F2-Q8..Q12 — разработчику |
-| F3 | `docs/SECURITY.md` | весь | — |
+| F3 | `docs/SECURITY.md` | весь | v0.3, утверждён Ivan 2026-11-04; F3-Q4 по умолчанию (текст Feedback остаётся) |
+
+**Отложено:** reopen F1 + F2 одним заходом в конце этапа 1, перед F8 (решение Ivan) — по спискам F3-Q3 и правкам из F4–F7.
 | F4 | `docs/API_CONVENTIONS.md` | весь | — |
 | F5 | `docs/DESIGN_SYSTEM.md` | весь | — |
 | F6 | `docs/TESTING.md` | весь | — |
@@ -21,8 +23,8 @@
 
 | Модель | Вызовов |
 |---|---|
-| opus | 15 |
-| sonnet | 9 |
+| opus | 23 |
+| sonnet | 11 |
 
 ## Вызовы
 
@@ -52,3 +54,13 @@
 | 22 | critic agentability | sonnet | setup-critic | F2 r3 | 🔴0 🟠3 🟡2 |
 | 23 | foundation-author | opus | setup-author | F2 respond r3: Q3 да, Q4 SEO да, 🟠 r3 → разработчику | v0.4, SEO в `app` |
 | 24 | critic consistency | sonnet | setup-critic | F2 r4, весь документ (+ повтор записи отчёта) | 🔴0 🟠1 🟡5 |
+| 25 | foundation-author | opus | setup-author | F3 draft | SECURITY.md v0.1 |
+| 26 | critic security | opus | setup-critic | F3 r1 (прерван лимитом API, продолжен) | 🔴1 🟠4 🟡7 |
+| 27 | critic tz | opus | setup-critic | F3 r1 (прерван лимитом API, продолжен) | 🔴0 🟠2 🟡3 |
+| 28 | critic proportionality | opus | setup-critic | F3 r1 (прерван лимитом API, продолжен) | 🔴0 🟠2 🟡4 |
+| 29 | foundation-author | opus | setup-author | F3 respond r1 | 26 принято, 1 отклонена (🟡 sec-10), v0.2 |
+| 30 | critic security | opus | setup-critic | F3 r2 | 🔴1 🟠1 🟡4 |
+| 31 | critic consistency | sonnet | setup-critic | F3 r2, весь документ | 🔴0 🟠2 🟡5 |
+| 32 | foundation-author | opus | setup-author | F3 respond r2 | 13 принято, v0.3 |
+| 33 | critic security | opus | setup-critic | F3 r3 | 🔴0 🟠0 🟡0 |
+| 34 | critic consistency | sonnet | setup-critic | F3 r3, весь документ | 🔴0 🟠0 🟡4 |
