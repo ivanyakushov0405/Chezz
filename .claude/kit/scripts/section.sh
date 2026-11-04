@@ -53,7 +53,7 @@ case "${1:-}" in
     file="${2:?file}"; rev="${3:?revision}"
     if ! git cat-file -e "$rev:$file" 2>/dev/null; then echo "ALL (file is new since $rev)"; exit 0; fi
         old_tmp="$(mktemp)"; git show "$rev:$file" > "$old_tmp"
-    lines="$( { git diff --no-index -U0 -- "$old_tmp" "$file" || true; } | awk '/^@@/ { …без изменений… }')"
+    lines="$( { git diff --no-index -U0 -- "$old_tmp" "$file" || true; } | awk '/^@@/ { s = $3; sub(/^\+/, "", s); split(s, a, ","); c = (a[2] == "" ? 1 : a[2]); if (c == 0) c = 1; for (i = 0; i < c; i++) print a[1] + i }')"
     rm -f "$old_tmp"
     awk -v L="$lines" '
       BEGIN { n = split(L, ch, "\n"); for (i = 1; i <= n; i++) want[ch[i]] = 1 }
