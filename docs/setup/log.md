@@ -9,7 +9,7 @@
 |---|---|---|---|
 | — | `docs/setup/BUSINESS.md` | весь | создан (только по ТЗ, допущения D1–D11) |
 | F1 | `docs/GLOSSARY.md` | весь | v0.3, утверждён Ivan 2026-11-04 |
-| F2 | `docs/ARCHITECTURE.md` | весь | — |
+| F2 | `docs/ARCHITECTURE.md` | весь | v0.4 (Node.js + TS, SEO), утверждён Ivan 2026-11-04 как есть; 🟠 consistency-21 (packages/i18n) и F2-Q8..Q12 — разработчику |
 | F3 | `docs/SECURITY.md` | весь | — |
 | F4 | `docs/API_CONVENTIONS.md` | весь | — |
 | F5 | `docs/DESIGN_SYSTEM.md` | весь | — |
@@ -21,8 +21,8 @@
 
 | Модель | Вызовов |
 |---|---|
-| opus | 8 |
-| sonnet | 3 |
+| opus | 15 |
+| sonnet | 9 |
 
 ## Вызовы
 
@@ -39,3 +39,16 @@
 | 9 | critic consistency | sonnet | setup-critic | F1 r2, весь документ (финальная сверка) | 🔴0 🟠0 🟡3 |
 | 10 | foundation-author | opus | setup-author | BUSINESS + F1 по решениям человека | F1 v0.3, админка/жалобы — вне этапа |
 | 11 | critic consistency | sonnet | setup-critic | F1 r3, весь документ | 🔴0 🟠0 🟡3 |
+| 12 | foundation-author | opus | setup-author | F2 draft (+ BUSINESS: остатки жалоб) | ARCHITECTURE.md v0.1, ADR 0001–0003 |
+| 13 | critic tz | opus | setup-critic | F2 r1 | 🔴1 🟠2 🟡6 |
+| 14 | critic proportionality | opus | setup-critic | F2 r1 | 🔴0 🟠3 🟡3 |
+| 15 | critic consistency | sonnet | setup-critic | F2 r1 | 🔴0 🟠5 🟡4 |
+| 16 | critic agentability | sonnet | setup-critic | F2 r1 | 🔴0 🟠2 🟡3 |
+| 17 | foundation-author | opus | setup-author | F2 respond r1 | принято 29/29, v0.2, ADR-0004 |
+| 18 | critic tz | opus | setup-critic | F2 r2 | 🔴0 🟠1 🟡2 |
+| 19 | critic consistency | sonnet | setup-critic | F2 r2, весь документ | 🔴0 🟠2 🟡4 |
+| 20 | foundation-author | opus | setup-author | F2 respond r2: стек → Node.js + TS (решение человека) | v0.3, ADR-0001 заменён |
+| 21 | critic consistency | sonnet | setup-critic | F2 r3, весь документ | 🔴0 🟠2 🟡3 |
+| 22 | critic agentability | sonnet | setup-critic | F2 r3 | 🔴0 🟠3 🟡2 |
+| 23 | foundation-author | opus | setup-author | F2 respond r3: Q3 да, Q4 SEO да, 🟠 r3 → разработчику | v0.4, SEO в `app` |
+| 24 | critic consistency | sonnet | setup-critic | F2 r4, весь документ (+ повтор записи отчёта) | 🔴0 🟠1 🟡5 |
