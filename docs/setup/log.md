@@ -15,7 +15,7 @@
 | F5 | `docs/DESIGN_SYSTEM.md` | весь | v0.4 (reopen 1R), утверждён Ivan 2026-11-05; F5-Q6 (лицензии merida, звуков) — Ivan |
 | F6 | `docs/TESTING.md` | весь | v0.4 (reopen 1R), утверждён Ivan 2026-11-05 |
 | F7 | `docs/OPERATIONS.md` | весь | v0.5 (reopen 1R, O45), утверждён Ivan 2026-11-05; 🟡 consistency-10…14, security-2(б) → задача devops; F7-Q8 открыт до этапа 5 |
-| F8 | `.claude/profile.md` и др. | — | — |
+| F8 | `.claude/profile.md`, `.claude/zones.conf`, `.claude/agents/*`, `CLAUDE.md` ×5, `docs/PIPELINE_DECISIONS.md` | весь | v0.4, утверждён Ivan 2026-11-05; человеку — PIPELINE_DECISIONS §8; открыты В1, В2, В3, В4, В7 |
 
 **Reopen 1R (2026-11-05, решение Ivan):** F1–F6 одним заходом по спискам F3-Q3, F4 §17.2, F5 §18.2, F6 §18.2, F7 §23; F7 — точечно (security-1: вариант (а) + принятый риск). Критики — по одной линзе на все документы, по изменённым разделам, 3 раунда; отчёты `docs/setup/reviews/reopen-<линза>-r<N>.md`.
 
@@ -23,8 +23,8 @@
 
 | Модель | Вызовов |
 |---|---|
-| opus | 56 |
-| sonnet | 30 |
+| opus | 63 |
+| sonnet | 33 |
 
 ## Вызовы
 
@@ -116,3 +116,13 @@
 | 84 | critic security | opus | setup-critic | reopen r3: O45, F3 §17/S24, F7 16.2 | 🔴0 🟠1 🟡4 |
 | 85 | critic consistency | sonnet | setup-critic | reopen r3: правки respond r2, F7 | 🔴0 🟠0 🟡1 |
 | 86 | foundation-author | opus | setup-author | reopen respond r3 (финальная правка по решению Ivan) | 8 принято; F1–F7 утверждены |
+| 87 | profile-builder | opus | setup-pipeline | F8 сборка | 9 агентов, профиль, зоны, 5 CLAUDE.md, PIPELINE_DECISIONS; validate OK |
+| 88 | critic roster | opus | setup-critic | F8 r1 | 🔴1 🟠6 🟡5 |
+| 89 | critic agentability | sonnet | setup-critic | F8 r1 | 🔴0 🟠5 🟡6 |
+| 90 | critic consistency | sonnet | setup-critic | F8 r1 | 🔴1 🟠2 🟡3 |
+| 91 | profile-builder | opus | setup-pipeline | F8 respond r1 (итоговое сообщение не пришло; итог по файлам) | скелет — 7 задач, 🔴 приняты; validate OK, агенты ≤1500 |
+| 92 | critic roster | opus | setup-critic | F8 r2 | 🔴2 🟠3 🟡3 |
+| 93 | critic consistency | sonnet | setup-critic | F8 r2, весь конвейер | 🔴0 🟠4 🟡5 |
+| 94 | profile-builder | opus | setup-pipeline | F8 respond r2 (новый вызов) | все приняты, В6 — Ivan; validate OK, агенты ≤1500 |
+| 95 | critic roster | opus | setup-critic | F8 r3 (последний) | 🔴1 🟠2 🟡2 — 3 раунда исчерпаны, решает Ivan |
+| 96 | profile-builder | opus | setup-pipeline | F8 правка по решениям Ivan (roster-21 а, 22 б, 25 а; В5, В6) | приняты; validate OK, агенты ≤1500 |
