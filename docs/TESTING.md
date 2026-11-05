@@ -1,9 +1,9 @@
 # F6. Стратегия тестирования и Definition of Done
 
-Статус: утверждён (Ivan, 2026-11-04), версия 0.3 от 2026-11-05 (ответы на ревью и решения человека — `docs/setup/reviews/F6-response-r1.md`, `docs/setup/reviews/F6-response-r2.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, утверждённые `docs/GLOSSARY.md` v0.3, `docs/ARCHITECTURE.md` v0.4, `docs/SECURITY.md` v0.3, `docs/API_CONVENTIONS.md` v0.3, `docs/DESIGN_SYSTEM.md` v0.3.
+Статус: утверждён Ivan 2026-11-05, версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из OPERATIONS §23 п.10–11 и сверка 18.2 п.8 с OPERATIONS (решения V20–V22 в 3.3, ответ — `docs/setup/reviews/F6-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответы на ревью и решения человека — `docs/setup/reviews/F6-response-r1.md`, `docs/setup/reviews/F6-response-r2.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/OPERATIONS.md` v0.5 (утверждён 2026-11-05).
 Утверждает: Ivan (BUSINESS D9).
 
-Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры, 3 — решения (3.1 раннеры, владельцы, инфраструктура; 3.2 e2e, нагрузка, CI, приёмка), 4 — кто какие тесты пишет, 5 — уровни и места, 6 — команды, 7 — тестовая инфраструктура (7.1 PostgreSQL, 7.2 управляемое время, 7.3 запуск `app` и вход, 7.4 фикстуры шахмат, 7.5 векторы Glicko-2, 7.6 сид), 8 — критерии приёмки ТЗ §7 → тесты, 9 — e2e, 10 — нагрузочный тест, 11 — сводка проверок F2–F5, 12 — что в задаче и что в CI, 13 — DoD задачи, 14 — DoD фичи, 15 — падения и нестабильные тесты, 16 — чего не делаем, 17 — план роста, 18 — открытые вопросы и правки для reopen. Номера: решения `V#`, вопросы `F6-Qn`; ссылки — `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`, `DESIGN U#` / `§N`, `GLOSSARY G#`.
+Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры, 3 — решения (3.1 раннеры, владельцы, инфраструктура; 3.2 e2e, нагрузка, CI, приёмка; 3.3 решения reopen 1R), 4 — кто какие тесты пишет, 5 — уровни и места, 6 — команды, 7 — тестовая инфраструктура (7.1 PostgreSQL, 7.2 управляемое время, 7.3 запуск `app` и вход, 7.4 фикстуры шахмат, 7.5 векторы Glicko-2, 7.6 сид), 8 — критерии приёмки ТЗ §7 → тесты, 9 — e2e, 10 — нагрузочный тест, 11 — сводка проверок F2–F5, 12 — что в задаче и что в CI, 13 — DoD задачи, 14 — DoD фичи, 15 — падения и нестабильные тесты, 16 — чего не делаем, 17 — план роста, 18 — открытые вопросы и правки для reopen. Номера: решения `V#`, вопросы `F6-Qn`; ссылки — `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`, `DESIGN U#` / `§N`, `GLOSSARY G#`.
 
 Что читать по роли:
 - tester: 1, 4, 5, 7, 8; для e2e — 9; для нагрузки — 10.
@@ -19,7 +19,7 @@
 - MUST: работа с БД в тестах — реальная PostgreSQL в Docker (7.1). MUST NOT: моки `repo`, Kysely или `pg` в интеграционных и contract-тестах.
 - MUST: время в тестах сервера — через `ManualTimeSource` (7.2). MUST NOT: ждать реальное время ради таймеров партии (флаг, 30 с первого хода, 60 с переподключения, окно выбора 30 с).
 - MUST NOT: флаги и режимы в коде `app` только для тестов — тестовый вход, ускорение часов, отключение проверок (SECURITY §4, S26). Тест управляет `app` только через параметры `buildApp` (7.3) и сид (7.6).
-- MUST NOT: `.only`, `.skip`, `.todo` и `test.fixme` в ветке на PR — ловит ESLint (раздел 11). Единственное исключение — `it.skipIf` для векторов видов B и C в `glicko2-vectors.test.ts` (7.5).
+- MUST NOT: `.only`, `.skip`, `.todo` и `test.fixme` в ветке на PR — ловит ESLint (раздел 11). Единственное исключение — `it.skipIf` для векторов вида C в `glicko2-vectors.test.ts` (7.5).
 - MUST NOT: тесты, зависящие от порядка запуска или от данных другого теста; каждый файл готовит свои данные фабриками (7.6).
 - MUST NOT: сеть наружу в тестах (Google, Sentry, npm). Google в тестах не вызывается (7.3).
 - MUST: падение теста, которое не повторилось, — не «перезапустить и забыть»: раздел 15.
@@ -70,6 +70,15 @@
 | V17 | Настоящий вход через Google проверяет Ivan вручную на staging по smoke-списку (F7); для приёмки этапа 5 этого достаточно, как и ручного Lighthouse для первой отрисовки (раздел 8) | SECURITY S1, S33; человек, утверждение F6, 2026-11-04 (F6-Q4) | Автотест входа в Google — нужен тестовый аккаунт Google и обход капчи; ломается от изменений Google |
 | V18 | Репозиторий публичный: лимита минут CI нет; расчётов под лимит нет, остаются таймауты job | человек, утверждение F6, 2026-11-04 (F6-Q1). Публичным становится весь репозиторий (бэкенд, `deploy/`, `docs/`, `.claude/`), а не только фронтенд по DESIGN U33; последствия для секретов и форков F3 и F7 не учитывали — проверить при reopen F3 и при создании F7 (18.2 п.8, п.10) | — |
 | V19 | Обязательные статус-проверки для мержа в `main` — `check` и `e2e`; `e2e` при изменениях только `docs/**` пропускается условием `if` шага внутри job, и job завершается успехом (раздел 12) | ревью r1 (consistency-4, consistency-7); по умолчанию | Фильтр `paths` на workflow — проще, но обязательная проверка висит «ожидается» и PR документов не смержить |
+
+### 3.3. Решения reopen 1R (2026-11-05)
+
+| № | Решение | Источник | Альтернатива и почему не она |
+|---|---|---|---|
+| V20 | На staging токен Session сид-игроков `--demo` — `HMAC-SHA256(SEED_TOKEN_SECRET, ник)`; без переменной (локально, CI) — как прежде, из фиксированного генератора сида. `--load` секрет не использует ни в одной среде: случайные токены `randomBytes(32)`, в файл `--tokens` — строка `ник<TAB>токен` (формат файла — по умолчанию) (7.6) | ревью (reopen: OPERATIONS §23 п.10, O15 — человек, публичный репозиторий; reopen r2, agentability-9 — разведение режимов) | Фиксированные токены и на staging — код сида публичен, любой войдёт сид-игроком |
+| V21 | Smoke staging — `--project=desktop`, `E2E_BASE_URL` = `vars.APP_ORIGIN`, в job `staging` `deploy.yml` после SSH-шагов (9); нагрузка — в контейнере `tools-staging` через `load.yml`, `LOAD_BASE_URL` = `APP_ORIGIN`, отчёт — по пути `LOAD_REPORT` (10) | ревью (reopen: OPERATIONS §23 п.11; OPERATIONS §9.6, §11) | — |
+| V22 | PostgreSQL для тестов — 18 (`postgres:18`), как prod (7.1) | ревью (reopen: OPERATIONS §23 п.11; OPERATIONS §6.1, §6.4) | — |
+| V23 | Токен V20 — одна функция `seedSessionToken` (base64url, 43 символа) в `apps/server/test/support/seed-token.ts` для сида и e2e; smoke на staging — без trace, видео, скриншотов и HTML-отчёта, токены маскируются `::add-mask::` (7.6, 9) | ревью (reopen r1: agentability-3, security-2); по умолчанию | Соль запуска `HMAC(секрет, run_id ‖ ник)` — cookie жила бы один подъём, но нужна правка утверждённого F7 (`up` и шаг smoke); вернуться при reopen F7 |
 
 ## 4. Кто какие тесты пишет
 
@@ -129,7 +138,7 @@
 | `npm run test:e2e` | `playwright test -c tests/e2e/playwright.config.ts`; `webServer` сам собирает `app`, применяет миграции и сид `--demo` к базе `chezz_e2e` | `db:test:up` |
 | `npm run seed -- --demo` | `node apps/server/scripts/seed.ts --demo` (7.6) в базу из `DATABASE_URL` | `db:test:up` или staging |
 | `npm run seed -- --load 150 --tokens <файл>` | Игроки и Session для нагрузки, токены — в `<файл>` (7.6) | staging |
-| `npm run load` | `node tests/load/run.ts` (раздел 10); переменные: `LOAD_BASE_URL` (`https://<staging>`), `LOAD_TOKENS` (файл из `seed --load`), `LOAD_PAIRS` (по умолчанию 75), `LOAD_DURATION_S` (по умолчанию 600) | `seed --load` на staging |
+| `npm run load` | `node tests/load/run.ts` (раздел 10); переменные: `LOAD_BASE_URL` (`APP_ORIGIN` staging), `LOAD_TOKENS` (файл из `seed --load`), `LOAD_REPORT` (путь отчёта; на staging — `/tmp/report.json`), `LOAD_PAIRS` (по умолчанию 75), `LOAD_DURATION_S` (по умолчанию 600) | `seed --load` на staging |
 
 Один файл или один тест (tester и developer работают по одному AC):
 - `npx vitest run --project contract apps/server/test/contract/challenges/accept.test.ts`
@@ -145,7 +154,7 @@
 
 ### 7.1. PostgreSQL в Docker
 
-- `deploy/compose.test.yml` (файл пишет devops, F7): один сервис `db-test`, образ PostgreSQL той же мажорной версии, что в prod (F7), порт `54329` на `127.0.0.1`, данные в `tmpfs`, `fsync=off`. Пароль — не секрет, только для этого контейнера.
+- `deploy/compose.test.yml` (файл пишет devops, F7): один сервис `db-test`, образ `postgres:18` — та же мажорная версия, что в prod (OPERATIONS §6.1, §6.4; V22), порт `54329` на `127.0.0.1`, данные в `tmpfs`, `fsync=off`. Пароль — не секрет, только для этого контейнера.
 - Подключение: переменная `TEST_DATABASE_URL`, по умолчанию `postgres://chezz:chezz@127.0.0.1:54329/postgres` (пользователь `chezz` — суперпользователь контейнера, ему можно `CREATE DATABASE`). Тестовые утилиты читают только её; `DATABASE_URL` для `app` в тестах собирает `startApp` (7.3).
 - В CI — тот же образ как `services:` в обоих job (`check` и `e2e`), порт `54329`, тот же пользователь и пароль; `TEST_DATABASE_URL` — та же строка.
 - `globalSetup` (в `apps/server/test/support/db.ts`): создаёт базу `chezz_template`, применяет миграции Kysely Migrator один раз за прогон; каждый воркер получает `CREATE DATABASE chezz_test_<n> TEMPLATE chezz_template`.
@@ -217,12 +226,13 @@
 
 | `kind` | Вид | Поля | Что проверяет | Когда пропускается |
 |---|---|---|---|---|
-| `single` | A. одна партия | `games` из 1 элемента, `elapsed_days = 0` | пересчёт после партии по ARCHITECTURE §11 (метод Lichess, без периодов); сверяется с любой эталонной реализацией «одна партия = один период» | никогда: функция одного результата есть в ARCHITECTURE §11 |
-| `multi` | B. несколько партий в периоде | `games` > 1 (пример Glickman выше) | ядро формул совпадает со статьёй | пока модуль не экспортирует функцию с массивом партий (18.2 п.3, F6-Q3) |
+| `single` | A. одна партия | `games` из 1 элемента, `elapsed_days = 0` | пересчёт после партии по ARCHITECTURE §11 (метод Lichess, без периодов); сверяется с любой эталонной реализацией «одна партия = один период» | никогда |
+| `multi` | B. несколько партий в периоде | `games` > 1 (пример Glickman выше) | ядро формул совпадает со статьёй | никогда |
 | `decay` | C. рост RD | `elapsed_days > 0`, `games` из 1 элемента; `"expect": null`, пока F6-Q3 открыт | рост RD без игр до партии | пока `expect = null`. Закрыли F6-Q3 — tester вписывает константу в `fixtures/glicko2/README.md`, считает `expect` и снимает `null` |
 
-- Как пропускается: модуль импортируется целиком (`import * as glicko2 from …`), функция с массивом ищется как `(glicko2 as Record<string, unknown>).rateMany` — без ошибки `tsc`, если её нет. `it.skipIf(kind === "multi" && !rateMany)` и `it.skipIf(kind === "decay" && expect === null)` с причиной в имени: `"[skip: F6-Q3] glickman-example"`. Другой `skip` в файле — ошибка.
-- `it.skipIf` для видов B и C — единственное разрешённое исключение из запрета `.skip` (раздел 1, §13 п.3); ESLint разрешает его только в `apps/server/test/acceptance/glicko2-vectors.test.ts`. Критерий ТЗ §7 «рейтинг сверяется с эталоном» закрывают векторы вида A (`single`), они не пропускаются.
+- Что вызывать: все виды вызывают одну функцию `rateMany(player, games, elapsedDays)` (ARCHITECTURE A29, §11) — обычный именованный импорт `import { rateMany } from …`; вектор `single` — тот же вызов с массивом `games` из одного элемента. Другой функции пересчёта нет; нет `rateMany` — прогон красный, а не пропущен (ревью reopen r2, agentability-7).
+- Как пропускается: только вид C — `it.skipIf(kind === "decay" && expect === null)` с причиной в имени: `"[skip: F6-Q3] <id вектора>"`. Другой `skip` в файле — ошибка.
+- `it.skipIf` для вида C — единственное разрешённое исключение из запрета `.skip` (раздел 1, §13 п.3); ESLint разрешает его только в `apps/server/test/acceptance/glicko2-vectors.test.ts`. Критерий ТЗ §7 «рейтинг сверяется с эталоном» закрывают векторы видов A и B, они не пропускаются.
 - Наборы: (1) пример из статьи Glickman (выше), вид B; (2) случаи из `lichess-org/lila` (модуль `rating`), если есть, — вид по полям случая; (3) последовательность ≥ 30 партий 4 игроков разных рейтингов и RD (новичок 1500/350, предварительный, устоявшийся), посчитанная независимой реализацией — не той, что тестируется (F6-Q2): только вид A (`single`), партии подряд без перерыва.
 - Прогон — `apps/server/test/acceptance/glicko2-vectors.test.ts` против публичной функции из `design.md` фичи `rating`. Отображение (округление до целого, `?` при RD > 110, ТЗ §4.7) — отдельные unit-тесты.
 
@@ -232,6 +242,16 @@
 - Сид — `apps/server/scripts/seed.ts` на тех же фабриках, детерминированный (фиксированный генератор случайных чисел, фиксированная «сейчас»). Режимы:
   - `--demo` (локально, e2e, staging): 12 Игроков `seed_player_01…12` и удалённый игрок (User с `deleted_at`, без ника и без Rating, с одной завершённой партией — для «удалённый игрок» в истории). У `seed_player_01…12` есть Rating всех трёх категорий; в блице: `seed_player_07` — RD 111 (предварительный), `seed_player_09` — последняя партия 15 дней назад, `seed_player_12` — RD 111 и партия 2 дня назад; остальные 9 — RD ≤ 110 и партия ≤ 13 дней назад. Завершённые партии для истории и лидеров; один открытый вызов и один вызов по ссылке.
   - `--load N --tokens <файл>` (staging): N Игроков `load_0001…` с Session; токены — в `<файл>` (только для генератора нагрузки, SECURITY S26). MUST NOT: файл токенов в артефактах и логах workflow (SECURITY §17); после прогона он удаляется вместе с одноразовой БД staging.
+- Токены Session сида (V20) — по режиму (ревью reopen r2, agentability-9):
+
+  | Режим | `SEED_TOKEN_SECRET` задан (staging) | не задан (локально, CI) | Что пишется в файл |
+  |---|---|---|---|
+  | `--demo` | `HMAC-SHA256(SEED_TOKEN_SECRET, ник)` — `seedSessionToken` ниже | из фиксированного генератора сида, как прежде | файла нет: хелпер входа e2e вычисляет cookie той же функцией из `SEED_TOKEN_SECRET` окружения шага smoke |
+  | `--load N --tokens <файл>` | секрет **не используется**: у каждого `load_0001…` — случайный токен `crypto.randomBytes(32)` в base64url (SECURITY §5) | то же | `<файл>` — по строке `ник<TAB>токен` на игрока, токен — значение cookie `__Host-sid` в открытом виде; генератор нагрузки читает только его |
+
+  - Во всех режимах в БД — SHA-256 токена (SECURITY S3). Почему `--load` без HMAC: токены передаются файлом в `tmpfs` того же контейнера и умирают с одноразовой БД staging (OPERATIONS §11), воспроизводить их снаружи не нужно; HMAC там дал бы долгоживущие cookie для 150 игроков из одного секрета. Детерминированность сида (выше) на токены `--load` не распространяется.
+  - Единственная функция — `seedSessionToken(secret: string, nickname: string): string` в `apps/server/test/support/seed-token.ts`: `createHmac("sha256", secret).update(nickname, "utf8").digest("base64url")` — ключ — секрет, сообщение — ник; результат — 43 символа base64url без `=`, тот же формат, что `crypto.randomBytes(32)` в base64url (SECURITY §5). Импортируют и `seed.ts`, и хелпер входа `tests/e2e/support/` (ревью reopen r1, agentability-3). MUST NOT: вторая реализация HMAC в другом месте.
+  - На staging (задан `E2E_BASE_URL`) хелпер входа сразу печатает `::add-mask::<токен>` для каждого вычисленного значения (ревью reopen r1, security-2). Пример: на staging cookie `seed_player_01` = `__Host-sid=<HMAC(секрет, "seed_player_01")>`; без секрета её не получить из публичного кода.
 - MUST: при `APP_ENV=prod` сид завершается с ошибкой, ничего не записав. MUST NOT: копировать данные prod в тесты и staging (SECURITY S26).
 - Пример: таблица лидеров блица после `--demo` — 9 строк: `seed_player_07`, `seed_player_12` (RD 111) и `seed_player_09` (последняя партия 15 дней назад) в неё не попадают (ТЗ §4.8). У удалённого игрока Rating в сиде нет: попадает ли он в таблицу — вопрос не F6.
 
@@ -259,17 +279,18 @@
 - Playwright, конфиг `tests/e2e/playwright.config.ts` (команда — раздел 6, `-c`). PostgreSQL поднимает не Playwright: локально — `npm run db:test:up`, в CI — `services:` job `e2e` (7.1). `webServer` создаёт базу `chezz_e2e` на этом сервере, применяет миграции, выполняет сид `--demo`, собирает и запускает `app`; вход — cookie `__Host-sid` сид-игрока (на `localhost` Chromium принимает `Secure`-cookie).
 - Проекты: `desktop` (Chromium, 1280×800), `mobile-360` (Chromium, 360×740, касание). В CI — оба. `webkit` (iPhone, 390×844) и `firefox` — вручную перед этапами 5 и 6: `npm run test:e2e -- --project=webkit` (ТЗ §5 «Браузеры»). Для приёмки достаточно ручного прогона (человек, утверждение F6).
 - Два игрока — два `browser.newContext()` в одном тесте.
-- Помощник `openScreen(page, path, id)` (DESIGN §17): ждёт `[data-screen="<id>"]`, проверяет непустой `data-state` и `document.documentElement.scrollWidth ≤ ширина окна`.
+- Помощник `openScreen(page, path, id)` в `tests/e2e/support/open-screen.ts` (DESIGN §17): ждёт `[data-screen="<id>"]`, проверяет непустой `data-state` и `document.documentElement.scrollWidth ≤ ширина окна`.
 - `screens.spec.ts`: экраны `lobby`, `game-live`, `game-review`, `profile`, `history`, `leaderboard`, `settings` × оба проекта × `ru` и `en`. На каждом: нет горизонтальной прокрутки; нет видимого текста вида ключа перевода (`^[a-z_]+(\.[a-z_]+)+$`); `<html lang>` = язык.
 - Сценарии — только пути игрока, которые не проверить contract-тестом: два игрока, интерфейс, переходы страниц. Ошибки API, права и таймеры — в contract.
-- Пометка `@smoke` — короткий набор (открыть лобби, принять вызов по ссылке, сделать ход), который F7 гоняет на staging: `E2E_BASE_URL=<staging> npm run test:e2e -- --grep @smoke`.
+- Пометка `@smoke` — короткий набор (открыть лобби, принять вызов по ссылке, сделать ход), который F7 гоняет на staging в job `staging` `deploy.yml` после SSH-шагов (OPERATIONS §9.6, V21): `E2E_BASE_URL=${{ vars.APP_ORIGIN }} npm run test:e2e -- --grep @smoke --project=desktop`; в env шага — `SEED_TOKEN_SECRET` (7.6). При заданном `E2E_BASE_URL` `webServer` не запускается: staging уже поднят и засеян `--demo` шагом `up` (OPERATIONS §9.6 п.1).
+- MUST (ревью reopen r1, security-2): при заданном `E2E_BASE_URL` `playwright.config.ts` ставит `trace: "off"`, `video: "off"`, `screenshot: "off"`, `reporter: "list"` (без HTML-отчёта); cookie и заголовки в вывод теста не пишутся. Причина: репозиторий публичный (V18), логи и артефакты job `staging` видны всем, а cookie сид-игрока из `seedSessionToken` действует при каждом подъёме staging, пока не сменён `SEED_TOKEN_SECRET`. Артефакты job `staging` F7 не выгружает (OPERATIONS §9.6, общий запрет на секреты в артефактах — OPERATIONS §1).
 - MUST: селекторы — `data-screen`, `data-state`, роли и подписи доступности; не классы CSS Modules.
 - Пример (`clock.spec.ts`, блиц 3+0): белые ходят, ждут 2 с, читают свои часы на экране; чёрные отвечают; значение часов белых в `game.moved` (перехват WebSocket в Playwright) отличается от показанного перед ходом чёрных не больше чем на 0,5 с.
 
 ## 10. Нагрузочный тест
 
-- Где: контейнер с `tests/load/run.ts` на том же VPS, в сети staging, ходит в `edge` по `wss://` staging (V11). Когда: перед этапом 5, перед этапом 6, по признакам ARCHITECTURE §15; в часы без игроков (ARCHITECTURE §5). Запускает Ivan через workflow (F7).
-- Подготовка: staging с одноразовой БД (A17), `npm run seed -- --load 150 --tokens <файл>`; лимит по IP на staging поднят переменной среды (SECURITY §9). Запуск: `LOAD_BASE_URL=https://<staging> LOAD_TOKENS=<файл> npm run load` (раздел 6).
+- Где: контейнер `tools-staging` с `tests/load/run.ts` на том же VPS, в сети staging, ходит в `edge` по `wss://` staging (V11, V21). Когда: перед этапом 5, перед этапом 6, по признакам ARCHITECTURE §15; в часы без игроков (ARCHITECTURE §5). Запускает Ivan через workflow `.github/workflows/load.yml` (OPERATIONS §11).
+- Подготовка: staging с одноразовой БД (A17), `node apps/server/scripts/seed.ts --load 150 --tokens /tmp/tokens` в том же контейнере; лимит по IP на staging поднят переменной `RATE_LIMIT_IP_PER_MIN` (SECURITY §9, OPERATIONS §7). Запуск: `LOAD_BASE_URL="$APP_ORIGIN" LOAD_TOKENS=/tmp/tokens LOAD_REPORT=/tmp/report.json node tests/load/run.ts` (`APP_ORIGIN` — из `staging.env`; точная команда — OPERATIONS §11 п.2).
 - Сценарий: 150 соединений, все подписаны на лобби; 75 пар играют одновременно; разгон 60 с, затем 10 мин ровной нагрузки. Партии — ходы из `tests/load/games/*.pgn` (реальные партии), темп как в пуле: ход раз в 1–2 с на партию (75 партий × 0,5–1 ход/с ≈ 37–75 ходов/с, в пределах BUSINESS D2). Закончилась партия — пара создаёт новую через вызов по ссылке.
 - Задержка доставки хода — в одном процессе генератора по монотонным часам: от отправки `game.move` игроком A до получения `game.moved` с этим `ply` игроком B.
 - Пороги (все — условие «прошёл»):
@@ -281,7 +302,7 @@
 | Задержка event loop `app` (`/metrics`) | p99 ≤ 50 мс | ARCHITECTURE §9.4 |
 | Память `app` | ≤ 200 МБ | ARCHITECTURE §5 |
 
-- Итог — `tests/load/report.json` (p50/p95/p99, число ходов, ошибки) и строка в описании выкатки; код выхода ≠ 0 при нарушении порога.
+- Итог — JSON по пути из `LOAD_REPORT` (в контейнере — `/tmp/report.json`, `tmpfs`; не `tests/load/report.json`: файловая система контейнера только для чтения, OPERATIONS §6.1): p50/p95/p99, число ходов, ошибки; `load.yml` выводит его в итог job; строка в описании выкатки; код выхода ≠ 0 при нарушении порога.
 - MUST NOT: запуск против prod.
 
 ## 11. Сводка проверок F2–F5
@@ -293,7 +314,7 @@
 | Проверка | Источник | Как запускается | Пишет | Блокирует |
 |---|---|---|---|---|
 | Типы | ARCHITECTURE A14 | `npm run check` (`tsc -b`) | скелет | PR |
-| ESLint: `vitest/no-focused-tests`, `vitest/no-disabled-tests` (кроме 7.5, виды B и C), `playwright/no-focused-test`, `playwright/no-skipped-test`, `react/no-danger`, запрет `innerHTML` | раздел 1; SECURITY §1, §10 | `npm run check` | скелет | PR |
+| ESLint: `vitest/no-focused-tests`, `vitest/no-disabled-tests` (кроме 7.5, вид C), `playwright/no-focused-test`, `playwright/no-skipped-test`, `react/no-danger`, запрет `innerHTML` | раздел 1; SECURITY §1, §10 | `npm run check` | скелет | PR |
 | Границы модулей и слоёв | ARCHITECTURE §7.4 | `npm run check` (`dependency-cruiser`, `scripts/check-architecture.sh`) | скелет | PR |
 | Только добавляющие миграции | ARCHITECTURE §5 | `scripts/check-architecture.sh` | скелет | PR |
 | Каталог REST/WS и коды = код | API §16 | `scripts/check-api-doc.sh` | скелет | PR |
@@ -351,7 +372,7 @@
 
 1. Тесты tester этой задачи зелёные; на каждый AC и каждую строку edge cases задачи есть тест с `AC-n` / `EC-n` в имени (раздел 1).
 2. developer добавил unit-тесты на новую логику `domain/` и функции `apps/web`, интеграционный тест на новый SQL, транзакцию или блокировку.
-3. `npm run check` и `npm run test:affected` зелёные; нет `.only`/`.skip`, кроме `it.skipIf` для векторов видов B и C (7.5).
+3. `npm run check` и `npm run test:affected` зелёные; нет `.only`/`.skip`, кроме `it.skipIf` для векторов вида C (7.5).
 4. Изменённые правила F2–F5 — вместе с их проверками (раздел 11); новый маршрут или сообщение — по API §15 (каталог, `REST_ROUTES`, снимок протокола, `PROTOCOL_VERSION` при несовместимости).
 5. Миграции — только добавляющие (ARCHITECTURE §5).
 6. Новые строки интерфейса — ключи RU и EN; экран — все состояния своей строки DESIGN §10.4, перечислены в описании (DESIGN §17).
@@ -410,18 +431,20 @@
 | № | Вопрос | Владелец |
 |---|---|---|
 | F6-Q2 | Независимая реализация Glicko-2 для набора (3) в 7.5: какая (язык, версия, лицензия) — записать в `fixtures/glicko2/README.md`. По умолчанию — открытая реализация на другом языке, скрипт генерации не входит в CI | tester фичи `rating` с architect |
-| F6-Q3 | Константа роста RD по времени без игр (метод Lichess) и сигнатура функции Glicko-2 с несколькими партиями (пример Glickman — 3 соперника) не заданы в ARCHITECTURE §11. Векторы видов B и C (7.5) их требуют; до ответа оба вида пропускаются по правилу 7.5, критерий ТЗ §7 закрывает вид A | architect фичи `rating`; итог — в 18.2 п.3 |
+| F6-Q3 | Константа роста RD по времени без игр (метод Lichess) не задана в ARCHITECTURE §11; сигнатура `rateMany` уже задана (ARCHITECTURE A29, §11). Вектор вида C (7.5) её требует и до ответа пропускается по правилу 7.5; виды A и B не пропускаются | architect фичи `rating`, до приёмки фичи `rating`; ответ — в ARCHITECTURE §11 (единственное место), tester затем считает `expect` вида C |
 
 Закрыты решением человека (Ivan, утверждение F6, 2026-11-04): F6-Q1 → V18 (репозиторий публичный, минуты без лимита); F6-Q4 → V17 (ручной проверки входа через Google и Lighthouse для приёмки достаточно).
 
 ### 18.2. Правки утверждённых документов (для reopen)
 
-Не правлены здесь; до reopen агенты следуют F6 в вопросах тестов. Выполнять вместе с остальными (reopen F1 + F2 одним заходом, `docs/setup/log.md`).
+Внесены в источники в reopen 1R (утверждён Ivan 2026-11-05, `docs/setup/log.md`); отметка — ниже.
+
+Reopen 1R (2026-11-05, решение Ivan — F1–F6 одним заходом): пункты 1–5 (F2) и 10 (F3) — **выполнены** в ARCHITECTURE v0.5 и SECURITY v0.4 (утверждены 2026-11-05; итог — в ответах reopen в `docs/setup/reviews/`); п.6 (F4) — в API v0.4 (P32); п.7 (F5) — в DESIGN v0.4 (U39). П.8 (F7) — выполнен в OPERATIONS v0.4 (сверка ниже). П.9 (F8) — остаётся до F8.
 
 F2 `docs/ARCHITECTURE.md`:
 1. §7.2, §9.2: время и таймеры — через `TimeSource` из `platform/time.ts` (`now`, `wallNow`, `setTimer`, `clearTimer`), а не прямые `performance.now()` и `setTimeout` в `service` и `GameRoom` (V5, 7.2); `domain/` — по-прежнему параметром.
 2. §7.4: правило «Kysely-запросы только в `repo.ts`» — для `apps/server/src/`; `apps/server/test/support/` и `apps/server/scripts/seed.ts` пишут в таблицы напрямую (7.6).
-3. §11: сигнатура `glicko2.ts` с массивом партий и параметром времени без игр; константа роста RD (F6-Q3); «Форма файлов — F6» → F6 §7.5.
+3. [выполнен частично в ARCHITECTURE v0.5: сигнатура `rateMany` — A29, §11; «Форма файлов — F6 §7.5» — §11. Не выполнено: константа роста RD — F6-Q3, ответ вносится в ARCHITECTURE §11] §11: сигнатура `glicko2.ts` с массивом партий и параметром времени без игр; константа роста RD (F6-Q3); «Форма файлов — F6» → F6 §7.5.
 4. §13: `apps/server/src/app.ts` (`buildApp`), `apps/server/test/{support,contract,acceptance}/`, `apps/server/scripts/seed.ts`, `tests/e2e/`, `tests/load/`, `vitest.config.ts`, `tests/e2e/playwright.config.ts`, `deploy/compose.test.yml`, `scripts/check-api-doc.sh` (из API §16), `scripts/check-bundle.sh`, `.nvmrc` (связано с F2-Q12).
 5. §4.1: «Тесты — F6» → Vitest, Playwright (V1, V10); §5: место генератора нагрузки — F6 §10 (V11).
 
@@ -431,8 +454,8 @@ F4 `docs/API_CONVENTIONS.md`:
 F5 `docs/DESIGN_SYSTEM.md`:
 7. §17: «инструмент — F6», «форму тестов задаёт F6» → Playwright, F6 §9; Vitest + jsdom, F6 §5.
 
-F7 `docs/OPERATIONS.md` (ещё не написан — выполнить при создании):
-8. `deploy/compose.test.yml` (7.1); workflow CI с job `check` и `e2e`, пропуск e2e для `docs/**` через `if` внутри job, не `paths` (раздел 12, V19); в branch protection `main` — обязательные статус-проверки `check` и `e2e` (V19); workflow нагрузки на VPS, файл токенов `seed --load` не попадает в артефакты и логи (раздел 10, 7.6); smoke `@smoke` на staging и ручной вход через Google (V17); мажорная версия PostgreSQL для тестов = prod. Публичный репозиторий (V18): workflow с секретами (staging, prod, нагрузка) не запускаются из `pull_request` форков; CI для форков — без секретов и без `environment`.
+F7 `docs/OPERATIONS.md`:
+8. [выполнен целиком в OPERATIONS v0.4: `compose.test.yml` — §6.4; `ci.yml`, `check`/`e2e`, пропуск через `if` без `paths` — §8; обязательные проверки — §16.1 п.1; `load.yml` на VPS и файл токенов только в `tmpfs` — §11; smoke `@smoke` и ручной вход — §9.6; PostgreSQL 18 везде — §6.1; форки без секретов, `deploy.yml`/`load.yml` только `workflow_dispatch` — §8, §16.1 п.4–5; OPERATIONS §22] `deploy/compose.test.yml` (7.1); workflow CI с job `check` и `e2e`, пропуск e2e для `docs/**` через `if` внутри job, не `paths` (раздел 12, V19); в branch protection `main` — обязательные статус-проверки `check` и `e2e` (V19); workflow нагрузки на VPS, файл токенов `seed --load` не попадает в артефакты и логи (раздел 10, 7.6); smoke `@smoke` на staging и ручной вход через Google (V17); мажорная версия PostgreSQL для тестов = prod. Публичный репозиторий (V18): workflow с секретами (staging, prod, нагрузка) не запускаются из `pull_request` форков; CI для форков — без секретов и без `environment`.
 
 F8 (профиль конвейера):
 9. Зона `tests` и `deny` для разработчиков — раздел 5; значения для шаблона tester — разделы 4–6 (соответствие — конец раздела 6); проверки профиля — раздел 12.

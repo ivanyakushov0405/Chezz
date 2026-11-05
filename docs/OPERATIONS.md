@@ -1,9 +1,9 @@
 # F7. Эксплуатация и DevOps
 
-Статус: утверждён (Ivan, 2026-11-05), версия 0.4 от 2026-11-05 (ответы — `docs/setup/reviews/F7-response-r1.md`, `docs/setup/reviews/F7-response-r2.md`, `docs/setup/reviews/F7-response-r3.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, утверждённые `docs/GLOSSARY.md` v0.3, `docs/ARCHITECTURE.md` v0.4 (+ `docs/adr/`), `docs/SECURITY.md` v0.3, `docs/API_CONVENTIONS.md` v0.3, `docs/DESIGN_SYSTEM.md` v0.3, `docs/TESTING.md` v0.3.
+Статус: утверждён Ivan 2026-11-05, версия 0.5 от 2026-11-05 — точечный reopen в этапе 1R по решению Ivan: O45 (сверка PR в плане выкатки, ревью reopen r1 security-1), уточнение O15 (режимы сида), 6.1 (ссылка), §23 (отметки выполнения); ответы — `docs/setup/reviews/reopen-response-r2.md`, `docs/setup/reviews/reopen-response-r3.md` (честные границы O45, `--match-head-commit`, inline-цикл и экранирование 9.2а, список при `bootstrap=true`, проверка журнала 14.3). Версия 0.4 утверждена Ivan 2026-11-05 (ответы — `docs/setup/reviews/F7-response-r1.md`, `docs/setup/reviews/F7-response-r2.md`, `docs/setup/reviews/F7-response-r3.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5 (+ `docs/adr/`), `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4, `docs/TESTING.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05; прежние утверждённые — v0.3 / v0.4 / v0.3 / v0.3 / v0.3 / v0.3).
 Утверждает: Ivan (BUSINESS D9).
 
-Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры и стоимость, 3 — решения (3.1 среды и инфраструктура, 3.2 CI и поток выкатки, 3.3 проверки, откат, нагрузка, 3.4 наблюдаемость, 3.5 бэкапы и аварии, 3.6 прочее), 4 — среды, 5 — VPS и первичная настройка, 6 — контейнеры (6.1 compose, 6.2 образы, 6.3 Caddy, 6.4 тестовая БД), 7 — переменные и секреты, 8 — CI, 9 — выкатка (9.1 поток и подтверждения, 9.2 workflow, 9.3 команды на VPS и коды, 9.4 выкатка prod и проверки, 9.5 откат, 9.6 staging и его smoke, 9.7 окна и плановые работы), 10 — команды для `/release`, 11 — нагрузочный тест, 12 — наблюдаемость, 13 — алерты, 14 — бэкапы и восстановление, 15 — кто и что может в проде, 16 — настройки GitHub, учётная запись, правила Claude Code, 17 — лицензия и публичный репозиторий, 18 — чего не делаем, 19 — план роста, 20 — что нужно от Ivan и когда, 21 — открытые вопросы, 22 — закрытые пункты других документов, 23 — правки утверждённых документов (для reopen). Номера: решения `O#`, вопросы `F7-Qn`; ссылки — `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`, `DESIGN U#`, `TESTING V#` / `§N`.
+Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры и стоимость, 3 — решения (3.1 среды и инфраструктура, 3.2 CI и поток выкатки, 3.3 проверки, откат, нагрузка, 3.4 наблюдаемость, 3.5 бэкапы и аварии, 3.6 прочее), 4 — среды, 5 — VPS и первичная настройка, 6 — контейнеры (6.1 compose, 6.2 образы, 6.3 Caddy, 6.4 тестовая БД), 7 — переменные и секреты, 8 — CI, 9 — выкатка (9.1 поток и подтверждения, 9.2 workflow, 9.2а список PR в плане, 9.3 команды на VPS и коды, 9.4 выкатка prod и проверки, 9.5 откат, 9.6 staging и его smoke, 9.7 окна и плановые работы), 10 — команды для `/release`, 11 — нагрузочный тест, 12 — наблюдаемость, 13 — алерты, 14 — бэкапы и восстановление, 15 — кто и что может в проде, 16 — настройки GitHub, учётная запись, правила Claude Code, 17 — лицензия и публичный репозиторий, 18 — чего не делаем, 19 — план роста, 20 — что нужно от Ivan и когда, 21 — открытые вопросы, 22 — закрытые пункты других документов, 23 — правки утверждённых документов (для reopen). Номера: решения `O#`, вопросы `F7-Qn`; ссылки — `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`, `DESIGN U#`, `TESTING V#` / `§N`.
 
 Что читать по роли:
 - devops: всё; при задаче — свой раздел + 1, 7.
@@ -19,7 +19,8 @@
 - MUST NOT: агентам — SSH к VPS, ключи выкатки, значения секретов, запуск `scripts/ops/` (SECURITY §16). Агенты не коммитят и не пушат (хук набора); `git push`, `gh pr merge`, `gh workflow run` выполняет оркестратор только с подтверждением Ivan в Claude Code (16.3).
 - MUST оркестратору: к GitHub — только командами раздела 10 (`gh workflow run`, `gh run list`, `gh run view`, `gh pr …` без `review`). MUST NOT: `gh api` (любой), `curl`/`wget` к GitHub, `gh auth`, `gh secret`, `gh variable`, `gh repo edit`, `gh run cancel`/`rerun`, `gh workflow enable|disable`, `gh pr review`, обёртки вокруг них (`env …`, `bash -c`, скрипт). Правила Claude Code — 16.3.
 - MUST: сессия Claude Code работает только с fine-grained токеном GitHub из 16.2 (O43); полный `gh auth` Ivan в ней не залогинен. Коммиты с `.github/workflows/**` пушит Ivan сам: у токена нет права Workflows.
-- MUST: перед `git push` коммитов, меняющих `.github/`, `deploy/`, `scripts/ops/`, и перед `gh pr merge` такого PR оркестратор показывает Ivan diff этих путей (O36).
+- MUST: перед `git push` коммитов, меняющих `.github/`, `deploy/`, `scripts/ops/`, и перед `gh pr merge` такого PR оркестратор показывает Ivan diff этих путей (O36). Мерж — только `gh pr merge <N> --match-head-commit <SHA своего push>` (16.3).
+- Токен сессии технически может смержить PR без Ivan (O45). MUST NOT агентам: мерж без подтверждения Ivan любым путём; считать `main` одобренным Ivan. Список PR перед prod (9.2а) сверяет только Ivan; оркестратор не составляет для него «список своих мержей» как замену сверки.
 - MUST: секреты сред — только в GitHub environments `prod` и `staging`; на VPS их пишет скрипт выкатки (раздел 7). MUST NOT: секреты в репозитории, образе, `--build-arg`, логах шагов, артефактах; `set -x` и `echo` в шагах с секретами (SECURITY §17).
 - MUST: входы `workflow_dispatch` попадают в `run:` только через `env:`; `env` и `action` — тип `choice`; `image` проверяется `^sha256:[0-9a-f]{64}$` в job `plan` (9.2).
 - MUST: секреты environment — на уровне шага, не job. В job с environment код ветки (`npm ci`, тесты) запускается только после всех шагов с SSH-ключом; после кода ветки SSH в том же job не вызывается (9.6).
@@ -58,7 +59,7 @@
 | Backblaze B2 | 0 | 10 ГБ |
 | Telegram Bot API | 0 | — |
 
-Вывод: один VPS, одна команда `docker compose`, никакого оркестратора и Prometheus. Руками Ivan: одно подтверждение staging, ручной вход на staging, одно подтверждение prod на выкатку (9.1); ежемесячная проверка восстановления; реакция на алерт. 99% без дежурства держится только для сбоев, которые лечатся сами (O31).
+Вывод: один VPS, одна команда `docker compose`, никакого оркестратора и Prometheus. Руками Ivan: одно подтверждение staging, ручной вход на staging, сверка списка PR и одно подтверждение prod на выкатку (9.1, O45); ежемесячная проверка восстановления; реакция на алерт. 99% без дежурства держится только для сбоев, которые лечатся сами (O31).
 
 ## 3. Таблица решений
 
@@ -85,13 +86,14 @@
 | O8 | Выкатка — `deploy.yml`; в запуске ровно один job с `environment` → одно подтверждение Ivan на запуск (9.1) | DOCUMENTS F7; SECURITY S24; бизнес D9; ревью r1 | Автовыкатка после мержа — против D9 |
 | O9 | CI входит пользователем `deploy` двумя ключами `restrict` с `command=`; клон переключает только `prod deploy` на SHA запуска (предок `origin/main`) | SECURITY §16, §17; ревью r1 (sec-1) | Обновлять клон любой командой — ключ staging запускал бы неодобренный для prod код |
 | O10 | Секреты — GitHub environments → stdin SSH → файлы среды по `deploy/env.allowlist`; staging принимает только `[staging]` (раздел 7) | SECURITY S24; ревью r1 (sec-5) | `.env` руками — секреты в двух местах |
-| O36 | Учётная запись одна — Ivan; агенты не пушат; push, мерж, запуск workflow — оркестратор с подтверждением; diff `.github/`, `deploy/`, `scripts/ops/` перед `git push` и `gh pr merge` | факт набора (`settings.json`, `guard.sh`); SECURITY S24; ревью r1, r2 (sec-1, sec-12) | Отдельная учётная запись агентов + обязательное ревью CODEOWNERS — лишнее при агентах без push |
+| O36 | Учётная запись одна — Ivan; агенты не пушат; push, мерж, запуск workflow — оркестратор с подтверждением; diff `.github/`, `deploy/`, `scripts/ops/` перед `git push` и `gh pr merge`; мерж — только `gh pr merge <N> --match-head-commit <SHA>`, где SHA — голова, которую оркестратор сам запушил и показал Ivan в запросе подтверждения (16.3) | факт набора (`settings.json`, `guard.sh`); SECURITY S24; ревью r1, r2 (sec-1, sec-12); reopen r3 (security-5) | Отдельная учётная запись агентов + обязательное ревью CODEOWNERS — лишнее при агентах без push |
 | O39 | Правила Claude Code 16.3 (`ask` на весь `gh api`, `deny` на `gh auth`/`secret`/`variable`/`repo edit` и др.) — условие первой выкатки | ревью r2 (sec-10) | Список запретов по префиксам флагов — обходится (флаг после пути, неявный POST, GraphQL) |
-| O37 | Job `plan` без секретов: diff `deploy/`, `scripts/ops/`, `.github/`, `apps/server/migrations/` от базы до подтверждения prod | ревью r1 (sec-1) | Подписанные теги Ivan — ещё ключ и шаг |
+| O37 | Job `plan` без секретов: diff `deploy/`, `scripts/ops/`, `.github/`, `apps/server/migrations/` от базы и список PR и коммитов (O45) до подтверждения prod | ревью r1 (sec-1); reopen r2 (security-1) | Подписанные теги Ivan — ещё ключ и шаг |
 | O41 | База diff — `headSha` последнего успешного запуска `prod deploy`; `deploy.sh` сверяет её с SHA клона, иначе код 6 | ревью r2 (sec-11) | SHA из Deployments API — его пишет и откат, и любой вызов API |
 | O40 | Первая выкатка после `bootstrap.sh` — `env=prod` с `bootstrap=true` без предшествующего staging (prod пуст, игроков нет); `up` staging без выкатки prod → код 7 | по умолчанию; ревью r2 (consistency-2) | Первый staging шагом bootstrap — ещё ветка логики ради разового случая |
 | O43 | Сессия Claude Code — fine-grained токен GitHub только на этот репозиторий: Contents RW, Pull requests RW, Actions RW, Metadata R; без Administration, Environments, Secrets, Variables, Workflows. `.github/workflows/**` пушит Ivan сам (CODEOWNERS). Закрывает F7-Q9 | человек, утверждение F7, 2026-11-05; ревью r3 (sec-14) | Полный `gh auth` Ivan + правила 16.3 — код, который запускают агенты (`npm test`, `child_process`), обходит строковые правила и с правами администратора снимает environments и ruleset |
-| O44 | Вход `bootstrap=true` у `deploy.yml` (только `env=prod`): `plan` не ищет базу и показывает полный diff `deploy/` и `.github/`, `deploy.sh` пропускает проверку базы O41; подтверждение environment `prod` остаётся. Для первой выкатки, повтора неудавшейся первой и нового VPS (14.3) | человек, утверждение F7, 2026-11-05; ревью r3 (consistency-8) | `base=none` по отсутствию успешных запусков — на новом VPS после аварии успешные запуски есть, выкатка невозможна |
+| O44 | Вход `bootstrap=true` у `deploy.yml` (только `env=prod`): `plan` не требует базу и показывает полный список файлов `deploy/` и `.github/`; если последний успешный `prod deploy` всё же найден (новый VPS, 14.3) — список O45 строится от него (9.2а; reopen r3, security-8); `deploy.sh` пропускает проверку базы O41; подтверждение environment `prod` остаётся. Для первой выкатки, повтора неудавшейся первой и нового VPS (14.3) | человек, утверждение F7, 2026-11-05; ревью r3 (consistency-8) | `base=none` по отсутствию успешных запусков — на новом VPS после аварии успешные запуски есть, выкатка невозможна |
+| O45 | В итог job `plan` для `prod deploy` — список PR и коммитов между базой O41 и SHA выкатки: номер и заголовок PR, автор, кто и когда смержил (`mergedAt`), коммиты вне PR (9.2а). MUST: Ivan сверяет список со своими мержами перед подтверждением environment `prod`; несовпадение — выкатку отклонить, токен сессии 16.2 отозвать. Причина: токен O43 (Pull requests RW) технически мержит PR без Ivan, ruleset без обязательного ревью (16.1 п.2). Сверка ловит **лишний PR и коммит вне PR**, но не закладку внутри PR, который Ivan подтвердил (код `apps/server/` Ivan перед мержем не смотрит, O36): номер, заголовок и время у такого PR совпадают. Это часть принятого Ivan риска (SECURITY §17). `--match-head-commit` (O36) отсекает коммит, дописанный токеном в ветку PR после push оркестратора; подмену рабочей копии, которую оркестратор коммитит сам, не отсекает ничто. Пересмотр — до этапа 5: убрать `GH_TOKEN` из окружения процессов агентов (SECURITY §17) | человек (Ivan, 2026-11-05, вариант (а) + принятый риск); ревью reopen r1 (security-1), r3 (security-5) | Убрать `GH_TOKEN` из окружения `npm test`/`npx` сейчас (вариант б) — обёртка `gh` у оркестратора и очистка env у всех запусков агентов, правка F8; отложено до этапа 5 решением Ivan |
 
 ### 3.3. Проверки, откат, нагрузка
 
@@ -101,7 +103,7 @@
 | O12 | Откат — прошлый образ на той же схеме: `action=rollback` или `image=<digest>` из истории — только Ivan | ARCHITECTURE §5; ревью r1 | Откат миграций запрещён |
 | O13 | Выкатка (простой ≤ 1 мин, ARCHITECTURE A10) — не плановая работа; плановая — простой > 5 мин, объявление за 24 ч (F7-Q5) | ТЗ §5; по умолчанию | Объявлять каждую выкатку ради секунд |
 | O14 | Smoke: staging — `@smoke` в job `staging` после SSH + ручной вход (TESTING V17); prod — проверки `deploy.sh` | TESTING V17, §9; ревью r1 | e2e на prod — тестовые аккаунты в prod (S26) |
-| O15 | Session сида на staging — `HMAC(SEED_TOKEN_SECRET, ник)` (§23) | человек (публичный репозиторий) | Фиксированные токены публичны |
+| O15 | Session сида `--demo` на staging — `HMAC(SEED_TOKEN_SECRET, ник)`; сид `--load` (раздел 11) секрет не использует — случайные токены в файл `/tmp/tokens` (TESTING §7.6, V20) | человек (публичный репозиторий); режимы — ревью reopen r2 (agentability-9) | Фиксированные токены публичны |
 | O16 | Нагрузка — `load.yml`, один job только с SSH-шагами (раздел 11) | TESTING V11, §10 | Запуск по SSH руками — против «только CI» |
 | O38 | `prod deploy` при > 10 активных партиях — код 3; обход — `force=true` (Ivan) | ARCHITECTURE §5; ревью r1 (agent-4) | Правило без проверки — агент не видит партий |
 
@@ -201,7 +203,7 @@
 - Все: `restart: unless-stopped` (кроме `tools-staging`), `logging: {driver: journald, options: {tag: "{{.Name}}"}}`.
 - `app`: `depends_on: db: condition: service_healthy`; healthcheck `node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"`, раз в 10 с, `start_period: 60s`. `db`: `pg_isready -U app -d chezz`.
 - PostgreSQL 18 везде: prod, staging, `compose.test.yml`, `services:` CI (TESTING §7.1).
-- Память: prod ≈ 1,2 ГБ лимитов, со staging ≈ 2,6 ГБ из 4 ГБ (ARCHITECTURE §5).
+- Память: prod ≈ 1,2 ГБ лимитов, со staging ≈ 2,6 ГБ из 4 ГБ. Источник лимитов и суммы — эта таблица (ARCHITECTURE §5 ссылается сюда).
 
 ### 6.2. Образы
 
@@ -294,11 +296,11 @@ staging.{$APP_DOMAIN} {
 
 | Шаг | Что | Действия Ivan |
 |---|---|---|
-| 1 | PR смержен в `main`, CI зелёный | подтвердить `gh pr merge` (после diff чувствительных путей, O36) |
+| 1 | PR смержен в `main`, CI зелёный | подтвердить `gh pr merge <N> --match-head-commit <SHA>` (после diff чувствительных путей; SHA в команде — тот, что оркестратор запушил, O36) |
 | 2 | `deploy.yml` `env=staging`, `--ref main` (или ветка фичи до мержа, TESTING §14 п.6) | подтвердить `gh workflow run` + **1** подтверждение environment `staging` |
 | 3 | ручная проверка staging (9.6) | вход через Google |
 | 4 | фича трогает горячий путь хода перед этапом 5 или 6 — `load.yml` (TESTING §14 п.7) | +1 подтверждение `staging` |
-| 5 | `deploy.yml` `env=prod`, `--ref main`; в итоге job `plan` — изменения инфраструктуры (O37) | подтвердить `gh workflow run` + **1** подтверждение environment `prod` |
+| 5 | `deploy.yml` `env=prod`, `--ref main`; в итоге job `plan` — изменения инфраструктуры (O37) и список PR и коммитов с базы (O45, 9.2а) | подтвердить `gh workflow run`; **сверить список PR со своими мержами (9.2а)**; затем **1** подтверждение environment `prod` или Reject |
 | 6 | staging гаснет сам при выкатке prod (9.4 шаг 6) | — |
 
 - Подтверждений environment: подъём staging — 1, выкатка prod — 1, откат — 1, `action=down` — 1, нагрузка — 1.
@@ -311,7 +313,7 @@ staging.{$APP_DOMAIN} {
 
 | Job | `needs` и условие | `environment` | Права | Шаги |
 |---|---|---|---|---|
-| `plan` | всегда | нет | `contents: read`, `actions: read` | проверка сочетаний (`prod`+`down`, `staging`+`rollback`, `prod` не с `main` → ошибка; `image` по regex). Для `prod deploy` без `bootstrap`: `BASE` = `headSha` последнего запуска с `displayTitle == "prod deploy"` и `conclusion == success` (`gh run list --workflow deploy.yml --branch main --event workflow_dispatch --json displayTitle,headSha,conclusion -L 200`); не найден → ошибка «нужен `bootstrap=true`». `git diff --stat $BASE..HEAD -- deploy/ scripts/ops/ .github/ apps/server/migrations/` → `$GITHUB_STEP_SUMMARY`. С `bootstrap=true`: `BASE=bootstrap`, в итог — полный список файлов `deploy/` и `.github/` (`git ls-files`) и пометка «bootstrap: проверка базы пропущена». Выход: `base` |
+| `plan` | всегда | нет | `contents: read`, `actions: read`, `pull-requests: read` | проверка сочетаний (`prod`+`down`, `staging`+`rollback`, `prod` не с `main` → ошибка; `image` по regex). Для `prod deploy` без `bootstrap`: `BASE` = `headSha` последнего запуска с `displayTitle == "prod deploy"` и `conclusion == success` (`gh run list --workflow deploy.yml --branch main --event workflow_dispatch --json displayTitle,headSha,conclusion -L 200`); не найден → ошибка «нужен `bootstrap=true`». `git diff --stat $BASE..HEAD -- deploy/ scripts/ops/ .github/ apps/server/migrations/` → `$GITHUB_STEP_SUMMARY`. Затем список O45 → `$GITHUB_STEP_SUMMARY` (9.2а). С `bootstrap=true`: `BASE=bootstrap`, в итог — полный список файлов `deploy/` и `.github/` (`git ls-files`) и пометка «bootstrap: проверка базы пропущена»; поиск последнего успешного `prod deploy` тот же, найден — `LIST_BASE` = его `headSha` для списка O45, не найден — без ошибки (9.2а). Выход: `base`. Скриптов репозитория на runner не запускает: все шаги — inline `run:` в `deploy.yml` (9.2а) |
 | `build` | `needs: plan`; `if: inputs.action == 'deploy'` | нет | `contents: read`, `packages: write` | `checkout` → `docker buildx build`: `env=prod` → `app` в `chezz-app`; `env=staging` → `app` в `chezz-app-staging`, `tools` в `chezz-tools-staging`; `APP_VERSION=${{ github.sha }}`; выход — digest. Скриптов репозитория на runner не запускает |
 | `prod` | `needs: [plan, build]`; `if: always() && needs.plan.result == 'success' && inputs.env == 'prod' && (needs.build.result == 'success' \|\| needs.build.result == 'skipped')` | `prod` | `contents: read` | один шаг SSH: `deploy <sha> <digest> <base> [force]` или `rollback [<digest>]`; вывод `result=…` и `status` (9.3) — в итог |
 | `staging` | то же условие с `inputs.env == 'staging'` | `staging` | `contents: read` | 9.6 |
@@ -319,6 +321,37 @@ staging.{$APP_DOMAIN} {
 - SSH-шаг: ключ из `SSH_DEPLOY_KEY` в `$RUNNER_TEMP`, `known_hosts` из `VPS_HOST_KEY`, `StrictHostKeyChecking yes`; файл ключа удаляется в том же шаге (`trap`).
 - `build` из ветки запускается без подтверждения и публикует образ в `chezz-*-staging` — допустимо: образ без секретов, в prod не попадает (O32).
 - Запуск, отказавший в `deploy.sh` (код 1 и выше), — `conclusion: failure` и как база O41 не учитывается.
+- `checkout` в `plan` — `fetch-depth: 0` (нужна история от базы).
+
+#### 9.2а. Список PR и коммитов в плане (O45)
+
+Строит job `plan` для `env=prod`, `action=deploy`; `GH_TOKEN` шага — `GITHUB_TOKEN` job (права выше), секретов нет. `LIST_BASE` — база O41 (`$BASE`); при `bootstrap=true` — `headSha` последнего успешного `prod deploy`, если он найден (9.2).
+- MUST: цикл — inline `run:` в `.github/workflows/deploy.yml`. MUST NOT: выносить его в файл вне `.github/workflows/` (`scripts/ci/*.sh` и т. п.) — такой файл токен сессии (Contents RW, без Workflows, O43) правит в том же PR, что и закладку, и список скрывает сам себя. Job `plan` файлов репозитория не запускает (reopen r3, security-6).
+```
+SEEN=" "
+for C in $(git rev-list --first-parent --reverse "$LIST_BASE"..HEAD); do
+  PR=$(gh api "repos/$GITHUB_REPOSITORY/commits/$C/pulls" -q '[.[] | select(.merged_at != null)][0].number // empty')
+  if [ -n "$PR" ]; then
+    case "$SEEN" in *" $PR "*) continue ;; esac   # rebase-мерж: один PR — одна строка
+    SEEN="$SEEN$PR "
+    gh pr view "$PR" --json number,title,author,mergedBy,mergedAt,mergeCommit \
+      -q '"| #\(.number) | \(.title | gsub("[|<>`]"; "_")) | \(.author.login) | \(.mergedBy.login) | \(.mergedAt) | \(.mergeCommit.oid[0:7]) |"'
+  else
+    echo "| — | **коммит вне PR** $(git log -1 --format='%h %an %cI %s' "$C" | tr '|<>`' '____') | | | | |"
+  fi
+done
+```
+- Экранирование (MUST, reopen r3, security-7): в заголовке PR и в теме и авторе коммита `|`, `<`, `>`, `` ` `` заменяются на `_`. Заголовок задаёт тот, кто пишет PR, и токен может переименовать даже смерженный PR: `<!--` скрыл бы строки ниже, `|` сдвинул бы колонки.
+- Итог — таблица `| PR | Заголовок | Автор | Смержил | Когда (UTC) | Коммит |` под diff O37; последняя строка — «PR: N, коммитов вне PR: M». Пустой диапазон (база = HEAD) — строка «новых коммитов нет». Итоговой строки нет или N не равно числу строк PR — считать несовпадением (п.3 сверки).
+- Учётная запись одна (16.2): `mergedBy` — всегда логин Ivan (и у мержа токеном сессии тоже); `author` — Ivan или `dependabot[bot]`. Поэтому сверяются **номер PR, заголовок и время мержа**, а не логин.
+- С `bootstrap=true`: последний успешный `prod deploy` найден (новый VPS после аварии, 14.3) — список строится от него, как обычно; не найден (первая выкатка и её повтор) — в итог пометка «bootstrap: список PR не строится», Ivan сверяет по полному списку файлов (reopen r3, security-8).
+- Что сверка **не** ловит: закладку в коде PR, который Ivan сам подтвердил (код `apps/server/` перед мержем Ivan не видит, O36). Это принятый риск SECURITY §17, а не барьер; агенты MUST NOT считать сверку O45 проверкой содержимого.
+
+Сверка Ivan (MUST, перед подтверждением environment `prod`, 9.1 шаг 5):
+1. Каждый PR из списка — тот, чей `gh pr merge` Ivan подтверждал в Claude Code или который смержил сам вне сессии (например, PR Dependabot). Сверять по своей памяти, заметкам или истории подтверждений, а не по отчёту, который составила сессия агентов: её токен и есть то, что проверяется.
+2. Строк «коммит вне PR» нет (ruleset 16.1 п.1 их не пропускает; появились — ruleset обойдён).
+3. Несовпадение (лишний PR, чужое время, коммит вне PR) → отклонить environment `prod` (Reject), отозвать fine-grained токен сессии (GitHub → Settings → Developer settings → Fine-grained tokens → Revoke), выпустить новый по 16.2, разобрать лишний PR и откатить его revert-PR вне сессии агентов.
+- Пример: в списке `#41 rating: leaderboard cache` (подтверждал) и `#42 deps: bump pino` с `mergedAt` 03:12 UTC — Ivan в это время мержей не подтверждал → Reject, токен отозван, `#42` разбирается вручную.
 
 ### 9.3. Команды на VPS и коды
 
@@ -470,6 +503,7 @@ gh workflow run load.yml --ref "$REF"
 3. `report.json` → итог job; код ≠ 0 при нарушении порога (TESTING §10).
 4. `down` — `if: always()`.
 
+- Токены `--load` — случайные, `SEED_TOKEN_SECRET` из `staging.env` сид в этом режиме не использует (O15, TESTING §7.6).
 - Файл токенов и отчёт — только в `tmpfs` `/tmp` контейнера (`read_only`, 6.1); в артефакты, логи и stdout токены не попадают (TESTING §7.6). Путь отчёта задаёт `LOAD_REPORT` (правка TESTING §10 — §23).
 - Память и задержку event loop `app-staging` генератор читает с `app-staging:9464/metrics` по сети `staging`.
 
@@ -564,6 +598,7 @@ RPO ≤ 24 ч, RTO ≤ 4 ч рабочего времени Ivan (O26, O31). Д�
    - `offsite`: `ssh ops@<vps> /srv/chezz/repo/scripts/ops/restore-prod.sh --from-b2 <имя> --sha256 <хэш из Telegram> < ~/keys/chezz-backup.age.key`;
    - `local` (до этапа 4, VPS жив, БД испорчена): `ssh ops@<vps> /srv/chezz/repo/scripts/ops/restore-prod.sh --local <файл .dump>` — без ключа.
    - Скрипт: сверяет SHA-256 (для `offsite`), останавливает `app`, пересоздаёт базу `chezz`, `pg_restore --no-owner --no-privileges` ролью `app` (не `postgres`), выполняет `logout-everyone.sql`, печатает `user_id` из строк `account_deleted` журнала после времени бэкапа (12.1), запускает `app`.
+   - Полнота журнала (MUST, reopen r3, security-3): журнал общий и ограничен `SystemMaxUse=1G` (O17), старые строки могут быть вытеснены раньше 14 дней. Скрипт берёт время самой ранней записи `journalctl CONTAINER_TAG=chezz-app-1 -o short-unix | head -n 1`; если записей нет или она не старше времени бэкапа — печатает крупно `WARNING: журнал app начинается позже бэкапа (<время>), список удалений может быть неполным — SECURITY S39`, и Ivan действует по шагу 7 как при потере VPS для удалений до начала журнала.
 7. Удаления после бэкапа: напечатанные `user_id` Ivan записывает в Issue (без ПДн) и повторяет их удаление, когда появится способ (F7-Q8). При потере VPS журнала нет — эти удаления не восстановить (принятое отступление O31 п.2). Smoke prod (9.4 п.8), сообщение игрокам по каналу F7-Q5.
 
 - Потеря только БД — шаги 5–7.
@@ -602,7 +637,7 @@ O36, O43: учётная запись одна — Ivan. Сессия Claude Cod
 - Contents — Read and write; Pull requests — Read and write; Actions — Read and write (`gh workflow run`, `gh run`); Metadata — Read;
 - нет: Administration, Environments, Secrets, Variables, Workflows и остальных.
 - Полный `gh auth` Ivan в этой сессии не залогинен (`gh auth status` показывает только токен); им Ivan пользуется вне Claude Code — в том числе пушит коммиты с `.github/workflows/**` (CODEOWNERS, SECURITY S24).
-- Так environments, ruleset и секреты не меняет даже код, обходящий строковые правила 16.3; мерж и dispatch упираются в подтверждение environment и diff O37/O41. Срок токена — до 1 года, продление — Ivan.
+- Так environments, ruleset и секреты не меняет даже код, обходящий строковые правила 16.3. Мерж PR и dispatch этот токен **может** выполнить сам (Pull requests RW, Actions RW): обязательного ревью нет (16.1 п.2). Дальше prod они не проходят без подтверждения environment, а перед ним Ivan сверяет diff O37/O41 и список PR O45 (9.2а) — это ловит лишний PR и коммит вне PR. Закладку, которую тот же токен или код зависимости добавил в PR, подтверждённый Ivan, сверка не ловит (`--match-head-commit`, O36, отсекает только коммит, дописанный в ветку после push). Остаточный риск — SECURITY §17 (принят Ivan 2026-11-05, пересмотр до этапа 5). Срок токена — до 1 года, продление — Ivan; отзыв — при несовпадении списка O45.
 
 ### 16.3. Правила Claude Code (`.claude/settings.json`)
 
@@ -634,6 +669,7 @@ O36, O43: учётная запись одна — Ivan. Сессия Claude Cod
 ]
 ```
 - Существующие `deny` (`.env`, `git push --force`, `-f`) остаются.
+- `gh pr merge` оркестратор вызывает только как `gh pr merge <N> --match-head-commit <SHA>` (O36): SHA — `git rev-parse HEAD` ветки после его собственного `git push`. Ivan видит SHA в запросе подтверждения; запрос без `--match-head-commit` Ivan отклоняет. Голова PR сменилась после push → GitHub отказывает в мерже, оркестратор сообщает Ivan и не повторяет мерж с новым SHA без нового diff.
 - `gh api` нужен только CI (`plan`), не оркестратору: команды раздела 10 его не используют. Любой `gh api` у оркестратора — подтверждение Ivan с показом команды; Ivan отклоняет всё, что не GET и не понятно.
 - `curl`/`wget` в `ask`: иначе тот же REST GitHub доступен с токеном. `deny` на чтение файлов `gh` — токен не читается из конфигурации (на Windows `gh` хранит его в Credential Manager; `gh auth token` — в `deny`).
 - MUST NOT: переносить эти правила в `allow`; обёртки (`env X=1 gh api`, `bash -c "gh api …"`, свой скрипт) — запрещены разделом 1; Ivan отклоняет такие запросы.
@@ -658,7 +694,7 @@ O36, O43: учётная запись одна — Ivan. Сессия Claude Cod
 | Снимки диска у провайдера | бэкап + `bootstrap.sh` | раздел 19 |
 | Бэкап скриншотов | O24 | — |
 | Отдельная учётная запись агентов | агенты не пушат (O36) | агенты получат право push |
-| Подписанные теги для выкатки | O37, O41 + подтверждение prod | изменения `deploy/**` попадут в `main` без ведома Ivan |
+| Подписанные теги для выкатки | O37, O41, O45 + подтверждение prod | сверка O45 хоть раз нашла PR без ведома Ivan |
 | Подпись дампов | нужен ключ на VPS | — (14.3, принятый риск) |
 
 ## 19. План роста
@@ -682,9 +718,9 @@ O36, O43: учётная запись одна — Ivan. Сессия Claude Cod
 | До открытия репозитория / сразу | `gitleaks` по истории; 16.1 п.1, 2, 5, 6 | 16, 17 |
 | До первой выкатки (конец этапа 1) — **условие** | Fine-grained токен 16.2 в сессии Claude Code, полный `gh auth` в ней разлогинен (O43); правила 16.3 в `.claude/settings.json` (O39); первая выкатка с `bootstrap=true` (O44); провайдер и регион VPS (F7-Q1), домен и DNS `@`, `staging` (F7-Q2); `bootstrap.sh`; клиенты Google OAuth prod и staging (redirect `https://<домен>/auth/google/callback`); environments, secrets, vars; аккаунты Sentry и UptimeRobot (+ Telegram); два ключа SSH выкатки | 5, 7, 12, 16 |
 | Этап 4, до первого внешнего игрока | Бакет B2 с Object Lock и ключ без удаления; пара ключей `age`; бот Telegram для VPS; `BACKUP_REQUIRE_OFFSITE=true`; `watch.sh` v1; первая проверка восстановления | 12.3, 14 |
-| До этапа 5 | Канал объявлений (F7-Q5); тестовые пользователи клиента Google staging; F7-Q8 | 9.7, 9.6, 14.3 |
+| До этапа 5 | Канал объявлений (F7-Q5); тестовые пользователи клиента Google staging; F7-Q8; пересмотр принятого риска O45 — убрать `GH_TOKEN` из окружения процессов агентов (SECURITY §17, вариант (б) security-1) | 9.7, 9.6, 14.3, 9.2а |
 | Каждый месяц (с этапа 4) | Проверка восстановления | 14.2 |
-| Каждая выкатка | 1 подтверждение staging, ручной вход, 1 подтверждение prod (9.1) | 9 |
+| Каждая выкатка | 1 подтверждение staging, ручной вход, сверка списка PR (O45), 1 подтверждение prod (9.1) | 9 |
 
 ## 21. Открытые вопросы
 
@@ -710,7 +746,15 @@ O36, O43: учётная запись одна — Ivan. Сессия Claude Cod
 
 ## 23. Правки утверждённых документов (для reopen)
 
-Не правлены здесь; до reopen агенты следуют F7 в вопросах эксплуатации. Выполнять вместе с остальными (reopen F1 + F2 одним заходом, `docs/setup/log.md`).
+Статус (v0.5): пункты 1–8, 10, 11 **выполнены в reopen 1R** (2026-11-05; ответы — `docs/setup/reviews/F2-reopen-response-r1.md`, `F3-reopen-response-r1.md`, `F6-reopen-response-r1.md`, `reopen-response-r1.md`, `reopen-response-r2.md`, `reopen-response-r3.md`); reopen утверждён Ivan 2026-11-05, правки действуют. Пункт 9 — не выполнен: зависит от F7-Q8 (открыт до этапа 5). Пункты 12–13 — для F8, здесь не выполняются.
+
+| Пункт | Где выполнен |
+|---|---|
+| 1–3 (F2) | ARCHITECTURE v0.5: §5, A22, §14, §13 |
+| 4–8 (F3) | SECURITY v0.4: §15, S37; §14, S38, S39, §12; §17; S24, §17 (с O45 — reopen r2); §16, S32 |
+| 9 (F3) | не выполнен — F7-Q8 |
+| 10–11 (F6) | TESTING v0.4: §7.6, V20, V23 (режимы — reopen r2); §9, §10, §7.1, V21, V22 |
+| 12–13 (F8) | не выполняются здесь — F8 |
 
 F2 `docs/ARCHITECTURE.md`:
 1. §5: staging — `staging.<домен>`, сети и ужесточение 6.1, `tools-staging`; выкатка не плановая работа (O13); бэкап — B2 (O23).

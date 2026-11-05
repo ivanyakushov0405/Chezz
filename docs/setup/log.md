@@ -8,23 +8,23 @@
 | F# | Файл | Раздел | Статус |
 |---|---|---|---|
 | — | `docs/setup/BUSINESS.md` | весь | создан (только по ТЗ, допущения D1–D11) |
-| F1 | `docs/GLOSSARY.md` | весь | v0.3, утверждён Ivan 2026-11-04 |
-| F2 | `docs/ARCHITECTURE.md` | весь | v0.4 (Node.js + TS, SEO), утверждён Ivan 2026-11-04 как есть; 🟠 consistency-21 (packages/i18n) и F2-Q8..Q12 — разработчику |
-| F3 | `docs/SECURITY.md` | весь | v0.3, утверждён Ivan 2026-11-04; F3-Q4 по умолчанию (текст Feedback остаётся) |
-
-**Отложено:** reopen F1 + F2 одним заходом в конце этапа 1, перед F8 (решение Ivan) — по спискам F3-Q3 и правкам из F4–F7.
-| F4 | `docs/API_CONVENTIONS.md` | весь | v0.3, утверждён Ivan 2026-11-04; 🟠 r2 → F4-Q5..Q7 разработчику |
-| F5 | `docs/DESIGN_SYSTEM.md` | весь | v0.3, утверждён Ivan 2026-11-04 (Chezz, chessground GPL-3.0) |
-| F6 | `docs/TESTING.md` | весь | v0.3, утверждён Ivan 2026-11-04 (публичный репозиторий) |
-| F7 | `docs/OPERATIONS.md` | весь | v0.4, утверждён Ivan 2026-11-05 (fine-grained токен, `bootstrap=true`); 🟡 consistency-10…14 → задача devops; F7-Q8 открыт до этапа 5 |
+| F1 | `docs/GLOSSARY.md` | весь | v0.4 (reopen 1R), утверждён Ivan 2026-11-05 |
+| F2 | `docs/ARCHITECTURE.md` | весь | v0.5 (reopen 1R), утверждён Ivan 2026-11-05; 🟠 consistency-21 и F2-Q8..Q12 — разработчику |
+| F3 | `docs/SECURITY.md` | весь | v0.4 (reopen 1R), утверждён Ivan 2026-11-05; принятый риск токена сессии (O45) — пересмотр до этапа 5 |
+| F4 | `docs/API_CONVENTIONS.md` | весь | v0.4 (reopen 1R), утверждён Ivan 2026-11-05; F4-Q8 (тема по умолчанию) — Ivan |
+| F5 | `docs/DESIGN_SYSTEM.md` | весь | v0.4 (reopen 1R), утверждён Ivan 2026-11-05; F5-Q6 (лицензии merida, звуков) — Ivan |
+| F6 | `docs/TESTING.md` | весь | v0.4 (reopen 1R), утверждён Ivan 2026-11-05 |
+| F7 | `docs/OPERATIONS.md` | весь | v0.5 (reopen 1R, O45), утверждён Ivan 2026-11-05; 🟡 consistency-10…14, security-2(б) → задача devops; F7-Q8 открыт до этапа 5 |
 | F8 | `.claude/profile.md` и др. | — | — |
+
+**Reopen 1R (2026-11-05, решение Ivan):** F1–F6 одним заходом по спискам F3-Q3, F4 §17.2, F5 §18.2, F6 §18.2, F7 §23; F7 — точечно (security-1: вариант (а) + принятый риск). Критики — по одной линзе на все документы, по изменённым разделам, 3 раунда; отчёты `docs/setup/reviews/reopen-<линза>-r<N>.md`.
 
 ## Счётчик вызовов
 
 | Модель | Вызовов |
 |---|---|
-| opus | 45 |
-| sonnet | 25 |
+| opus | 56 |
+| sonnet | 30 |
 
 ## Вызовы
 
@@ -100,3 +100,19 @@
 | 68 | critic security | opus | setup-critic | F7 r3 | 🔴1 🟠0 🟡1 |
 | 69 | critic consistency | sonnet | setup-critic | F7 r3, весь документ | 🔴1 🟠1 🟡5 |
 | 70 | foundation-author | opus | setup-author | F7 respond r3 по решениям Ivan | 4 принято, 🟡 → devops; v0.4 |
+| 71 | foundation-author | opus | setup-author | reopen F1 (параллельно с 72–74) | 10 принято, v0.4 |
+| 72 | foundation-author | opus | setup-author | reopen F2 | 25 принято, v0.5 |
+| 73 | foundation-author | opus | setup-author | reopen F3 | 11 принято, 1 отклонено, v0.4 |
+| 74 | foundation-author | opus | setup-author | reopen F4 + F5 + F6 (точечно) | 13 принято, 2 человеку; v0.4 |
+| 75 | critic tz | opus | setup-critic | reopen r1: F1–F5, изменённые § | 🔴0 🟠1 🟡5 |
+| 76 | critic security | opus | setup-critic | reopen r1: F3, F4 (+ F2, F6 точечно) | 🔴0 🟠1 🟡3 |
+| 77 | critic proportionality | opus | setup-critic | reopen r1: F2, F3 | 🔴0 🟠0 🟡2 |
+| 78 | critic agentability | sonnet | setup-critic | reopen r1: F2, F4, F5, F6 | 🔴1 🟠2 🟡3 |
+| 79 | critic consistency | sonnet | setup-critic | reopen r1: F1–F6 + каскад к F7 | 🔴0 🟠1 🟡4 |
+| 80 | foundation-author | opus | setup-author | reopen respond r1 (прерван лимитом API, продолжен) | 21 принято, 1 человеку (security-1), 2 отложено |
+| 81 | critic agentability | sonnet | setup-critic | reopen r2: правки respond r1 (+ повтор записи отчёта) | 🔴0 🟠1 🟡2 |
+| 82 | critic consistency | sonnet | setup-critic | reopen r2: правки respond r1, каскад (+ повтор записи отчёта) | 🔴0 🟠0 🟡0 |
+| 83 | foundation-author | opus | setup-author | reopen respond r2 + точечный reopen F7 (security-1: (а) + риск, решение Ivan) | 8 принято, 2 отложено; F7 v0.5, O45 |
+| 84 | critic security | opus | setup-critic | reopen r3: O45, F3 §17/S24, F7 16.2 | 🔴0 🟠1 🟡4 |
+| 85 | critic consistency | sonnet | setup-critic | reopen r3: правки respond r2, F7 | 🔴0 🟠0 🟡1 |
+| 86 | foundation-author | opus | setup-author | reopen respond r3 (финальная правка по решению Ivan) | 8 принято; F1–F7 утверждены |

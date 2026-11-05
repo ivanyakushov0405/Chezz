@@ -1,9 +1,9 @@
 # F4. API-конвенции
 
-Статус: утверждён (Ivan, 2026-11-04), версия 0.3 от 2026-11-04 (ответ на ревью — `docs/setup/reviews/F4-response-r1.md`; ответы человека на F4-Q1..Q3 — P14, P15, P25, 12.2). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.3, `docs/ARCHITECTURE.md` v0.4, `docs/SECURITY.md` v0.3 (все утверждены), `docs/adr/`.
+Статус: утверждён Ivan 2026-11-05, версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из DESIGN §18.2 п.6, 8 и TESTING §18.2 п.6 (решения P30–P32 в 2.5, ответ — `docs/setup/reviews/F4-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответ на ревью — `docs/setup/reviews/F4-response-r1.md`; ответы человека на F4-Q1..Q3 — P14, P15, P25, 12.2). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/adr/`.
 Утверждает: Ivan (BUSINESS D9).
 
-Как читать: агент открывает только нужный раздел. 1 — правила, 2 — решения (2.1 транспорт и ошибки, 2.2 пагинация, версии и каталог REST, 2.3 realtime, 2.4 решения ревью r1), 3 — транспорт и адреса, 4 — формат JSON и общие объекты (4.1 правила, 4.2 игроки и партии, 4.3 аккаунт и состояние партии), 5 — ошибки, 6 — пагинация, 7 — версии, 8 — WebSocket: подключение, конверт, подписки, 9 — WebSocket: партия, 10 — переподключение и закрытие, 11 — межмодульное взаимодействие, 12 — каталог REST (12.1–12.6), 13 — каталог WebSocket, 14 — маршруты SPA, 15 — как добавить маршрут или сообщение, 16 — проверки, 17 — открытые вопросы и правки для reopen. Номера: решения `P#`, вопросы `F4-Qn`; ссылки — `GLOSSARY G#`, `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`.
+Как читать: агент открывает только нужный раздел. 1 — правила, 2 — решения (2.1 транспорт и ошибки, 2.2 пагинация, версии и каталог REST, 2.3 realtime, 2.4 решения ревью r1, 2.5 решения reopen 1R), 3 — транспорт и адреса, 4 — формат JSON и общие объекты (4.1 правила, 4.2 игроки и партии, 4.3 аккаунт и состояние партии), 5 — ошибки, 6 — пагинация, 7 — версии, 8 — WebSocket: подключение, конверт, подписки, 9 — WebSocket: партия, 10 — переподключение и закрытие, 11 — межмодульное взаимодействие, 12 — каталог REST (12.1–12.6), 13 — каталог WebSocket, 14 — маршруты SPA, 15 — как добавить маршрут или сообщение, 16 — проверки, 17 — открытые вопросы и правки для reopen. Номера: решения `P#`, вопросы `F4-Qn`; ссылки — `GLOSSARY G#`, `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`.
 
 - Где F3 уточняет F2 (список SECURITY F3-Q3), этот документ следует F3.
 - Источник правды для чисел и форм — разделы 3–16; в таблице решений они повторены справочно. Расхождение — ошибка документа, верен раздел.
@@ -79,6 +79,15 @@
 | P28 | Лимит соединений — upgrade принимается и закрывается кодом 4003 `too_many_connections`; клиент не переподключается сам | SECURITY §9; ревью r1 (consistency-5) | HTTP 429 на upgrade — браузер видит только 1006 и переподключается бесконечно |
 | P29 | `game.resign`, `game.abort`, `game.abandonment_choice` — без `ply` | ТЗ §4.6; ревью r1 (вне линзы security) | `ply` у сдачи — в пуле сдача опаздывает на ход соперника и отклоняется |
 
+### 2.5. Решения reopen 1R (2026-11-05)
+
+| № | Решение | Источник | Альтернатива и почему не она |
+|---|---|---|---|
+| P30 | `UserSettings.board_theme` — из `BOARD_THEMES` (`brown` по умолчанию), `piece_set` — из `PIECE_SETS` (`cburnett` по умолчанию); значение `default` убрано; F4-Q4 закрыт (4.3) | ревью (reopen: DESIGN §18.2 п.6; DESIGN U9, U10) | — |
+| P31 | Интерфейс своего контроля даёт подмножество P14 (DESIGN U28); сервер по-прежнему принимает весь диапазон P14 (12.3) | ревью (reopen: DESIGN §18.2 п.8) | Сузить схему сервера до значений U28 — два источника списка значений, правка интерфейса ломает API |
+| P32 | Проверка «Маршруты = `REST_ROUTES`» — интеграционный тест `apps/server/src/platform/routes.int.test.ts` (developer); «Нет CORS» — отдельный `apps/server/src/platform/cors.int.test.ts` (16) | ревью (reopen: TESTING §18.2 п.6; TESTING §11) | contract-тест — в F6 «contract» уровень tester, а проверка нужна в задаче скелета |
+| P33 | Отказ `createGame` при принятии вызова отображается на существующие коды: `player_busy`, `opponent_busy`, `challenge_cancelled` (создатель удалил аккаунт), `unauthenticated` (принимающий удалил аккаунт, в том числе если удалили оба); нового кода нет (12.3; ARCHITECTURE A28, §9.1 п.1) | ревью (reopen r1: agentability-1, -2, consistency-4; r2: agentability-8); по умолчанию | Новый код `opponent_unavailable` (409) — ещё строка каталога и перевод `error.*` ради гонки, где вызов уже `cancelled`, и `getChallenge` покажет тот же статус |
+
 ## 3. Транспорт и адреса
 
 | Что | Адрес | Формат |
@@ -131,7 +140,7 @@
 
 | Объект | Поля и типы |
 |---|---|
-| `UserSettings` | `theme: "light" | "dark"` (по умолчанию `light`); `sound: boolean` (`true`); `board_theme: string` и `piece_set: string` — значения из списков `BOARD_THEMES`, `PIECE_SETS` в `common.ts`, до F5 — по одному значению `default` (F4-Q4); `auto_queen: boolean` (`true`); `confirm_move_mobile: boolean` (`false`) |
+| `UserSettings` | `theme: "light" | "dark"` (по умолчанию `light`; вариант `system` — F4-Q8); `sound: boolean` (`true`); `board_theme` — из `BOARD_THEMES` в `common.ts` (`brown`, `blue`, `green`; по умолчанию `brown`, DESIGN U9); `piece_set` — из `PIECE_SETS` (`cburnett`, `merida`; по умолчанию `cburnett`, DESIGN U10) (P30); `auto_queen: boolean` (`true`); `confirm_move_mobile: boolean` (`false`) |
 | `Me` | `PublicUser` + `email: string | null`; `locale: "ru" | "en"`; `settings: UserSettings`; `terms_accepted_at | null`; `can_change_nickname: boolean`; `onboarding_required: boolean`; `active_game_id | null`; `open_challenge_id | null` |
 | `Clock` | `white_ms: int`; `black_ms: int`; `running: "white" | "black" | null` (`null` — часы стоят: до старта, в окне выбора, после конца) |
 | `Offer` | `{"by": "white" | "black"} | null` |
@@ -139,7 +148,7 @@
 | `AbandonmentChoice` | `{"remaining_ms": int} | null` — окно выбора 30 с (GLOSSARY G21) |
 | `Connected` | `{"white": boolean, "black": boolean}` |
 
-- Значения по умолчанию `UserSettings` — по умолчанию F4; F5 может поменять.
+- Значения по умолчанию `UserSettings` — по умолчанию F4; `board_theme`, `piece_set` — F5 (U9, U10); `theme` — `light` до ответа на F4-Q8. MUST NOT: значение `system` в схеме `theme` до ответа Ivan на F4-Q8 (срок — до первой фичи `settings`). Гость (`Me` нет) получает тему по `prefers-color-scheme` (DESIGN U8).
 - `PATCH /api/me`: `settings` — частичный `UserSettings` (`.partial()`, но `.strict()`).
 
 ## 5. Ошибки
@@ -394,6 +403,8 @@ WebSocket: `{"type": "error", "ref": "m42", "code": "not_your_turn", "game_id": 
 | `acceptChallenge` | `POST /api/challenges/:id/accept` | И | — | `201 {"game_id"}` | `challenge_expired`, `challenge_cancelled`, `challenge_taken`, `own_challenge`, `player_busy`, `opponent_busy`, `rating_out_of_range`, `not_found` |
 | `cancelChallenge` | `POST /api/challenges/:id/cancel` | И (создатель) | — | `Challenge` с `cancelled` | `forbidden`, `challenge_expired`, `challenge_taken` |
 
+- Отказ `games.service.createGame` в `acceptChallenge` (P33, ARCHITECTURE §9.1 п.1): занят принимающий (или оба) → `player_busy`; занят только создатель → `opponent_busy`; создатель удалил аккаунт → `challenge_cancelled` (удаление отменяет его вызов в той же транзакции, SECURITY §13 шаг 2); принимающий удалил аккаунт → `unauthenticated`; удалили оба → `unauthenticated` (приоритет у состояния вызывающего, ARCHITECTURE §9.1 п.1). Пример: `queen_b` принимает вызов `knight_rider-7`, а тот в этот момент удаляет аккаунт → `409 challenge_cancelled`, тот же ответ, что при отмене вызова создателем.
+- Интерфейс своего контроля (DESIGN U28: базовое время — 17 значений ½…60 мин, добавка 0–30 с) — подмножество P14; сервер принимает весь диапазон P14 и не сужает его под интерфейс (P31).
 - Категорию считает сервер (GLOSSARY §6). Пресеты — `TIME_CONTROL_PRESETS` в `common.ts`, маршрута нет. Ссылку `/challenge/<id>` строит клиент (раздел 14).
 - Лобби — только WebSocket (P9).
 - Пример «2 клика» (ТЗ §7): друг открывает `/challenge/3f9c…` → `getChallenge` → «Принять» → `acceptChallenge` → `game.started` обоим → `/game/<game_id>`. Гость видит «Войти» → `/auth/google/start?return_to=/challenge/3f9c…`.
@@ -515,12 +526,12 @@ WebSocket: `{"type": "error", "ref": "m42", "code": "not_your_turn", "game_id": 
 
 | Правило | Проверка |
 |---|---|
-| Маршруты Fastify = `REST_ROUTES`; нет `DELETE`, нет `/api/v1` | contract-тест `apps/server`: список маршрутов из хука `onRoute` равен записям `REST_ROUTES` (кроме `/auth/*`, страниц, статики) |
+| Маршруты Fastify = `REST_ROUTES`; нет `DELETE`, нет `/api/v1` | интеграционный тест `apps/server/src/platform/routes.int.test.ts` (developer, TESTING §11): список маршрутов из хука `onRoute` равен записям `REST_ROUTES` (кроме `/auth/*`, страниц, статики) (P32) |
 | Каталог 12, коды 5.2, типы 13 = код | `scripts/check-api-doc.sh`: выписывает из разделов 5.2, 12, 13 этого файла коды, операции и `type` и сравнивает с `npm run -w packages/protocol dump` (`ErrorCode`, `REST_ROUTES`, `ClientMessage`, `ServerMessage`) |
 | Входящие схемы строгие; ключи `snake_case`; нет `user_id`, `creator_id`, `white_id`, `black_id` во входящих | тест `packages/protocol`: обход всех входящих схем — объект с лишним полем отклоняется, ключи по `^[a-z][a-z0-9_]*$`, запрещённых ключей нет |
 | Нет `fen`, `pgn` в `Game` | тот же тест по `Game` |
 | Смена протокола заметна | тест сравнивает `z.toJSONSchema` с `snapshot/protocol.json`; изменение снимка — в diff PR, ревью сверяет с разделом 7 |
-| Нет CORS | тест: ответ на запрос с `Origin: https://evil.example` без `Access-Control-Allow-Origin`; `@fastify/cors` нет в зависимостях |
+| Нет CORS | интеграционный тест `apps/server/src/platform/cors.int.test.ts` (TESTING §11, P32): ответ на запрос с `Origin: https://evil.example` без `Access-Control-Allow-Origin`; `@fastify/cors` нет в зависимостях |
 | Адреса страниц — из `PAGES` | тест `pages.ts` на каждую строку раздела 14; в `apps/web` и `seo` нет строковых литералов `"/game/`, `"/player/`, `"/challenge/` вне `pages.ts` (`scripts/check-architecture.sh`) |
 | ПДн не в событиях | ревью PR по 11; поля нагрузки событий — только `*_id`, перечисления, числа |
 
@@ -530,16 +541,19 @@ WebSocket: `{"type": "error", "ref": "m42", "code": "not_your_turn", "game_id": 
 
 | № | Вопрос | Владелец |
 |---|---|---|
-| F4-Q4 | Значения `board_theme`, `piece_set` (`BOARD_THEMES`, `PIECE_SETS`); до F5 — только `default` | F5 |
+| F4-Q8 | Тема по умолчанию для нового User (предложение DESIGN §18.2 п.7): (1) `light`, как сейчас — проще, но новый игрок с тёмной системой после входа получает светлую тему, хотя гостем видел тёмную (U8); (2) добавить значение `system` в `theme` (`"light" | "dark" | "system"`) и сделать его значением по умолчанию — тема следует системе до явного выбора. До решения — `light` (4.3) | Ivan, до первой фичи `settings` |
 | F4-Q5 | Ревью r2, agentability-10: инструменты §15–§16 (`registerRoute`, `api.call`, `wsHandlers`, `scripts/check-api-doc.sh`, `npm run -w packages/protocol dump`, тест `onRoute`, `snapshot/protocol.json`) пока не существуют. Создать их задачей скелета и указать сигнатуры; до этого шаги 4–5 §15 выполняются вручную по описанию | разработчик (первая фича области: скелет репозитория, вместе с ARCHITECTURE F2-Q12) |
 | F4-Q6 | Ревью r2, consistency-10: `registerRoute` в `platform` проверяет «Кто», а Session знает только `auth` (ARCHITECTURE §7.1, F2-Q9). `realtime`, регистрируя `wsHandlers` из чужих `api.ts`, нарушает правило импортов (F2-Q10). Решить подключение: например, резолвер Session передаётся параметром из `main.ts`, обработчики регистрируются через `realtime.registerHandlers(…)` из `main.ts`. Итог — правка ARCHITECTURE при reopen | разработчик (первая фича области: скелет репозитория / `auth`, вместе с F2-Q9, F2-Q10, F2-Q12) |
 | F4-Q7 | Ревью r2, consistency-11: повторная отмена вызова в `cancelChallenge` — ошибка `challenge_cancelled` или идемпотентный `200 Challenge`. Решение записать в 12.3 | разработчик (первая фича области `challenges`) |
 
 Закрыты решением человека (Ivan, утверждение F4, 2026-11-04): F4-Q1 → P14, P25 (`time_base` ≥ 30 с, `rating_range` 50–300); F4-Q2 → P15, 12.4 (отменённые показываются; фильтр «все / победы / поражения»); F4-Q3 → 12.2 (404 с `noindex`, ссылок нет).
+Закрыт в reopen 1R (2026-11-05): F4-Q4 → P30 (значения F5 U9, U10).
 
 ### 17.2. Правки утверждённых документов (для reopen)
 
-Не правлены здесь; до reopen агенты следуют F4. Выполнять вместе с SECURITY F3-Q3 (reopen F1 + F2 одним заходом).
+Внесены в F1–F3 в reopen 1R (вместе с SECURITY F3-Q3, закрыт); отметка — ниже.
+
+Reopen 1R (2026-11-05, решение Ivan — F1–F6 одним заходом): пункты 1–7 (F1), 8–11 (F2), 12–15 (F3) — **выполнены** в GLOSSARY v0.4, ARCHITECTURE v0.5, SECURITY v0.4 (утверждены 2026-11-05); итог по каждому пункту — в ответах reopen в `docs/setup/reviews/`. Пункт 15 частично закрыт F7 (O18, OPERATIONS §22).
 
 F1 `docs/GLOSSARY.md`:
 1. §8 Move: `san`, `clock_ms`; номер полухода `ply` (SECURITY S10, 9.2).
