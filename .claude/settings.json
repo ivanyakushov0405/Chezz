@@ -8,12 +8,28 @@
       "Edit(./.claude/commands/**)",
       "Edit(./.claude/settings.json)",
       "Bash(git push --force:*)",
-      "Bash(git push -f:*)"
+      "Bash(git push -f:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh secret:*)",
+      "Bash(gh variable:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(gh repo delete:*)",
+      "Read(~/.config/gh/**)",
+      "Read(~/AppData/Roaming/GitHub CLI/**)"
     ],
     "ask": [
       "Bash(git push:*)",
       "Bash(gh workflow run:*)",
-      "Bash(gh pr merge:*)"
+      "Bash(gh pr merge:*)",
+      "Bash(gh api:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh run cancel:*)",
+      "Bash(gh run rerun:*)",
+      "Bash(gh workflow enable:*)",
+      "Bash(gh workflow disable:*)",
+      "Bash(gh release:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
     ]
   },
   "hooks": {
