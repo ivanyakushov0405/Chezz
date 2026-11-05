@@ -27,7 +27,17 @@ root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 gitdir="$(git -C "$root" rev-parse --git-dir 2>/dev/null || echo .git)"; [[ "$gitdir" = /* ]] || gitdir="$root/$gitdir"
 active=""; [[ -f "$gitdir/agent-zone" ]] && active="$(cat "$gitdir/agent-zone")"
 
-rel() { local p="$1"; p="${p#"$root"/}"; p="${p#./}"; printf '%s' "$p"; }
+norm_path() {  # \ → /, /c/… и C:/… → c:/…
+  local p="${1//\\//}"
+  [[ "$p" =~ ^/([A-Za-z])/(.*)$ ]] && p="${BASH_REMATCH[1],,}:/${BASH_REMATCH[2]}"
+  [[ "$p" =~ ^([A-Za-z]):/(.*)$ ]] && p="${BASH_REMATCH[1],,}:/${BASH_REMATCH[2]}"
+  printf '%s' "$p"
+}
+rel() {
+  local p r; p="$(norm_path "$1")"; r="$(norm_path "$root")"
+  [[ "${p,,}" == "${r,,}/"* ]] && p="${p:${#r}+1}"   # регистр на Windows не важен
+  p="${p#./}"; printf '%s' "$p"
+}
 is_secret() { case "$1" in .env.example|*/.env.example) return 1 ;; .env|.env.*|*/.env|*/.env.*) return 0 ;; esac; return 1; }
 is_protected() { case "$1" in .claude/kit/*|.claude/commands/*|.claude/settings.json|.claude/settings.local.json) return 0 ;; esac; return 1; }
 
@@ -51,6 +61,7 @@ case "$tool" in
     ;;
   Bash)
     cmd="$(field command)"
+    cmd="${cmd//\\//}"
     # секреты: любое упоминание .env, кроме .env.example
     stripped="$(sed -E 's/\.env\.example//g' <<<"$cmd")"
     grep -qE '(^|[^A-Za-z0-9_.-])\.env($|[^A-Za-z0-9_-]|\.[A-Za-z0-9_-]+)' <<<"$stripped" \

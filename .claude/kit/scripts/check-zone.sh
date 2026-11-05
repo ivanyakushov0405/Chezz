@@ -157,7 +157,13 @@ verdict() {  # $1 путь → печатает причину нарушени�
 # ---------- режимы
 if [[ "$mode" == --match ]]; then
   [[ -n "$mpath" ]] || { echo "path required" >&2; exit 2; }
-  mpath="${mpath#"$root"/}"; mpath="${mpath#./}"
+  mpath="${mpath//\\//}"; r="${root//\\//}"
+  [[ "$mpath" =~ ^/([A-Za-z])/(.*)$ ]] && mpath="${BASH_REMATCH[1],,}:/${BASH_REMATCH[2]}"
+  [[ "$mpath" =~ ^([A-Za-z]):/(.*)$ ]] && mpath="${BASH_REMATCH[1],,}:/${BASH_REMATCH[2]}"
+  [[ "$r" =~ ^/([A-Za-z])/(.*)$ ]] && r="${BASH_REMATCH[1],,}:/${BASH_REMATCH[2]}"
+  [[ "$r" =~ ^([A-Za-z]):/(.*)$ ]] && r="${BASH_REMATCH[1],,}:/${BASH_REMATCH[2]}"
+  [[ "${mpath,,}" == "${r,,}/"* ]] && mpath="${mpath:${#r}+1}"
+  mpath="${mpath#./}"
   why="$(verdict "$mpath")"; [[ -z "$why" ]] && exit 0; echo "$mpath: $why"; exit 1
 fi
 
