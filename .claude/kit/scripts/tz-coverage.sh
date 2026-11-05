@@ -56,7 +56,8 @@ awk -v md="$md" -v ignore="$ignore" -v prefix="$prefix" -v refs_raw="$refs_raw" 
 function depth(n,  a) { return split(n, a, ".") }
 function parent(n) { sub(/\.[0-9]+$/, "", n); return n }
 function last(n,  a, k) { k = split(n, a, "."); return a[k] + 0 }
-function addref(n) { gsub(/[^0-9.]/, "", n); sub(/\.+$/, "", n); if (n != "") ref[n] = 1 }
+function isnum(n) { return n ~ /^[0-9]+(\.[0-9]+)*$/ }
+function addref(n) { sub(/\.+$/, "", n); if (isnum(n)) ref[n] = 1 }
 function addrange(a, b,   i, p) {
   addref(a); addref(b)
   if (depth(a) == depth(b) && parent(a) == parent(b) && depth(a) > 1)
@@ -71,9 +72,12 @@ BEGIN {
     sub(prefix, "", s)
     np = split(s, parts, ",")
     for (j = 1; j <= np; j++) {
-      p = parts[j]; gsub(/§| /, "", p)
-      if (match(p, /(–|—|-)/)) { a = substr(p, 1, RSTART - 1); b = substr(p, RSTART + RLENGTH); addrange(a, b) }
-      else addref(p)
+      # номер — только элемент целиком из номера («3.4», «§3.4») или диапазон номеров; «п.5», «G22», «AC-3» пропускаются
+      p = parts[j]; gsub(/^[ \t]+|[ \t]+$/, "", p); sub(/^§[ \t]*/, "", p); sub(/\.$/, "", p)
+      if (match(p, /[ \t]*(–|—|-)[ \t]*/)) {
+        a = substr(p, 1, RSTART - 1); b = substr(p, RSTART + RLENGTH); sub(/^§/, "", b); sub(/\.$/, "", a); sub(/\.$/, "", b)
+        if (isnum(a) && isnum(b)) addrange(a, b)
+      } else if (isnum(p)) addref(p)
     }
   }
 }
@@ -127,8 +131,8 @@ END {
     for (k = 1; k <= cnt; k++) { n = order[k]; if ((n in haschild) || st[n] != "parent") continue; print "ONLY_PARENT " n " " ttl[n] }
   }
   shown = 0
-  for (k = 1; k <= cnt; k++) { n = order[k]; if (st[n] != "none" && st[n] != "child") continue
-    p = n; up = 0; while (p ~ /\./) { p = parent(p); if ((p in st) && (st[p] == "none" || st[p] == "child")) { up = 1; break } }
+  for (k = 1; k <= cnt; k++) { n = order[k]; if (st[n] != "none") continue
+    p = n; up = 0; while (p ~ /\./) { p = parent(p); if ((p in st) && st[p] == "none") { up = 1; break } }
     if (up) continue
     printf (md ? "- §%s %s\n" : "UNCOVERED %s %s\n"), n, ttl[n]; shown++ }
   if (md && shown == 0) print "Нет."
