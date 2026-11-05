@@ -137,7 +137,7 @@ ci-workflow: ci.yml          # проверка «main зелёный»
 
 ## Макеты
 tool: Figma (BUSINESS D11)
-file: —          # файла пока нет (DESIGN §16.4, U34); ссылку вписывает Ivan после первого эпика с UI
+file: https://www.figma.com/design/z6VyHSdwqFzCQIdP7ScisI          # DESIGN §16.4, U34
 
 ## Трекер
 type: files            # files | jira; BUSINESS D10 — GitHub Issues, набор его не поддерживает (вопрос Ivan)
