@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 15/50
+Вызовов: 17/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -26,3 +26,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 | 13 | architect | opus | architect | design.md + ADR-0009 | 7 задач, правки основ (ARCH, API, SEC, TEST, DESIGN, OPS?), 4 вопроса Ivan; зона OK |
 | 14 | architect | opus | architect-apply | apply правок основ | ADR-0005/0006/0009 приняты; ARCH, API, SEC, TEST, DESIGN; OPS не трогали; зона OK |
 | 15 | architect | opus | architect | design.md v0.2: CODEOWNERS — Ivan | T-6 без CODEOWNERS, п.2 закрыт; зона OK |
+| 16 | devops | opus | devops | T-1 compose.test.yml, раунд 1 | config -q OK; up --wait не прогнан (Docker не запущен); зона OK |
+- T-1 проверка (оркестратор, 2026-11-06): config -q OK; up -d --wait ×2 → healthy, один контейнер; server_version 18.6, fsync off; tester-untouched пусто.
+| 17 | reviewer | opus | review | T-1, итерация 1 | APPROVE, 0 блокеров; зона OK |
+- T-1 [infra] готова, раундов: 1, вызовов: 17/50.
