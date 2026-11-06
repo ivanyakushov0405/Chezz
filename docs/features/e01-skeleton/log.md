@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 21/50
+Вызовов: 25/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -37,3 +37,11 @@ UI: главная-заглушка; макеты — новый файл Figma 
 - T-2 раунд 2 проверки (оркестратор): check OK; tester-untouched пусто; test:affected ×3 зелёные.
 | 21 | reviewer | opus | review | T-2, итерация 2 | APPROVE; зона OK |
 - T-2 [backend:platform] готова, раундов: 2, вызовов: 21/50.
+| 22 | backend-dev | sonnet | contracts | T-3, раунд 1 | protocol, chess-каркас, check-api-doc.sh; check OK; зона OK |
+- T-3 проверки (оркестратор): check OK (вкл. check-api-doc); tester-untouched пусто; test:affected ×2 — 37/37.
+| 23 | reviewer | opus | review | T-3, итерация 1 | CHANGES_REQUESTED: GetHealthResponse strictObject (ответ должен быть нестрогим); зона OK |
+- Зависимости T-3 (SECURITY §18): `zod` — схемы протокола (API §1, уже в корне с T-2); `chess.js` — каркас `@chezz/chess`, правила в E06 (ARCHITECTURE §10, ROADMAP E01).
+| 24 | backend-dev | sonnet | contracts | T-3, раунд 2 | GetHealthResponse z.object, снимок, тесты AC-18 и snake_case; зона OK |
+- T-3 раунд 2 проверки (оркестратор): check OK; tester-untouched пусто; test:affected — 38/38.
+| 25 | reviewer | opus | review | T-3, итерация 2 | APPROVE; зона OK |
+- T-3 [contracts] готова, раундов: 2, вызовов: 25/50.

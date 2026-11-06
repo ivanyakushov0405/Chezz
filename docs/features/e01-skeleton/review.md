@@ -59,3 +59,53 @@ AC-3 (скрипты TESTING §6, `license`, `engines`, `@playwright/test`), AC-
 
 ### Желательно
 - Пункты «Желательно» итерации 1 остаются в силе. Пометки → architect-apply: `logDestination` в design, формулировка AC-10. Для T-4: `close()` и ресурсы плагинов, проверка восстановления через health.
+
+## T-3 — итерация 1
+Вердикт: CHANGES_REQUESTED
+
+Проверено: `packages/protocol/**` и `packages/chess/**` (новые), `scripts/check-api-doc.sh`, а также правки корня: ссылки в `tsconfig.json`, `check-api-doc.sh` в скрипте `check`, `package-lock.json` (добавлены только `zod`, `chess.js` 1.4.0 с лицензией BSD-2-Clause и ссылки на workspace). Пути тестов tester не тронуты: `git status --porcelain` по ним пуст. Мои прогоны: `npm run check` — код 0, `check-api-doc: ok`; `npx vitest run --project unit` — 6 файлов, 26/26.
+- AC-17 / EC-16. Проверил шире, чем разработчик: в scratchpad, через `API_DOC` и `PROTOCOL_DUMP`, без правки репозитория. Скрипт красный (код 1) и называет расхождение поимённо в каждом случае:
+  - код ошибки переименован в 5.2, то есть расходится в обе стороны;
+  - лишний код в `ErrorCode`;
+  - операция одновременно в `REST_ROUTES` и в `PENDING_CATALOG`;
+  - операция есть в документе, но её нет ни в `REST_ROUTES`, ни в `PENDING_CATALOG`;
+  - операция есть в `PENDING_CATALOG`, но её строка удалена из §12;
+  - реализованная операция отсутствует в документе;
+  - у `getHealth` расходится путь, отдельно — метод;
+  - `type` клиента переименован в §13, а также в §9.1;
+  - лишний `type` сервера в `PENDING_CATALOG`.
+  Документ с CRLF разбирается корректно.
+- AC-16: `dump` по форме design. AC-19 / EC-17, AC-20, AC-21 / EC-13, AC-22 — тесты с номерами есть и зелёные. AC-23: `export {}`, `chess.js`, папки `test/` нет. EC-27: ссылки только на существующие workspace.
+- Правила зоны contracts (API §1, §7, §14, §15, §16; SECURITY §12, §15; ARCHITECTURE §1, §10; GLOSSARY §1, §12):
+  - раскладка и имена — по §15, `RouteDef` по §15 п.3, `PAGES` — 12 функций на строки §14;
+  - `maskChallengeIds` — одна реализация, `/game/<id>` не трогает;
+  - `ErrorCode` совпадает с 5.2;
+  - CORS нет, `/api/v1` нет, сущностей вне этапа нет;
+  - `z.never()` для пустых `ClientMessage`/`ServerMessage` допустим: форму design оставил на выбор разработчика.
+
+### Блокеры
+- [packages/protocol/src/rest/health.ts:4] `GetHealthResponse` объявлен через `z.strictObject`, поэтому в снимке у ответа `additionalProperties: false` (`snapshot/protocol.json:154`). Это противоречит API §1: строгие только входящие схемы, а «клиент разбирает ответы сервера нестрого». Противоречит и API §7: новое поле ответа — совместимое изменение. Клиент, который проверяет ответ схемой из `REST_ROUTES.getHealth.response`, сломается на совместимом изменении. Файл — первая схема ответа в протоколе, и следующие эпики возьмут его за образец. «Тело ровно `{"status":"ok"}`» из AC-24 проверяет contract-тест сервера, а не строгость схемы. Что сделать: заменить на `z.object({status: z.enum(["ok", "unavailable"])})`, перезаписать снимок (`npm run -w packages/protocol snapshot`), `PROTOCOL_VERSION` не менять: протокол ещё не выпущен, и ослабление совместимо. (Пункт 2а/5; API §1, §7)
+
+### Желательно
+- [packages/protocol/src/schemas.test.ts:46-51] Тест «отклоняет объект с лишним полем» проверяет только схемы, которые принимают `{}`. Схему с обязательными полями он молча пропускает. Строгость тогда держится только на признаке `additionalProperties !== false` в JSON Schema. Схема с `z.preprocess` или `transform` при `unrepresentable: "any"` даёт `{}` без `properties` и проходит обе проверки. Сейчас входящих схем ноль, поэтому это не блокер. Что сделать: в первом тесте считать нарушением входящую схему без `properties` или без `anyOf`/`oneOf` объектов, либо держать рядом со схемой минимальный валидный пример и проверять на нём лишнее поле (AC-18; API §16).
+- [packages/protocol/src/schemas.test.ts:40-44] Правило `snake_case` из API §1 относится ко всем ключам JSON. Тест же обходит только входящие схемы, и `ErrorResponse`, `GetHealthResponse` и будущие `ServerMessage` не проверяются. Дешёвое расширение: прогнать проверку ключей (без проверки строгости) по всему `buildSnapshot()`.
+- [packages/protocol/src/common.ts:14] В `request_id: z.string()` формат можно сузить до `z.uuid()`: по API §3 это UUID, который генерирует сервер. Ответ клиент разбирает нестрого, так что это только точность схемы.
+- [packages/protocol/src/snapshot.ts:13] Снимок ответов и `ServerMessage` строится с `io: "input"`. Для схем, которые выдаёт сервер, точнее `io: "output"`: различие появится с `default` и `transform`. Стоит решить сейчас, пока снимок пустой. Если менять design, то → architect-apply.
+- [package.json зависимости `zod`, `chess.js`] Причина по SECURITY §18 очевидна (ARCHITECTURE A14, A3; план T-3), но в log.md нет отчёта разработчика с ней. Нужно дописать одной строкой.
+
+## T-3 — итерация 2
+Вердикт: APPROVE
+
+Проверены блокер итерации 1 и то, что изменилось после неё: `rest/health.ts`, `snapshot/protocol.json`, `schemas.test.ts`, строка о зависимостях в log.md. Мой прогон: `npx vitest run --project unit` — 27/27.
+- Блокер закрыт. [packages/protocol/src/rest/health.ts:4] `GetHealthResponse` теперь объявлен через `z.object`. В `snapshot/protocol.json` больше нет `additionalProperties: false`, снимок совпадает со схемой. `PROTOCOL_VERSION` = 1 не менялся, это верно (API §1, §7).
+- Пункт «Желательно» о лишнем поле выполнен. [schemas.test.ts:63-70] Каждая входящая схема получает `{extra_field_x: 1}`, тест ждёт `unrecognized_keys`. Проверил в node:
+  - `z.strictObject` с обязательными полями на таком входе даёт `unrecognized_keys` вместе с ошибками обязательных полей, поэтому схемы с обязательными полями больше не пропускаются;
+  - нестрогий `z.object` даёт только `invalid_type`, то есть тест его ловит.
+- Пункт «Желательно» о `snake_case` выполнен. [schemas.test.ts:72-74] Ключи проверяются по всему `buildSnapshot()`, включая ответы.
+- SECURITY §18: причины для `zod` и `chess.js` записаны в log.md:43.
+
+### Блокеры
+- нет
+
+### Желательно
+- Пункты итерации 1 о `request_id: z.uuid()` и `io: "output"` для схем, которые выдаёт сервер, остаются в силе. Если менять design, то → architect-apply.

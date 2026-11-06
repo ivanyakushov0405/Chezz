@@ -1,0 +1,159 @@
+{
+  "protocol_version": 1,
+  "common": {
+    "ErrorCode": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "string",
+      "enum": [
+        "validation_failed",
+        "invalid_time_control",
+        "nickname_invalid",
+        "nickname_reserved",
+        "unauthenticated",
+        "onboarding_required",
+        "origin_forbidden",
+        "forbidden",
+        "delete_confirmation_invalid",
+        "not_found",
+        "client_outdated",
+        "onboarding_completed",
+        "nickname_taken",
+        "nickname_change_used",
+        "open_challenge_exists",
+        "player_busy",
+        "opponent_busy",
+        "own_challenge",
+        "rating_out_of_range",
+        "challenge_expired",
+        "challenge_cancelled",
+        "challenge_taken",
+        "account_has_active_game",
+        "game_not_active",
+        "payload_too_large",
+        "screenshot_unsupported",
+        "rate_limited",
+        "internal",
+        "too_many_connections",
+        "not_a_participant",
+        "ply_mismatch",
+        "not_your_turn",
+        "illegal_move",
+        "takeback_not_allowed",
+        "abort_not_allowed",
+        "offer_not_open",
+        "own_offer",
+        "abandonment_choice_not_open"
+      ]
+    },
+    "ErrorResponse": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": [
+                "validation_failed",
+                "invalid_time_control",
+                "nickname_invalid",
+                "nickname_reserved",
+                "unauthenticated",
+                "onboarding_required",
+                "origin_forbidden",
+                "forbidden",
+                "delete_confirmation_invalid",
+                "not_found",
+                "client_outdated",
+                "onboarding_completed",
+                "nickname_taken",
+                "nickname_change_used",
+                "open_challenge_exists",
+                "player_busy",
+                "opponent_busy",
+                "own_challenge",
+                "rating_out_of_range",
+                "challenge_expired",
+                "challenge_cancelled",
+                "challenge_taken",
+                "account_has_active_game",
+                "game_not_active",
+                "payload_too_large",
+                "screenshot_unsupported",
+                "rate_limited",
+                "internal",
+                "too_many_connections",
+                "not_a_participant",
+                "ply_mismatch",
+                "not_your_turn",
+                "illegal_move",
+                "takeback_not_allowed",
+                "abort_not_allowed",
+                "offer_not_open",
+                "own_offer",
+                "abandonment_choice_not_open"
+              ]
+            },
+            "message": {
+              "type": "string"
+            },
+            "details": {},
+            "request_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "message",
+            "details",
+            "request_id"
+          ]
+        }
+      },
+      "required": [
+        "error"
+      ]
+    },
+    "Category": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "string",
+      "enum": [
+        "bullet",
+        "blitz",
+        "rapid"
+      ]
+    }
+  },
+  "rest": {
+    "getHealth": {
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200,
+      "who": [
+        "guest",
+        "onboarding",
+        "player"
+      ],
+      "errors": [],
+      "response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      }
+    }
+  },
+  "ws_client": {},
+  "ws_server": {}
+}
