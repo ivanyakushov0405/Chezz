@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 17/50
+Вызовов: 21/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -30,3 +30,10 @@ UI: главная-заглушка; макеты — новый файл Figma 
 - T-1 проверка (оркестратор, 2026-11-06): config -q OK; up -d --wait ×2 → healthy, один контейнер; server_version 18.6, fsync off; tester-untouched пусто.
 | 17 | reviewer | opus | review | T-1, итерация 1 | APPROVE, 0 блокеров; зона OK |
 - T-1 [infra] готова, раундов: 1, вызовов: 17/50.
+| 18 | backend-dev | opus | backend:platform | T-2, раунд 1 | целиком; check OK, 19/19 тестов; зона OK |
+- T-2 проверки (оркестратор): check OK; tester-untouched пусто; test:affected — 1-й прогон 1 failed/19 (детали не сохранены), следующие 9 прогонов зелёные; не воспроизводится.
+| 19 | reviewer | opus | review | T-2, итерация 1 | CHANGES_REQUESTED: 2 блокера (cruiser platform, AC-15 flaky по UUID); зона OK |
+| 20 | backend-dev | opus | backend:platform | T-2, раунд 2 | оба блокера исправлены; check OK, 19/19 ×3; зона OK |
+- T-2 раунд 2 проверки (оркестратор): check OK; tester-untouched пусто; test:affected ×3 зелёные.
+| 21 | reviewer | opus | review | T-2, итерация 2 | APPROVE; зона OK |
+- T-2 [backend:platform] готова, раундов: 2, вызовов: 21/50.

@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Переменные окружения и секреты (SECURITY §17): в репозитории только .env.example
+.env*
+!.env.example
+
+# Артефакты Playwright (TESTING §9, §12)
+test-results/
+playwright-report/
+tests/e2e/screens/
+
+.DS_Store
+Thumbs.db

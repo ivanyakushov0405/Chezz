@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../node_modules/.cache/tsc/server.tsbuildinfo"
+  },
+  "include": ["src", "scripts", "migrations", "test"]
+}
