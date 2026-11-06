@@ -1,6 +1,6 @@
 # ADR-0006. Rate limit по User без зависимости `platform` от `auth`
 
-Статус: предложено. Дата: 2026-11-05 (architect, режим roadmap; ROADMAP «Сквозные решения» п.2).
+Статус: принято (Ivan, 2026-11-05). Предложено: 2026-11-05 (architect, режим roadmap; ROADMAP «Сквозные решения» п.2). Правки документов из «Последствий» внесены в apply E01.
 
 ## Контекст
 ARCHITECTURE A21 и SECURITY §9: REST и WebSocket-upgrade ограничиваются `@fastify/rate-limit` по IP для гостя и по User для Игрока (300/мин), Feedback — 5/ч Игрок, 3/ч гость. Лимит регистрирует `platform`, который ни от кого не зависит, а User известен только `auth` (F2-Q9). ADR-0005 п.7 уже вводит `request.caller`, который ставит хук `platform` через резолвер из `auth`, переданный корнем сборки.
