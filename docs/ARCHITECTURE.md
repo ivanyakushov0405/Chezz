@@ -1,11 +1,12 @@
 # F2. Архитектура
 
-Статус: утверждён Ivan 2026-11-05, версия 0.5 от 2026-11-05. Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4 (reopen 1R, утверждён Ivan вместе с этой версией 2026-11-05).
+Статус: утверждён Ivan 2026-11-05, версия 0.6 от 2026-11-06. Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4 (reopen 1R, утверждён Ivan вместе с этой версией 2026-11-05).
 Утверждает: Ivan (BUSINESS.md, допущение D9). Стек решён человеком (F2-Q1 закрыт, A2).
 
 История:
 - v0.4, 2026-11-04 — утверждён после ревью r3 и ответов человека (стек, F2-Q3, F2-Q4, F2-Q7).
 - v0.5, 2026-11-05 — reopen F2 (этап 1R, решение Ivan): внесены правки, накопленные в F3–F7 (SECURITY F3-Q3, API §17.2 п.8–11, DESIGN §18.2 п.3–5, TESTING §18.2 п.1–5, OPERATIONS §23 п.1–3). Новых решений сверх них нет; в таблицах источник таких правок — «reopen» со ссылкой на первоисточник. Ответ — `docs/setup/reviews/F2-reopen-response-r1.md`.
+- v0.6, 2026-11-06 — apply E01: ADR-0005 (A30, §7.2, §7.4, §13.1) и ADR-0006 (A21) приняты Ivan 2026-11-05; ADR-0009; закрыты F2-Q9, F2-Q10, F2-Q12.
 
 Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры, 3 — решения (3.1–3.4), 4 — стек, 5 — процессы и среды, 6 — хранилища и Redis, 7 — модули, слои, события, проверка, аналитика, 8 — владение данными, 9 — партия и часы, 10 — правила шахмат, 11 — рейтинг и лидеры, 12 — фронтенд, 13 — репозиторий (13.1 код, 13.2 тесты и проверки, 13.3 выкатка и GitHub), 14 — внешние компоненты, 15 — план роста, 16 — ADR, 17 — открытые вопросы. Номера вопросов этого документа — `F2-Qn`, глоссария — `GLOSSARY Qn`, допущений и решений бизнеса — `BUSINESS Dn`.
 
@@ -68,6 +69,7 @@
 | A19 | Скриншоты Feedback (ТЗ §4.12) — файлы на томе Docker | BUSINESS D3; по умолчанию | Объектное хранилище — внешний сервис без нужды при нескольких ГБ |
 | A20 | Session — в PostgreSQL, проверка запросом по ключу на каждый REST-запрос и при открытии WebSocket, без кэша; открытые WebSocket — перепроверка раз в 60 с (9.1 п.9) | GLOSSARY G8; ревью r1 (prop-4); детали F3; перепроверка — reopen (F3 S6) | Подписанная cookie без хранения — нельзя «Выйти со всех устройств» (ТЗ §4.1). Кэш — по признаку раздела 15 |
 | A24 | `UserSettings` — поле `settings` (jsonb) в таблице `users` | GLOSSARY G13; ревью r1 | Отдельная таблица — лишний join при 6 полях |
+| A30 | Сборка процесса `app` (ADR-0005): корень сборки `apps/server/src/app.ts` — `buildApp(config, deps)`; сервис модуля — фабрика `createXService(deps)`, состояние — в её замыкании; из чужого модуля импортируются только `service.ts` и `events.ts`; типы таблиц — `src/<модуль>/tables.ts`, общий `Database` — `src/database.ts`; «Кто» — `Caller` из `platform/http.ts`, его ставит хук `platform` через резолвер, переданный из `app.ts`; WebSocket-обработчики модулей `app.ts` передаёт в `realtime.registerHandlers`. `Game`, `Challenge`, `Seek` — только типы протокола; строка БД — `<Имя>Table`, доменные объекты — по роли (`ClockState`, `GameRoom`) | ревью r3 (F2-Q10, F2-Q12; API F4-Q6); ADR-0005, принят Ivan 2026-11-05 | Синглтоны модулей — два `buildApp` в одном процессе тестов делят состояние (F6 §7.3); DI-контейнер — лишняя зависимость ради ≈ 12 модулей |
 
 ### 3.3. Партия, подбор, рейтинг
 
@@ -88,7 +90,7 @@
 
 | № | Решение | Источник | Альтернатива и почему не она |
 |---|---|---|---|
-| A21 | Rate limit: REST — `@fastify/rate-limit` по IP и User; WebSocket-upgrade входит в лимит REST; сообщения внутри WebSocket — token bucket в `realtime` на соединение; на User вместо token bucket — лимит открытых соединений. Набор и значения лимитов — F3 §9 | ТЗ §5; ревью r1; текст — reopen (F3 §9, F3-Q3) | Лимит в Caddy — не видит User и сообщения WebSocket |
+| A21 | Rate limit: REST — `@fastify/rate-limit` по IP для гостя и по User для Session (П1 и Игрок). Регистрирует `platform` (`global: false`, `hook: "preHandler"`): лимит у каждого маршрута `/api/*` ставит `registerRoute`, ту же настройку `platform` отдаёт для `/auth/*` и WebSocket-upgrade; ключ — `keyGenerator` по `request.caller`: `user:<user_id>` или `ip:<ip>`; `platform` не зависит от `auth` (ADR-0006). WebSocket-upgrade входит в лимит REST; сообщения внутри WebSocket — token bucket в `realtime` на соединение; на User вместо token bucket — лимит открытых соединений. Набор и значения лимитов — F3 §9 | ТЗ §5; ревью r1; текст — reopen (F3 §9, F3-Q3); регистрация и ключ — ADR-0006 (F2-Q9), принят Ivan 2026-11-05 | Лимит в Caddy — не видит User и сообщения WebSocket; хук лимита в `auth` — `platform` зависел бы от `auth` или лимит по User — от порядка регистрации плагинов |
 | A22 | Sentry (`@sentry/node`, SaaS) на клиенте и сервере; `app` отдаёт `/metrics` (`prom-client`) на отдельном порту, который не публикуется через `edge` и слушает только `127.0.0.1` хоста (F3 S32, F7 §6.1); состав метрик, включая задержку event loop и `app_info{version}`, — F7 §12.2; `GET /api/health` наружу без версии (F4 P16); логи — `pino` (встроен в Fastify). Мониторинг по этапам: с первой выкатки — Sentry и внешний пинг (UptimeRobot), с этапа 4 — `watch.sh` (чтение `/metrics`, алерты метрик в Telegram) (F7 O19, §12–13) | ТЗ §5; по умолчанию; порт, метрики, этапы — reopen (F3 S32, F4 P16, F7 O19) | Prometheus + Grafana на VPS — сотни МБ памяти |
 | A26 | Аналитика — модуль `analytics`, таблица `analytics_events`; событие — техническая запись (как строка лога), не сущность домена; имена событий — технические идентификаторы (раздел 7.5) | ТЗ §5 «Аналитика», §7 «Метрики»; ревью r1, r2 | Внешний сервис аналитики — сторонний трекер и ПДн вне VPS (ТЗ §5); без событий — метрики ТЗ §7 нечем считать |
 
@@ -193,14 +195,16 @@ React + TypeScript (ТЗ §6), Vite, SPA; публичные страницы п
 ### 7.2. Слои внутри модуля
 
 ```
-api.ts      — маршруты Fastify и обработчики сообщений WebSocket
-service.ts  — сценарии; публичный интерфейс для других модулей
-events.ts   — EventEmitter модуля с типизированными событиями (если есть), 7.3
+api.ts      — registerXApi(app, svc): маршруты Fastify через registerRoute; xWsHandlers(svc): обработчики сообщений WebSocket
+service.ts  — интерфейс XService и фабрика createXService(deps); публичный интерфейс для других модулей
+events.ts   — типы событий и createXEvents() (если есть), 7.3
 domain/     — чистая логика без ввода-вывода (часы, Glicko-2, окно подбора)
 repo.ts     — запросы Kysely к таблицам своего модуля
+tables.ts   — только типы строк своих таблиц: XTables (имя таблицы → интерфейс строки)
 ```
 
 - MUST: `api` → `service` → `domain` и `repo`. `domain` импортирует только `packages/chess` и собственный код; время передаётся параметром.
+- MUST (ADR-0005): `createXService(deps)` получает в `deps` только `db`, `time`, `config`, сервисы `platform`/`analytics` и сервисы модулей из таблицы 7.1; состояние модуля (реестры, очереди, кэши, издатель событий) — в замыкании фабрики. MUST NOT: синглтоны и изменяемое состояние на уровне файла. Фабрики вызывает только `apps/server/src/app.ts` по слоям L0 → L6; `start()`/`stop()` сервиса — в `onReady`/`onClose` Fastify.
 - MUST NOT: `api` импортирует `repo`; `domain` импортирует `kysely`, `pg`, `fastify`, `ws` или вызывает `Date.now()`, `performance.now()`, `new Date()` без аргумента.
 - MUST: `service`, `GameRoom` и таймеры модулей берут время и ставят таймеры только через `TimeSource` (`platform/time.ts`: `now` — монотонные мс, `wallNow` — `Date`, `setTimer`, `clearTimer`), а не прямыми `performance.now()`, `Date.now()`, `setTimeout` (A27; F6 V5, §7.2). В тестах его заменяет `ManualTimeSource` (F6 §7.2).
 - Модуль без своей логики (`feedback`, `auth`, `profile`, `analytics`, `seo`) может обходиться без `domain`; запрет `api` → `repo` действует всегда.
@@ -225,8 +229,8 @@ repo.ts     — запросы Kysely к таблицам своего моду�
 
 ### 7.4. Проверка в CI
 
-- `dependency-cruiser` (конфиг `.dependency-cruiser.cjs`): импорты между `apps/server/src/<модуль>/` — только по таблице 7.1; `api.ts` не импортирует `repo.ts`; `domain/` не импортирует `kysely`, `pg`, `fastify`, `ws`; `apps/web` не импортирует `apps/server`. Правка 7.1 → правка конфига в той же задаче.
-- `scripts/check-architecture.sh`: в `apps/server/src/` Kysely-запросы (`selectFrom`, `insertInto`, `updateTable`, `deleteFrom`, `sql\``) — только в `*/repo.ts`, плюс `apps/server/migrations/`; тестовые фабрики `apps/server/test/support/` и сид `apps/server/scripts/seed.ts` пишут в таблицы напрямую и под правило не попадают (F6 §7.6); таблица в запросах `repo.ts` — только своего модуля (по таблице 8); `Date.now`, `performance.now`, `new Date()` — не в `domain/`; в `migrations/` нет `dropTable`, `dropColumn`, `renameColumn`, `renameTo`, `setDataType` и их SQL-аналогов.
+- `dependency-cruiser` (конфиг `.dependency-cruiser.cjs`): импорты между `apps/server/src/<модуль>/` — только по таблице 7.1; `api.ts` не импортирует `repo.ts`; `domain/` не импортирует `kysely`, `pg`, `fastify`, `ws`; `apps/web` не импортирует `apps/server`; из чужого модуля — только `service.ts` и `events.ts` (не `api.ts`, `repo.ts`, `tables.ts`, `domain/**`); `app.ts`, `main.ts`, `database.ts` — вне правил модулей (ADR-0005 п.1, п.4). Правка 7.1 → правка конфига в той же задаче.
+- `scripts/check-architecture.sh`: в `apps/server/src/` Kysely-запросы (`selectFrom`, `insertInto`, `updateTable`, `deleteFrom`, `sql\``) — только в `*/repo.ts`, плюс `apps/server/migrations/`; тестовые фабрики `apps/server/test/support/` и сид `apps/server/scripts/seed.ts` пишут в таблицы напрямую и под правило не попадают (F6 §7.6); таблица в запросах `repo.ts` — только своего модуля (по таблице 8); `Date.now`, `performance.now`, `new Date()` — не в `domain/`; в `migrations/` нет `dropTable`, `dropColumn`, `renameColumn`, `renameTo`, `setDataType` и их SQL-аналогов; вызов `create<Модуль>Service(` чужого модуля в `apps/server/src/<модуль>/` — ошибка (фабрики зовёт только `app.ts`, ADR-0005 п.4).
 - Подключение в CI — F6, F7.
 
 ### 7.5. Аналитика (ТЗ §5, §7)
@@ -367,12 +371,15 @@ package.json                 npm workspaces
 apps/server/                 Node.js + TS, процесс app
   src/main.ts                собирает зависимости и вызывает listen
   src/app.ts                 buildApp(config, deps) — для main.ts и тестов (F6 §7.3)
+  src/database.ts            Database — пересечение XTables всех модулей (ADR-0005 п.5)
+  src/platform/              config, db (Db, Trx, withTransaction, migrateToLatest), time, http (Caller, registerRoute), ws (типы), errors (AppError)
   src/platform/time.ts       TimeSource (A27)
   src/platform/*.int.test.ts проверки скелета: routes, cors (F4 §16, P32)
-  src/<модуль>/              api.ts, service.ts, events.ts, domain/, repo.ts (7.2)
+  src/<модуль>/              api.ts, service.ts, events.ts, domain/, repo.ts, tables.ts (7.2)
   src/seo/templates/         шаблоны HTML публичных страниц (12.1)
   migrations/                Kysely Migrator
   scripts/seed.ts            сид (F6 §7.6); в образ app не попадает (F7 §6.2)
+  scripts/prepare-db.ts      создать базу из DATABASE_URL и применить миграции (e2e); отказ на prod/staging
 apps/web/                    Vite + React + TS (раздел 12)
   src/shared/ui/             компоненты и tokens.css (F5)
   public/pieces/, public/sounds/  статика SPA (F5)
@@ -460,6 +467,9 @@ scripts/ops/                 скрипты Ivan для прода; агенты
 | ADR-0002 | Без Redis на этапе беты | `docs/adr/0002-no-redis.md` |
 | ADR-0003 | SPA + серверный HTML публичных страниц для SEO в том же `app` (вместо Next.js SSR) | `docs/adr/0003-spa-instead-of-ssr.md` |
 | ADR-0004 | staging по требованию | `docs/adr/0004-staging-on-demand.md` |
+| ADR-0005 | Сборка модулей сервера: `buildApp`, фабрики, межмодульные импорты, `Caller`, WS-обработчики | `docs/adr/0005-server-module-assembly.md` |
+| ADR-0006 | Rate limit по User без зависимости `platform` от `auth` | `docs/adr/0006-rate-limit-by-user.md` |
+| ADR-0009 | Каталог API и код: реализованное и `PENDING_CATALOG` | `docs/adr/0009-api-catalog-pending.md` |
 
 - MUST: новое крупное решение (процесс, хранилище, внешний сервис, смена стека) — новый ADR и строка в разделе 3.
 
@@ -470,10 +480,7 @@ scripts/ops/                 скрипты Ivan для прода; агенты
 | F2-Q5 | Провайдер и размер VPS (ориентир 2 vCPU / 4 ГБ), домен (ТЗ §8): от домена зависят Caddy, `canonical` и `sitemap.xml` (12.1), адрес возврата Google OAuth. До ответа везде заглушка `example.com` | Ivan, до начала F7 |
 | F6-Q3 | Константа роста RD по времени без игр (метод Lichess) для `glicko2.ts` (раздел 11). Сигнатура `rateMany` уже задана (A29). Ответ вносится в раздел 11 (единственное место); F6 §18.1 ссылается сюда | architect фичи `rating`, до приёмки фичи `rating` (без ответа критерий ТЗ §7 для рейтинга закрыт не полностью) |
 | F2-Q8 | Гонки принятия вызова (ревью r3, consistency-16): два игрока принимают один открытый вызов; принятие против отмены создателем; принятие против истечения 30 мин. Нужно зафиксировать порядок блокировок: строка вызова (`FOR UPDATE` или условный `UPDATE … WHERE status = 'open'`) раньше строк игроков | разработчик (architect/developer на первой фиче `challenges`) |
-| F2-Q9 | Rate limit по User (ревью r3, consistency-17): `platform` ни от кого не зависит, а User известен только `auth`. Решить, кто регистрирует лимит по User (хук `auth` или `keyGenerator`, переданный из `main.ts`), и поправить A21 и 7.1 | разработчик (architect/developer на первой фиче `auth` / rate limit) |
-| F2-Q10 | Межмодульные импорты (ревью r3, agentability-6): правило в 7.4 проверяет только пары модулей, а не то, что импортируются лишь `service.ts`, `events.ts` и их типы. Добавить правило в `.dependency-cruiser.cjs` или явно разрешить импорт чужого `domain/` | разработчик (architect/developer, задача скелета репозитория) |
 | F2-Q11 | Место `GameRoom` (ревью r3, agentability-7): в каком файле и слое живут комната, таймеры и очередь команд (например, `games/room.ts`, логика часов — из `domain/`) | разработчик (architect/developer на первой фиче `games`) |
-| F2-Q12 | Сборка модулей и типы (ревью r3, agentability-8): как `service` получает пул БД, `trx` и другие сервисы, как `api.ts` подключается к Fastify (`createXService(deps)` / `registerXApi(app, deps)` или синглтоны); где общий тип Kysely `Database`; какой из типов называется `Game` (схема `packages/protocol`, строка БД, доменный объект) | разработчик (architect/developer, задача скелета репозитория) |
 
 Закрыты:
 - F2-Q1 (стек) → A2, Node.js + TS, решение человека 2026-11-04.
@@ -481,3 +488,5 @@ scripts/ops/                 скрипты Ivan для прода; агенты
 - F2-Q4 (SEO) → A5, 12.1, ADR-0003: SEO нужен, серверный HTML публичных страниц в `app`. Решение человека 2026-11-04.
 - F2-Q7 (термин аналитики) → решено человеком 2026-11-04: `analytics_events` добавляется в глоссарий как технический термин; исполнение — при ближайшем `reopen F1`.
 - Q2 (аналитика) → A26, раздел 7.5; Q6 (метод RTT) → A11.
+- F2-Q9 (rate limit по User) → A21, ADR-0006 (принят Ivan 2026-11-05).
+- F2-Q10 (межмодульные импорты) → 7.4, ADR-0005 п.4; F2-Q12 (сборка модулей, `Database`, имя `Game`) → A30, 7.2, ADR-0005 (принят Ivan 2026-11-05).
