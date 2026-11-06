@@ -109,3 +109,47 @@ AC-3 (скрипты TESTING §6, `license`, `engines`, `@playwright/test`), AC-
 
 ### Желательно
 - Пункты итерации 1 о `request_id: z.uuid()` и `io: "output"` для схем, которые выдаёт сервер, остаются в силе. Если менять design, то → architect-apply.
+
+## T-4 — итерация 1
+Вердикт: APPROVE
+
+Проверено: `apps/server/src/app.ts`, `apps/server/src/platform/http.ts`, `errors.ts`, `rate-limit-store.ts`, `health.ts`, `repo.ts`, тесты разработчика (`http.test.ts`, `health.test.ts`, `routes.int.test.ts`, `cors.int.test.ts`, `register-route.int.test.ts`, `spa.int.test.ts`), `apps/server/package.json`, `package-lock.json`. Тестовые пути tester не тронуты: `git diff` и `git status --porcelain` по `apps/server/test`, `packages/chess/test`, `fixtures`, `tests` пусты. Мои прогоны: `npm run check` — код 0; `vitest --project unit,int,contract apps/server` — 82/82; `--project contract` — 18/18.
+Сверил исходник `@fastify/rate-limit` 11.2.2: ключ `+ groupId`, `child()` на каждый маршрут с `config.rateLimit`, `Retry-After = ceil(ttl/1000)`, `throw errorResponseBuilder(...)`, `normalizeIP` (по умолчанию /64, IPv4-mapped → IPv4).
+- AC-24…AC-30, EC-6, EC-7, EC-9…EC-12 закрыты: на каждый есть тест с номером, и все они зелёные. В `bare()` на голом Fastify `registerRoute` проверяет порядок `Origin → версия → «Кто» → тело/params/query`. Есть проверки «без входных значений в `details`», `__proto__` → `json`, ровно 16 КБ / 16 КБ + 1, `internal` без подробностей и код только для WS → 500.
+- Правила зоны backend (ARCHITECTURE §7.1, §7.4, A27; API §1, §3, §5, §7, §16; SECURITY §1, §6, §9, §15, §18):
+  - SQL только в `platform/repo.ts`, время только через `TimeSource`, синглтонов уровня файла нет;
+  - `Origin` проверяется на POST/PATCH, при отсутствии заголовка тоже 403;
+  - CORS нет, DELETE нет, `/api/v1` нет;
+  - `trustProxy: false`, `X-Request-Id` только серверный;
+  - статика без лимита, `wildcard: false` (обхода путей и маршрута `/*` нет);
+  - ответ разбирается через `def.response.safeParse` и нестрогий `z.object`, так что лишние поля отбрасываются (SECURITY §12);
+  - тестового входа в `buildApp` нет: синтетические маршруты и заглушка резолвера — только в int-тесте.
+- Зависимости `@fastify/rate-limit`, `@fastify/static` (MIT) и workspace `@chezz/protocol` есть в плане T-4, причины — в log.md (SECURITY §18).
+- Пункт T-2 «`close()` и ресурсы плагинов» снят: в хранилище лимита таймеров нет. Пункт T-2 «восстановление через health» закрыт contract-тестом EC-9.
+
+Отступления, которые вынес разработчик:
+1. Отложенный разбор тела (413, `content_type` и `json` — на шаге схем, после `Origin`, версии и «Кто», в счёт лимита) — **принимаю**. Это соответствует ADR design «отказы тоже считаются в лимит» и не ослабляет CSRF: `Origin` проверяется первым. Чтение тела ограничено так же, как у встроенного `bodyLimit` Fastify (по `Content-Length` до чтения, затем по потоку). Нужна правка design: «Перевод ошибок» и порядок `registerRoute`.
+2. Ключ гостя IPv6 → /64, IPv4 и IPv4-mapped → `ip:<ip>` — **принимаю**. Это поведение `normalizeIP` по умолчанию, и иначе лимит обходится сменой адреса внутри /64. Но буква ADR-0006 п.1 и AC-25 — `ip:<request.ip>`, поэтому нужна правка ADR-0006 п.1 и SECURITY §9 (ключ) → architect.
+3. `AppDeps.onRoute?` — **принимаю**. Это только наблюдатель, поведения prod он не меняет, доступа в обход Session не даёт (SECURITY §4). Сигнатуру нужно дописать в design «Сигнатуры скелета».
+4. `reply.code(def.status)` до обработчика, обработчик может сменить код (health → 503) — **принимаю** для P16. В design записать, что ответ вне §5 со своим статусом — только у `getHealth`, остальные отказы идут через `AppError`.
+5. Общее хранилище счётчиков, `child()` возвращает то же хранилище, особые лимиты — `groupId` — **принимаю**. Это совпадает с SECURITY §9 («REST, включая вход и upgrade, — 300/мин») и с EC-12. Встроенный `LocalStore` давал бы 300/мин на каждый маршрут. Расхождение с design: окно считается по `TimeSource`, а в ADR design строка «Сброс окна… `@fastify/rate-limit` считает время сам» отвергала «часы плагина через `TimeSource`». Новое решение согласуется с A27 и делает сброс окна проверяемым, поэтому строку ADR нужно переписать. Ответ на вопрос tester («общий ли счётчик») — тоже в design.
+6. Ссылки `tsconfig` `apps/server` → `packages/protocol` нет (TS6310) — **не блокер**. Корневой `tsconfig.json` ссылается на `packages/protocol`, а исходники пакета проверяются в программе сервера через workspace. Design такой ссылки не требует. Если её нужно добавить (`composite` + `emitDeclarationOnly` у protocol), это решение contracts → architect.
+- `internal` без подробностей (причина — в лог с `request_id`), коды только для WS в REST → 500, таймаут health 2 с через `TimeSource` (A27; таймер снимается в `finally`) — в порядке.
+
+### Блокеры
+- нет
+
+### Желательно
+- [apps/server/src/platform/register-route.int.test.ts:177] Ветка `WHO_REFUSAL.player → forbidden` (http.ts:214) не покрыта: нет синтетического маршрута без `player` в `who`. AC-30 и API §1 («остальным — `forbidden`»). Добавить маршрут `who: ["guest"]` и проверку `player → 403 forbidden`.
+- [apps/server/src/platform/errors.ts:139, log.ts:35] На каждой 500 в лог пишется `err` через `pino.stdSerializers.err`, а он сериализует все перечислимые поля ошибки. У ошибок `pg` это `detail` (`Key (email)=(…) already exists`), то есть с появлением `users` (E04) в лог попадёт e-mail (SECURITY §15 MUST NOT). Сейчас таблиц нет, но до E04 стоит ввести свой сериализатор `err` (`type`, `message`, `stack`, `code`) → backend, E03/E04.
+- [apps/server/src/app.ts:70] `assetsDir` строится от `webDistDir` как есть, а `filePath` — через `path.resolve`. `loadConfig` отдаёт абсолютный путь, но `AppConfig` из теста с относительным путём молча даст `no-cache` для `/assets/*`. Заменить на `path.resolve(webDistDir, "assets") + path.sep`.
+- [apps/server/src/platform/health.ts:200, db.ts:27] После таймаута `ping` не отменяется, а у пула нет `connectionTimeoutMillis`. При зависшей сети каждая проверка health занимает ожидание в пуле (max 10). Тогда обычные запросы встанут в очередь за ними. Задать `connectionTimeoutMillis` (например 2000) в `createDb` → backend, до E02 (healthcheck контейнера).
+- [apps/server/src/platform/http.ts:105-153] Парсер `*` ставит `request.body = undefined` и `bodyIssue`, но не бросает ошибку. Маршрут не через `registerRoute` (будущие `/auth/*` у auth) молча получит пустое тело. В design или комментарии `apiRateLimit` записать: «маршрут вне `registerRoute`, читающий тело, обязан проверить `request.bodyIssue`» → architect-apply.
+- [apps/server/src/platform/http.ts:174-187] `/auth/<нет>` и `/ws<…>` без маршрута отдают 404 без счётчика лимита (лимит только для `isApiPath`). Сейчас это не нарушение (SECURITY §9 считает маршруты входа и upgrade, а их пока нет), но 404 по `/auth/*` стоит считать в лимит вместе с E03 → architect.
+
+Правки design.md (→ architect-apply):
+- «Перевод ошибок» и порядок `registerRoute`: 413, `content_type`, `json` — на шаге схем, после «Кто», в счёт лимита (п.1); обработчик `getHealth` меняет статус через `reply.code()` (п.4).
+- ADR-0006 п.1, SECURITY §9, AC-25: ключ гостя IPv6 — подсеть /64, IPv4-mapped → IPv4 (п.2).
+- «Сигнатуры скелета»: `AppDeps.onRoute?`; `installHttp(app, HttpOptions)` с `notFoundFallback`; `apiRateLimit(opts?: {max, timeWindowMs, group})`; поля `AppConfig` в «Публичных интерфейсах» (вопрос tester из log.md) (п.3).
+- Строка ADR «Сброс окна лимита»: окно по `TimeSource`, общий счётчик на ключ, особые лимиты — `groupId` (п.5).
+- Ссылка `tsconfig` `apps/server` → `packages/protocol`: оставить без неё или ввести `composite`/`emitDeclarationOnly` у protocol (п.6, решение contracts).

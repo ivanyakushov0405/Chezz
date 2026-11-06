@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 26/50
+Вызовов: 28/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -47,3 +47,9 @@ UI: главная-заглушка; макеты — новый файл Figma 
 - T-3 [contracts] готова, раундов: 2, вызовов: 25/50.
 | 26 | tester | opus | tests | T-4 режим 1 | health 8 + rate-limit 10 тестов; 17 красные (нет маршрута); lint/tsc OK; зона OK |
 - Вопросы tester T-4 к design (architect, позже): общий ли счётчик лимита у маршрутов /api/*; поля AppConfig в «Публичных интерфейсах».
+| 27 | backend-dev | opus | backend:platform | T-4, раунд 1 | registerRoute, errors, rate limit (общий счётчик), health, SPA; 101 тест; tsconfig-ссылка на protocol — TS6310 (зона contracts); зона OK |
+- T-4 проверки (оркестратор): check OK; tester-untouched пусто; test:affected ×2 — 101/101.
+- Зависимости T-4 (SECURITY §18): `@fastify/rate-limit` — лимит по ADR-0006; `@fastify/static` — раздача SPA (design T-4); `@chezz/protocol` — workspace.
+| 28 | reviewer | opus | review | T-4, итерация 1 | APPROVE; 6 отступлений приняты; 6 «желательно»; правки design.md; зона OK |
+- T-4 [backend:platform] готова, раундов: 1, вызовов: 28/50.
+- Хвост до E04 (ревью T-4): свой сериализатор ошибок pino — поле `detail` ошибок pg утечёт e-mail (SECURITY §15).
