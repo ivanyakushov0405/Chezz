@@ -221,7 +221,7 @@ CSRF (S7, T5):
 
 ## 9. Лимиты и размеры
 
-Значения по умолчанию, основаны на допущении BUSINESS D2 (≤ 100 сообщений WebSocket/с и ≤ 20 REST/с на весь сервис). Счётчики — в памяти `app` (S11, ARCHITECTURE A8, A21). Кто регистрирует лимит по User — ARCHITECTURE F2-Q9.
+Значения по умолчанию, основаны на допущении BUSINESS D2 (≤ 100 сообщений WebSocket/с и ≤ 20 REST/с на весь сервис). Счётчики — в памяти `app` (S11, ARCHITECTURE A8, A21). Кто регистрирует лимит и как считается ключ — ADR-0006: `platform`, `keyGenerator` по `request.caller` (`user:<user_id>` у Session, иначе `ip:<ip>`).
 
 Базовый набор (S11, ревью r1 prop-5):
 
