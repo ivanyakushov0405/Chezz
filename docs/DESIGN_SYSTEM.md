@@ -1,6 +1,6 @@
 # F5. Дизайн-система
 
-Статус: утверждён Ivan 2026-11-05, версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из TESTING §18.2 п.7 и сверка 18.2 п.10 с OPERATIONS §17 (решения U39–U40 в 2.7, ответ — `docs/setup/reviews/F5-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответы на ревью — `docs/setup/reviews/F5-response-r1.md`, `docs/setup/reviews/F5-response-r2.md`; ответы человека на F5-Q1, Q2, Q3, Q5 — решения U31–U34). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05).
+Статус: утверждён Ivan 2026-11-05, версия 0.5 от 2026-11-06 — apply E01: U41–U42 (design E01 утверждён Ivan 2026-11-06). Версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из TESTING §18.2 п.7 и сверка 18.2 п.10 с OPERATIONS §17 (решения U39–U40 в 2.7, ответ — `docs/setup/reviews/F5-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответы на ревью — `docs/setup/reviews/F5-response-r1.md`, `docs/setup/reviews/F5-response-r2.md`; ответы человека на F5-Q1, Q2, Q3, Q5 — решения U31–U34). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05).
 Утверждает: Ivan (BUSINESS D9).
 
 Как читать: агент открывает только нужный раздел. 1 — правила, 2 — решения (2.7 — решения reopen 1R), 3 — уровни и имена токенов, 4 — базовые токены, 5 — семантические токены и темы, 6 — доска и фигуры (закрывает F4-Q4), 7 — компоненты (7.1 — компонентные токены), 8 — сетка и адаптивность, 9 — экраны (9.1–9.6), 10 — состояния (10.1 данные, 10.2 соединение, 10.3 партия, подбор, разбор, 10.4 — матрица «экран × состояние»), 11 — ошибки в интерфейсе, 12 — разбор: отметки ходов (закрывает GLOSSARY Q3), 13 — звук и движение, 14 — доступность, 15 — i18n и форматы, 16 — макеты Figma, 17 — проверки, 18 — открытые вопросы и правки для reopen. Номера: решения `U#`, вопросы `F5-Qn`; ссылки — `GLOSSARY G#`, `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`.
@@ -89,7 +89,7 @@
 
 | № | Решение | Источник | Альтернатива и почему не она |
 |---|---|---|---|
-| U31 | Название — «Chezz» (ключ `app.name`, одинаков в RU и EN). Знак — силуэт коня: компонент `Logo` в `shared/ui` (свой SVG `logo-knight.svg`, `fill: currentColor`, цвет `--color-accent`); тот же знак — `favicon.svg` и иконка Open Graph по умолчанию. Фирменные цвета — токены разделов 4–5 | человек, утверждение F5, 2026-11-04 (F5-Q1) | — |
+| U31 | Название — «Chezz» (ключ `app.name`, одинаков в RU и EN). Знак — силуэт шахматного коня на подставке: компонент `Logo` в `shared/ui` — конь в дуге C (свой SVG `logo-knight.svg`, `fill: currentColor`, цвет `--color-accent`); `favicon.svg` — тот же конь без дуги (U42); иконка Open Graph по умолчанию — знак `Logo`. Фирменные цвета — токены разделов 4–5 | человек, утверждение F5, 2026-11-04 (F5-Q1) | — |
 | U32 | Озвучка хода для скринридеров — в бете (раздел 14) | человек, утверждение F5, 2026-11-04 (F5-Q2) | — |
 | U33 | Доска — chessground (GPL-3.0-or-later). Фронтенд передаётся в браузер, то есть распространяется: исходники фронтенда публикуются под лицензией, совместимой с GPL-3.0. Лицензии проекта и наборов фигур (`cburnett`, `merida`) — согласовать, файл `LICENSE` в корне — 18.2 п.10 (лицензия проекта решена: U40) | человек, утверждение F5, 2026-11-04 (F5-Q3) | — |
 | U34 | Готовых макетов нет. Фреймы создаёт дизайнер-агент через коннектор Figma у человека — по ходу фич, по правилам раздела 16 | человек, утверждение F5, 2026-11-04 (F5-Q5) | — |
@@ -102,8 +102,10 @@
 
 | № | Решение | Источник | Альтернатива и почему не она |
 |---|---|---|---|
-| U39 | Инструменты проверок раздела 17: e2e — Playwright по TESTING §9 (хелпер `openScreen`, `tests/e2e/support/open-screen.ts`); тесты компонентов и `contrast.test.ts` — Vitest + jsdom, проект `unit` (TESTING §5, §6) | ревью (reopen: TESTING §18.2 п.7; TESTING V1, V10) | — |
+| U39 | Инструменты проверок раздела 17: e2e — Playwright по TESTING §9 (хелпер `openScreen`, `tests/e2e/support/open-screen.ts`); тесты компонентов и `contrast.test.ts` — Vitest + jsdom, проект `web` (TESTING §5, §6) | ревью (reopen: TESTING §18.2 п.7; TESTING V1, V10) | — |
 | U40 | Лицензия проекта — GPL-3.0-or-later, `LICENSE` в корне (OPERATIONS §17, O28, решение Ivan при утверждении F7); 18.2 п.10 в части `LICENSE` выполнен. `cburnett` (GPL-2.0-or-later) совместим (O28). Лицензии `merida` и звуков — не проверены: F5-Q6 | ревью (reopen: сверка 18.2 п.10 с OPERATIONS §17) | — |
+| U41 | Начертания и межстрочный интервал — токены `--font-weight-regular` 400, `--font-weight-strong` 600 (название, подписи кнопок и вкладок), `--font-line-height` 1.4 (раздел 4) | E01 design (design-spec E01, вопрос 3; макеты Figma) | Числа в модулях — правило раздела 1 их разрешает, но вес «жирного» разойдётся между компонентами |
+| U42 | `favicon.svg` — знак без дуги (компонент Figma `favicon`); `currentColor` во вкладке не работает, поэтому цвет — значения `--color-accent` светлой и тёмной темы через `@media (prefers-color-scheme: dark)` внутри SVG; совпадение с `tokens.css` проверяет тест (раздел 17) | E01 design (design-spec E01, «Указания для T-5»; выбор знака — Ivan, 2026-11-06) | Один цвет без медиа-запроса — синий 600 на тёмной вкладке плохо виден; PNG — лишние файлы и размеры |
 
 ## 3. Токены: уровни и имена
 
@@ -132,6 +134,7 @@
 | Радиусы | `--radius-s 4px`, `--radius-m 8px`, `--radius-full 999px` |
 | Шрифт | `--font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`; `--font-mono: ui-monospace, "Cascadia Mono", Menlo, monospace` (PGN, FEN) |
 | Размеры шрифта | `--font-size-s 0.875rem`, `-m 1rem`, `-l 1.25rem`, `-xl 1.5rem`, `--font-size-clock 2rem` (телефон) / `2.5rem` (≥ 768 px) |
+| Начертание и интервал | `--font-weight-regular 400`, `--font-weight-strong 600`, `--font-line-height 1.4` (U41) |
 | Слои | `--z-header 10`, `--z-dialog 100`, `--z-toast 200` |
 | Линии | `--border-width 1px`, `--focus-width 2px` |
 | Размеры раскладки | `--layout-container-max 1200px`, `--layout-board-max 640px`, `--layout-side-panel 320px`, `--layout-header-height 48px`, `--layout-clock-height 48px`, `--layout-touch-target 44px` |
@@ -562,7 +565,7 @@ MUST: экран реализует минимум эти состояния (U3
 
 ## 17. Проверки
 
-Подключение к CI — TESTING §12; инструменты (U39): e2e — Playwright, TESTING §9; тесты компонентов и `contrast.test.ts` — Vitest + jsdom, проект `unit`, TESTING §5, §6.
+Подключение к CI — TESTING §12; инструменты (U39): e2e — Playwright, TESTING §9; тесты компонентов и `contrast.test.ts` — Vitest + jsdom, проект `web`, TESTING §5, §6.
 
 | Правило | Проверка |
 |---|---|
@@ -571,6 +574,7 @@ MUST: экран реализует минимум эти состояния (U3
 | `--base-*` только в `tokens.css` | `scripts/check-architecture.sh`: grep `--base-` вне файла |
 | Ключи RU = EN; есть `error.<code>` на каждый `ErrorCode` и клиентские ключи раздела 11 | тест `packages/i18n` |
 | Контраст пар раздела 5 | тест `apps/web/src/shared/ui/contrast.test.ts`: читает значения из `tokens.css` для обеих тем, пары — из таблицы раздела 5 этого файла между маркерами `<!-- contrast-pairs:start/end -->` (второй копии нет), компонентные токены раскрывает по 7.1; расчёт по формуле WCAG 2.x |
+| Цвета `favicon.svg` = `--color-accent` тем (U42) | тест `apps/web/src/shared/ui/favicon.test.ts`: значения `--color-accent` светлой и тёмной темы из `tokens.css` (как в `contrast.test.ts`) совпадают с цветами в `apps/web/public/favicon.svg` |
 | Все ветки состояния данных | типы `AsyncState` (раздел 7): без `empty` или `onRetry` не компилируется |
 | Состояния экрана по матрице 10.4 | чек-лист в описании PR: перечислены ID состояний экрана и как каждое проверено (скриншот или тест). Ревьюер сверяет со строкой 10.4 |
 | `data-screen` и `data-state` на корне экрана | e2e-хелпер открывает экран и проверяет, что `[data-screen="<ID>"]` есть и `data-state` — непустой список ID из раздела 10 |
