@@ -107,7 +107,7 @@
 
 | Уровень | Что проверяет | Где | Файлы | Владелец | Проект Vitest / инструмент |
 |---|---|---|---|---|---|
-| unit | чистая логика и компоненты без БД и сети: `domain/` (часы, окно подбора, Glicko-2), `packages/chess`, `packages/protocol`, `packages/i18n`, функции и компоненты `apps/web` (jsdom) | рядом с кодом | `*.test.ts`, `*.test.tsx` | developer | `unit` |
+| unit | чистая логика и компоненты без БД и сети: `domain/` (часы, окно подбора, Glicko-2), `packages/chess`, `packages/protocol`, `packages/i18n`, функции и компоненты `apps/web` (jsdom) | рядом с кодом | `*.test.ts`, `*.test.tsx` | developer | `unit`; `apps/web` — `web` (jsdom) |
 | интеграционный | `service` + `repo` модуля с реальной PostgreSQL: транзакции, блокировки, индексы, SQL лидеров | рядом с кодом в `apps/server/src/<модуль>/` | `*.int.test.ts` | developer | `int` |
 | contract | поведение `app` снаружи: REST (API §12), WebSocket (API §8–10, §13), права (SECURITY §7), ошибки (API §5.2), восстановление (8) | `apps/server/test/contract/<область>/` | `*.test.ts` | tester | `contract` |
 | acceptance | публичные функции из `design.md` против эталона ТЗ: векторы Glicko-2 | `apps/server/test/acceptance/` | `*.test.ts` | tester | `unit` |
@@ -130,11 +130,11 @@
 |---|---|---|
 | `npm run db:test:up` | `docker compose -f deploy/compose.test.yml up -d --wait` — PostgreSQL для тестов (7.1) | Docker запущен |
 | `npm run check` | `tsc -b` + ESLint + Stylelint + `dependency-cruiser` + `scripts/check-architecture.sh` + `scripts/check-api-doc.sh` | — |
-| `npm run test:unit` | `vitest run --project unit` | — |
+| `npm run test:unit` | `vitest run --project unit --project web` | — |
 | `npm run test:int` | `vitest run --project int` | `db:test:up` |
 | `npm run test:contract` | `vitest run --project contract` | `db:test:up` |
 | `npm run test:affected` | `vitest run --changed origin/main` — затронутое и потребители во всех трёх проектах | `db:test:up`; `git fetch origin main` |
-| `npm test` | все три проекта | `db:test:up` |
+| `npm test` | все проекты (`unit`, `web`, `int`, `contract`) | `db:test:up` |
 | `npm run test:e2e` | `playwright test -c tests/e2e/playwright.config.ts`; `webServer` сам собирает `app`, применяет миграции и сид `--demo` к базе `chezz_e2e` | `db:test:up` |
 | `npm run seed -- --demo` | `node apps/server/scripts/seed.ts --demo` (7.6) в базу из `DATABASE_URL` | `db:test:up` или staging |
 | `npm run seed -- --load 150 --tokens <файл>` | Игроки и Session для нагрузки, токены — в `<файл>` (7.6) | staging |
@@ -145,7 +145,7 @@
 - `npx vitest run --project contract -t "AC-3"` — все тесты с `AC-3` в имени проекта.
 - `npx playwright test -c tests/e2e/playwright.config.ts tests/e2e/challenge-link.spec.ts --project=desktop`
 
-- Проекты Vitest — в корневом `vitest.config.ts` (`test.projects`): `unit` — `**/src/**/*.test.{ts,tsx}` без `*.int.test.ts`, `packages/*/test/**`, `apps/server/test/acceptance/**`; `int` — `apps/server/src/**/*.int.test.ts`; `contract` — `apps/server/test/contract/**`. Для `int` и `contract` — `globalSetup` из 7.1, `pool: "forks"`, не больше 2 воркеров.
+- Проекты Vitest — в корневом `vitest.config.ts` (`test.projects`): `unit` — `**/src/**/*.test.{ts,tsx}` без `*.int.test.ts`, `packages/*/test/**`, `apps/server/test/acceptance/**`; `web` — `apps/web/**/*.test.{ts,tsx}`, окружение jsdom (в `unit` их нет); `int` — `apps/server/src/**/*.int.test.ts`; `contract` — `apps/server/test/contract/**`. Для `int` и `contract` — `globalSetup` из 7.1, `pool: "forks"`, не больше 2 воркеров.
 - Node.js 24 LTS (раздел 2): `node file.ts` работает без сборки; версия закреплена в `.nvmrc` и `engines` корневого `package.json`.
 - Ivan работает в Windows: команды выполняются из Git Bash (там же `scripts/*.sh`), Docker — Docker Desktop. CI — `ubuntu-latest`.
 - Соответствие для профиля F8 (шаблон tester): команда прогона затронутого — `npm run test:affected`; инфраструктура — `npm run db:test:up`; пример имени теста — из раздела 1.
