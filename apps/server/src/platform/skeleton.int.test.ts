@@ -88,6 +88,9 @@ describe("Кто (Caller)", () => {
       rateLimitIpPerMin: 300,
       webDistDir: null,
       logLevel: "silent",
+      appVersion: "test",
+      sentryDsn: null,
+      metrics: null,
     };
     const db = createDb<Database>(workerDatabaseUrl());
     const app = await buildApp(config, { db, time: new ManualTimeSource() });

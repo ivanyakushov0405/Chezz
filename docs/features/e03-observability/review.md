@@ -22,3 +22,39 @@
 - [packages/protocol/src/scrub.ts:9-66] Структурные типы пока не сверены с настоящими типами `@sentry/node` / `@sentry/browser`: пакетов ещё нет в `node_modules`. → В T-3 и T-5 подставить `scrubSentryEvent` в `beforeSend` / `beforeSendTransaction` и `scrubSentryBreadcrumb` в `beforeBreadcrumb` без `as` и убедиться, что `tsc` проходит. Если не пройдёт — поправить типы `SentryEventLike` и `SentryBreadcrumbLike` отдельной задачей `[contracts]`, а не приведением типов в `apps/*`.
 - [packages/protocol/src/scrub.ts:105-123] Если трассировку когда-нибудь включат, у transaction-события останутся неочищенными `spans[].description`, `spans[].data["url"]` и `contexts.trace.data` с URL `/api/challenges/<id>/…`. SECURITY §15 перечисляет только поля, которые сейчас обрабатываются, а AC-16 допускает выключенную трассировку. → T-3 и T-5 должны явно не задавать `tracesSampleRate` (или ставить 0). Включение трассировки — только через правку SECURITY §15 с перечнем полей span'ов (→ architect-apply).
 - [packages/protocol/src/scrub.ts:79] `stripQuery` отрезает всё после первого `?` или `#`. Для `request.url` и `data.url/to/from` так и задумано, а `message` у крошки сохраняет строку запроса (`GET /challenge/:id?x=1`), это закреплено тестом разработчика (`scrub.test.ts`, «message маскируется, но строка запроса в message сохраняется»). SECURITY §15 требует удалять строку запроса только у URL-полей, так что это по правилам. Но у fetch-крошки в `message` может оказаться `/auth/google/callback?code=…`. → Проверить в T-5, что SDK браузера не кладёт URL со строкой запроса в `breadcrumb.message`. Если кладёт — поднять вопрос architect.
+
+## T-2 — итерация 1
+Вердикт: CHANGES_REQUESTED
+
+Что проверено: diff `.env.example`, `apps/server/package.json`, `package-lock.json`, `app.ts`, `platform/{config,config.test,log,routes.int.test,skeleton.int.test}.ts`, `test/support/app.ts`, `scripts/check-architecture.sh`; новые `platform/{metrics,log.test,check-architecture.test}.ts`; `main.ts` (не менялся, EC-17 — `listen` реджектится → «app failed to start», `exit(1)`). Тесты tester не изменены: `git diff` и `git status --porcelain` по путям tester пусты. `vitest run` (из корня) по `platform/{check-architecture,log,config}.test.ts` и `test/contract/platform`: 49/49. Правила зоны backend из профиля сверены по MUST/MUST NOT (ARCHITECTURE §1, §7.2, §14; SECURITY §15, §18; TESTING §7.3, §11 и др.).
+
+- Требования: AC-1…AC-9, EC-12…EC-17 закрыты (тесты tester + `log.test.ts` на AC-9, `config.test.ts` на конфиг). Свой `Registry` на экземпляр, `app_info{version}`, `node:http` без лимита и лога, 404 с пустым телом, `start`/`stop` в `onReady`/`onClose`. SECURITY §15: путь маскируется `maskChallengeIds`, `err` — только `type/message/stack/code`, `cause` и `detail` не пишутся.
+- `prom-client` — в плане с причиной (SECURITY §18); `@opentelemetry/api`, `bintrees`, `tdigest` — его транзитивные, лицензии MIT/Apache-2.0.
+- Отступления разработчика:
+  - `AppDeps.onMetrics?` — допустимо. Тот же приём, что `onRoute`. Без него `startApp.close()`, который не вызывает `app.close()`, не освободил бы порт (AC-6). Штатный `app.close()` освобождает порт через `onClose`.
+  - `createMetrics` вместо `create…Service` — допустимо. Так же названы помощники `platform` (`createDb`, `createLogger`), вызов — только в `app.ts`. Минус: правило 5 `check-architecture.sh` этот вызов не видит (см. «Желательно»).
+  - Без ретраев при явном `config.metrics` — допустимо. Иначе EC-17 повторял бы занятый порт 5 раз. Побочный эффект — см. «Желательно».
+- Документация: `APP_VERSION`, `SENTRY_DSN`, `METRICS_HOST`, `METRICS_PORT` есть в OPERATIONS §6.2 и в таблице переменных; `.env.example` обновлён.
+
+### Блокеры
+- [scripts/check-architecture.sh:125] Шаблон `'\/challenge|\/api\/challenges'` в `grep -E` означает просто `/challenge` (`\/` = `/`). Проверено: `printf 'const p = "/challenge/x";\n// see /api/challenges/:id\n' | grep -E '\/challenge|\/api\/challenges'` находит обе строки. Правило запрещает любую подстроку `/challenge` в `apps/server/src` и `apps/web/src` вне тестов: комментарий `// POST /api/challenges/:id/accept`, строку лога, будущий модуль `challenges`. Это расходится с комментарием правила (стр. 122), текстом нарушения и design T-2 («сначала grep экранированного слэша»). → Искать сам обратный слэш: `grep_files '\/challenge|\/api\/challenges'`. В `check-architecture.test.ts:55` добавить случай: `apps/server/src/z.ts` с `"/challenge/x"` и комментарием `// /api/challenges/:id` → нарушения «вторая маскировка» нет. (Чек-лист п.2, корректность; TESTING §11: правка правила — вместе с его проверкой; design T-2.)
+
+### Желательно
+- [apps/server/src/platform/metrics.ts:24] Каждый `createMetrics` вызывает `collectDefaultMetrics`. Внутри prom-client 15.1.3 (`lib/metrics/gc.js:45`, `eventLoopLag.js:46`) создаются `PerformanceObserver` по GC и включённый `monitorEventLoopDelay`. Отключить их нельзя, они держат `Registry` экземпляра до конца процесса. В prod экземпляр один, так что это не блокер. Но в тестах каждый `buildApp` (даже с `metrics: null`) добавляет по наблюдателю, который срабатывает на каждой сборке мусора в воркере. → Как минимум вызывать `collectDefaultMetrics` только при `deps.config !== null`. Если при росте числа тестов воркеры начнут тормозить — вопрос architect (EC-16 / ADR-0010).
+- [apps/server/test/support/app.ts:91] При явном `config.metrics` ретраев нет и на коллизии **основного** порта (гонка `freePort`) — тест упадёт случайно. → Ретраить, если занят основной порт: сравнить `(err as {port?: number}).port` с `port`.
+- [scripts/check-architecture.sh:86-98] Правило 5 видит только `create<Модуль>Service(`, поэтому вызов `createMetrics` вне `app.ts` оно не поймает. → Можно добавить `createMetrics` в список имён правила 5 или вынести это в «Хвосты».
+- [apps/server/test/support/app.ts:95] При `config.metrics: null` `metricsUrl` указывает на свободный порт, который никто не слушает. → Комментарий в `TestApp.metricsUrl` («без метрик — адрес без сервера») или пустая строка.
+
+## T-2 — итерация 2
+Вердикт: APPROVE
+
+Что проверено: блокер итерации 1 и изменения после неё — `scripts/check-architecture.sh:125`, `apps/server/src/platform/check-architecture.test.ts`, `apps/server/src/platform/metrics.ts:23-24`. Тесты tester не изменены (`git status --porcelain` и `git diff` по их путям пусты). `bash scripts/check-architecture.sh` → `ok`; `vitest run` по `check-architecture.test.ts` и `test/contract/platform/metrics.test.ts` — 15/15.
+
+- Блокер закрыт. В файле стоит `grep_files '\/challenge|\/api\/challenges'` (байты проверены через `od -c`). Этот шаблон, взятый из скрипта, на пробном файле находит только `/\/challenge\//` и не находит литерал `"/challenge/x"`. Новый тест «простой литерал и комментарий с /challenge, /api/challenges — не нарушение» гоняет сам скрипт и закрепляет это поведение (TESTING §11).
+- `collectDefaultMetrics` теперь вызывается только при `deps.config !== null`. AC-2 на порту метрик не задет, `app_info` остаётся. Тесты с `metrics: null` (`routes.int.test.ts`, `skeleton.int.test.ts`) наблюдателей GC и event loop больше не создают.
+
+### Блокеры
+нет
+
+### Желательно
+- Пункты итерации 1 про ретрай основного порта при явном `config.metrics` (`test/support/app.ts:91`), правило 5 для `createMetrics` и `metricsUrl` при `metrics: null` остаются в силе. Ни один не блокер.

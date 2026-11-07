@@ -5,6 +5,7 @@ import type { DestinationStream } from "pino";
 import { buildApp } from "../../src/app.ts";
 import type { Database } from "../../src/database.ts";
 import type { AppConfig } from "../../src/platform/config.ts";
+import type { MetricsService } from "../../src/platform/metrics.ts";
 import { createDb, type Db } from "../../src/platform/db.ts";
 import { setDatabaseAllowConnections, workerDatabaseName, workerDatabaseUrl } from "./db.ts";
 import { ManualTimeSource } from "./time.ts";
@@ -15,6 +16,8 @@ export interface TestApp {
   /** ws://127.0.0.1:<порт>/ws (в E01 сервера WS нет — только адрес) */
   wsUrl: string;
   time: ManualTimeSource;
+  /** http://127.0.0.1:<порт метрик> */
+  metricsUrl: string;
   database: {
     /** База воркера недоступна для app: соединения рвутся, новые отклоняются. */
     block(): Promise<void>;
@@ -29,6 +32,8 @@ export interface StartAppOptions {
   config?: Partial<AppConfig>;
   /** Поток лога app (по умолчанию — без лога). */
   logDestination?: DestinationStream;
+  /** Старт ManualTimeSource (EC-25). */
+  time?: { wall?: Date };
 }
 
 const silent: DestinationStream = { write: () => undefined };
@@ -51,6 +56,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
 
   for (let attempt = 1; ; attempt++) {
     const port = await freePort();
+    const metricsPort = await freePort();
     const url = `http://127.0.0.1:${port}`;
     const config: AppConfig = {
       appEnv: "dev",
@@ -58,24 +64,38 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       rateLimitIpPerMin: 300,
       webDistDir: null,
       logLevel: options.logDestination ? "info" : "silent",
+      appVersion: "test",
+      sentryDsn: null,
+      metrics: { host: "127.0.0.1", port: metricsPort },
       ...options.config,
     };
-    const time = new ManualTimeSource();
+    const time = new ManualTimeSource(options.time?.wall ? { wall: options.time.wall } : undefined);
     // Обрыв соединений при block() — ожидаемая ошибка пула; без обработчика pg роняет процесс.
     const db: Db<Database> = createDb<Database>(workerDatabaseUrl(), { onPoolError: () => undefined });
     let app: FastifyInstance | undefined;
+    let metrics: MetricsService | undefined;
     try {
-      app = await buildApp(config, { db, time, logDestination: options.logDestination ?? silent });
+      app = await buildApp(config, {
+        db,
+        time,
+        logDestination: options.logDestination ?? silent,
+        onMetrics: (m) => {
+          metrics = m;
+        },
+      });
       await app.listen({ host: "127.0.0.1", port });
     } catch (err) {
       await app?.close().catch(() => undefined);
+      await metrics?.stop();
       await db.destroy();
-      if ((err as NodeJS.ErrnoException).code === "EADDRINUSE" && attempt < 5) continue;
+      if ((err as NodeJS.ErrnoException).code === "EADDRINUSE" && attempt < 5 && options.config?.metrics === undefined) continue;
       throw err;
     }
     const server = app.server;
+    const metricsUrl = `http://127.0.0.1:${metrics?.port() ?? metricsPort}`;
     return {
       url,
+      metricsUrl,
       wsUrl: `ws://127.0.0.1:${port}/ws`,
       time,
       database: {
@@ -90,6 +110,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       },
       close: async () => {
         server.closeAllConnections();
+        await metrics?.stop();
         await new Promise<void>((resolve) => server.close(() => resolve()));
         await db.destroy().catch(() => undefined);
         if (blocked) await setDatabaseAllowConnections(dbName, true);

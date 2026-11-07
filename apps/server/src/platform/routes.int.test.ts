@@ -31,6 +31,9 @@ beforeAll(async () => {
     rateLimitIpPerMin: 300,
     webDistDir: distDir,
     logLevel: "silent",
+    appVersion: "test",
+    sentryDsn: null,
+    metrics: null,
   };
   const db = createDb<Database>(workerDatabaseUrl());
   const collected: RouteOptions[] = [];

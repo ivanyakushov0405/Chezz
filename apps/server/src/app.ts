@@ -10,6 +10,7 @@ import type { AppConfig } from "./platform/config.ts";
 import { migrateToLatest, type Db } from "./platform/db.ts";
 import { registerHealthRoute } from "./platform/health.ts";
 import { alwaysGuest, BODY_LIMIT_BYTES, installHttp, type CallerResolver } from "./platform/http.ts";
+import { createMetrics, type MetricsService } from "./platform/metrics.ts";
 import { createLogger, RequestLogController } from "./platform/log.ts";
 import type { TimeSource } from "./platform/time.ts";
 
@@ -20,6 +21,8 @@ export interface AppDeps {
   logDestination?: DestinationStream;
   /** Наблюдатель регистрации маршрутов (хук onRoute до любых маршрутов) — для routes.int.test.ts (API §16). */
   onRoute?: (route: RouteOptions) => void;
+  /** Получает сервис метрик сразу после создания — тестовый startApp закрывает его без штатного app.close(). */
+  onMetrics?: (metrics: MetricsService) => void;
 }
 
 export async function buildApp(config: AppConfig, deps: AppDeps): Promise<FastifyInstance> {
@@ -58,8 +61,16 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   // Сервисы модулей: L0 platform, analytics → L1 users, feedback → … (ARCHITECTURE §7.1). В E01 — нет.
   registerHealthRoute(app, { db: deps.db, time: deps.time });
 
+  const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
+  deps.onMetrics?.(metrics);
+
   app.addHook("onReady", async () => {
     await migrateToLatest(deps.db);
+    // Порт метрик занят — ошибка старта (EC-17), а не молчаливое отсутствие метрик.
+    await metrics.start();
+  });
+  app.addHook("onClose", async () => {
+    await metrics.stop();
   });
 
   if (webDistDir === null) {

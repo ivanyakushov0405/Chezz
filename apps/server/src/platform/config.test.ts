@@ -18,10 +18,40 @@ describe("loadConfig", () => {
     });
   });
 
+  it("наблюдаемость: значения по умолчанию", () => {
+    const c = loadConfig({ DATABASE_URL: DB, WEB_DIST_DIR: "no/such/dir" });
+    expect(c).toMatchObject({
+      appVersion: "dev",
+      sentryDsn: null,
+      metrics: { host: "127.0.0.1", port: 9464 },
+    });
+  });
+
+  it("APP_VERSION обязательна в staging/prod и проверяется по шаблону", () => {
+    const base = { DATABASE_URL: DB, APP_ORIGIN: "https://chezz.test" };
+    expect(() => loadConfig({ ...base, APP_ENV: "prod" })).toThrow(/APP_VERSION/);
+    expect(() => loadConfig({ ...base, APP_ENV: "staging" })).toThrow(/APP_VERSION/);
+    expect(loadConfig({ ...base, APP_ENV: "prod", APP_VERSION: "1.2.3-x_y" }).appVersion).toBe("1.2.3-x_y");
+    expect(() => loadConfig({ DATABASE_URL: DB, APP_VERSION: "bad version" })).toThrow(/APP_VERSION/);
+    expect(() => loadConfig({ DATABASE_URL: DB, APP_VERSION: "a".repeat(65) })).toThrow(/APP_VERSION/);
+  });
+
+  it("SENTRY_DSN — только https; пусто = не задан; METRICS_PORT 0…65535", () => {
+    const dsn = "https://public@o0.ingest.sentry.io/0";
+    expect(loadConfig({ DATABASE_URL: DB, SENTRY_DSN: dsn }).sentryDsn).toBe(dsn);
+    expect(loadConfig({ DATABASE_URL: DB, SENTRY_DSN: "" }).sentryDsn).toBeNull();
+    expect(() => loadConfig({ DATABASE_URL: DB, SENTRY_DSN: "http://x@y/1" })).toThrow(/SENTRY_DSN/);
+    expect(loadConfig({ DATABASE_URL: DB, METRICS_PORT: "0", METRICS_HOST: "0.0.0.0" }).metrics).toStrictEqual({
+      host: "0.0.0.0",
+      port: 0,
+    });
+    expect(() => loadConfig({ DATABASE_URL: DB, METRICS_PORT: "65536" })).toThrow(/METRICS_PORT/);
+  });
+
   it("staging и prod требуют APP_ORIGIN", () => {
     expect(() => loadConfig({ DATABASE_URL: DB, APP_ENV: "prod" })).toThrow(ConfigError);
     expect(() => loadConfig({ DATABASE_URL: DB, APP_ENV: "staging" })).toThrow(/APP_ORIGIN/);
-    expect(loadConfig({ DATABASE_URL: DB, APP_ENV: "prod", APP_ORIGIN: "https://chezz.test/" }).appOrigin).toBe(
+    expect(loadConfig({ DATABASE_URL: DB, APP_ENV: "prod", APP_ORIGIN: "https://chezz.test/", APP_VERSION: "abc123" }).appOrigin).toBe(
       "https://chezz.test",
     );
   });
