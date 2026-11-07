@@ -9,6 +9,15 @@
     },
     {
       "path": "packages/chess"
+    },
+    {
+      "path": "apps/web"
+    },
+    {
+      "path": "packages/i18n"
+    },
+    {
+      "path": "tests/e2e"
     }
   ]
 }

@@ -1,0 +1,41 @@
+{
+  "rules": {},
+  "overrides": [
+    {
+      "files": [
+        "**/*.module.css"
+      ],
+      "rules": {
+        "color-no-hex": true,
+        "color-named": "never",
+        "function-disallowed-list": [
+          "rgb",
+          "rgba",
+          "hsl",
+          "hsla",
+          "hwb",
+          "lab",
+          "lch",
+          "oklab",
+          "oklch",
+          "color",
+          "color-mix"
+        ],
+        "unit-disallowed-list": [
+          [
+            "px",
+            "rem",
+            "em"
+          ],
+          {
+            "ignoreMediaFeatureNames": {
+              "px": [
+                "min-width"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

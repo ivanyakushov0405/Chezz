@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 29/50
+Вызовов: 35/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -55,3 +55,14 @@ UI: главная-заглушка; макеты — новый файл Figma 
 - Хвост до E04 (ревью T-4): свой сериализатор ошибок pino — поле `detail` ошибок pg утечёт e-mail (SECURITY §15).
 | 29 | tester | sonnet | tests | T-5 режим 1 (основа e2e; 1 обрыв по лимиту API, продолжен) | playwright.config, lobby/smoke/screens spec; lint/tsc OK; зона OK |
 - Вопросы tester T-5 к design (architect, позже): фон темы на body (--color-bg); устройство webkit (iPhone 13).
+| 30 | frontend-dev | sonnet | frontend | T-5, раунд 1 | apps/web, packages/i18n, lobby default; check OK; e2e desktop+mobile-360 на vite preview 34/34; полный e2e не прогнан (Docker); зона OK |
+- T-5 проверки (оркестратор, Docker запущен): check OK; tester-untouched пусто; test:affected 117/117; test:e2e 50 passed / 18 failed: firefox ×17 — не запускается локально (firefox.exe: Permission denied, окружение машины); webkit ×1 — AC-39 Tab не ставит фокус на ссылку → арбитр.
+| 31 | arbiter | opus | review | T-5 спор webkit AC-39 | TEST: в webkit Alt+Tab (tabsToLinks), код не трогать; зона OK |
+| 32 | tester | sonnet | tests | T-5 правка AC-39 по вердикту TEST (2 захода) | webkit: Shift + focus(), аннотация tabsToLinks; webkit/desktop/mobile-360 зелёные; зона OK |
+- T-5 e2e после правки: desktop + mobile-360 + webkit — 51/51 (реальный webServer); firefox локально не запускается (окружение), проверит CI.
+- Зависимости T-5 (SECURITY §18): react, react-dom — SPA; vite, @vitejs/plugin-react — сборка; @types/react(-dom) — типы; jsdom — проект Vitest web; @chezz/protocol (dev) в i18n — тест error.<code>.
+| 33 | reviewer | opus | review | T-5, итерация 1 | CHANGES_REQUESTED: правило PAGES слишком узкое; метки AC/EC в именах тестов; зона OK |
+| 34 | frontend-dev | sonnet | frontend | T-5, раунд 2 | правило PAGES шире (+leaderboard), метки AC/EC, тесты {name} и plural; зона OK |
+- T-5 раунд 2 проверки (оркестратор): check OK; tester-untouched пусто; test:affected 118/118; e2e desktop+mobile-360+webkit 51/51.
+| 35 | reviewer | opus | review | T-5, итерация 2 | APPROVE; зона OK |
+- T-5 [frontend] готова, раундов: 2 (+ арбитр TEST по AC-39 webkit), вызовов: 35/50.

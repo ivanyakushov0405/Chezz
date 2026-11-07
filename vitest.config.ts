@@ -1,4 +1,4 @@
-// Проекты Vitest (TESTING §5, §6). Проект web (jsdom, apps/web) добавляет задача фронтенда.
+// Проекты Vitest (TESTING §5, §6). Проект web (jsdom, apps/web) — задача фронтенда.
 // Группы идут по очереди (groupOrder): int и contract не делят базы воркеров одновременно.
 // retries нет (TESTING §15); passWithNoTests — проект без файлов не падает (EC-2).
 import { defineConfig } from "vitest/config";
@@ -27,6 +27,14 @@ export default defineConfig({
             "apps/server/test/acceptance/**/*.test.ts",
           ],
           exclude: ["**/node_modules/**", "**/dist/**", "**/*.int.test.ts", "apps/web/**"],
+        },
+      },
+      {
+        test: {
+          name: "web",
+          sequence: { groupOrder: 0 },
+          environment: "jsdom",
+          include: ["apps/web/src/**/*.test.{ts,tsx}"],
         },
       },
       {

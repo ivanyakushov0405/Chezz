@@ -106,6 +106,18 @@ if [ "${#ops_dirs[@]}" -gt 0 ]; then
     "$(grep -rnIE 'example\.com' "${ops_dirs[@]}" --exclude=CLAUDE.md 2>/dev/null | grep -vF "${SELF}:" || true)"
 fi
 
+# --- 7. Фронтенд: style={} только с переменными; --base-* только в tokens.css (DESIGN §17) ---
+WEB_SRC="apps/web/src"
+mapfile -t web_tsx < <(find "$WEB_SRC" -type f -name '*.tsx' 2>/dev/null | sort)
+report "style={{…}} без литералов цвета и размеров (DESIGN §17)"   "$(grep_files 'style=\{\{[^}]*(#[0-9a-fA-F]{3}|[0-9](px|rem)|rgb\()' "${web_tsx[@]}")"
+if [ -d "$WEB_SRC" ]; then
+  report "--base-* только в tokens.css (DESIGN §17)"     "$(grep -rnIE -e '--base-' "$WEB_SRC" --exclude=tokens.css --exclude='*.test.ts' --exclude='*.test.tsx' 2>/dev/null || true)"
+fi
+
+# --- 8. Адреса страниц только из PAGES (API §16): нет строковых литералов путей страниц ---
+mapfile -t page_files < <({ ts_files "$WEB_SRC"; ts_files "apps/server/src/seo"; } | grep -vE '(/pages\.ts|\.test\.tsx?)$')
+report "адреса страниц — только PAGES из @chezz/protocol (API §14, §16): литерал \"/game/, /player/, /challenge/, /leaderboard/"   "$(grep_files "[\"'\`]/(game|player|challenge|leaderboard)/" "${page_files[@]}")"
+
 if [ "$failed" -ne 0 ]; then
   echo "check-architecture: FAILED (rules: ARCHITECTURE §5, §7.2, §7.4; ADR-0005; OPERATIONS §1)" >&2
   exit 1

@@ -1,0 +1,15 @@
+{
+  "name": "@chezz/i18n",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "devDependencies": {
+    "@chezz/protocol": "*"
+  }
+}
