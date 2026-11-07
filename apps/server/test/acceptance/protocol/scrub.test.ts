@@ -31,7 +31,7 @@ function dirtyEvent() {
     release: "abc123",
     tags: { route: "/challenge/:id" },
     transaction: `/challenge/${CH}`,
-    message: `challenge ${CH} expired at /challenge/${CH}`,
+    message: `challenge expired at /challenge/${CH}`,
     logentry: { message: `failed /api/challenges/${CH}/accept`, params: [] as unknown[] },
     exception: {
       values: [
