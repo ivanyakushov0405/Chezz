@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 42/50
+Вызовов: 43/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -77,3 +77,5 @@ UI: главная-заглушка; макеты — новый файл Figma 
 - T-7 [e2e] готова: AC-51 локально закрыт; CI-часть — после push. Jira: KAN-32.
 | 41 | architect | opus | architect | сверка design.md с кодом (v0.3) | сигнатуры, порядок registerRoute, лимит (TimeSource, общий счётчик, IPv6 /64), ответы tester, «Хвосты» (17), «Изменения документов основ v0.3» — 18 пунктов на утверждение Ivan; вопрос: логин в CODEOWNERS vs OPERATIONS §1; зона OK |
 | 42 | designer | sonnet | designer | сверка design-spec с кодом (v0.4) | logo-knight 28×28, CSS-маска, forced-colors к E09; правки DESIGN на утверждение: U31 (маска), --layout-logo-mark 28px, §17/U39 node-окружение; хвосты: убрать исключение *.test.ts в check-architecture.sh, reduced-motion (E04); зона OK |
+- Ivan 2026-11-07: утвердил все правки основ v0.3 (design.md п.1–18) и 3 правки DESIGN от designer (U31 маска, --layout-logo-mark 28px, §17/U39 node-окружение). Логин в CODEOWNERS vs OPERATIONS §1 — оставить расхождение как известное, OPERATIONS §1 не менять.
+| 43 | architect | opus | architect-apply | apply правок основ v0.3 | ADR-0006 п.1–2; ARCHITECTURE 0.7 (A21, §13.1); SECURITY 0.5 (§9); TESTING 0.5 (V1, §6, §7.3, §9, §11, §12); OPERATIONS 0.6 (§8, §16.1 п.2, п.6); DESIGN 0.6 (U31, §1 CanvasText, §4 --layout-logo-mark, §17/U39); API §16 (п.18) — вместе с analyst; зона OK |

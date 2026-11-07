@@ -1,12 +1,13 @@
 # F2. Архитектура
 
-Статус: утверждён Ivan 2026-11-05, версия 0.6 от 2026-11-06. Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4 (reopen 1R, утверждён Ivan вместе с этой версией 2026-11-05).
+Статус: утверждён Ivan 2026-11-05, версия 0.7 от 2026-11-07. Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4 (reopen 1R, утверждён Ivan вместе с этой версией 2026-11-05).
 Утверждает: Ivan (BUSINESS.md, допущение D9). Стек решён человеком (F2-Q1 закрыт, A2).
 
 История:
 - v0.4, 2026-11-04 — утверждён после ревью r3 и ответов человека (стек, F2-Q3, F2-Q4, F2-Q7).
 - v0.5, 2026-11-05 — reopen F2 (этап 1R, решение Ivan): внесены правки, накопленные в F3–F7 (SECURITY F3-Q3, API §17.2 п.8–11, DESIGN §18.2 п.3–5, TESTING §18.2 п.1–5, OPERATIONS §23 п.1–3). Новых решений сверх них нет; в таблицах источник таких правок — «reopen» со ссылкой на первоисточник. Ответ — `docs/setup/reviews/F2-reopen-response-r1.md`.
 - v0.6, 2026-11-06 — apply E01: ADR-0005 (A30, §7.2, §7.4, §13.1) и ADR-0006 (A21) приняты Ivan 2026-11-05; ADR-0009; закрыты F2-Q9, F2-Q10, F2-Q12.
+- v0.7, 2026-11-07 — сверка E01 с реализацией (E01 v0.3, утверждено Ivan 2026-11-07): A21 (ключ IPv6 /64, общий счётчик, окно по `TimeSource` — ADR-0006 п.1–2), §13.1 (состав `src/platform/`). Новых решений нет.
 
 Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры, 3 — решения (3.1–3.4), 4 — стек, 5 — процессы и среды, 6 — хранилища и Redis, 7 — модули, слои, события, проверка, аналитика, 8 — владение данными, 9 — партия и часы, 10 — правила шахмат, 11 — рейтинг и лидеры, 12 — фронтенд, 13 — репозиторий (13.1 код, 13.2 тесты и проверки, 13.3 выкатка и GitHub), 14 — внешние компоненты, 15 — план роста, 16 — ADR, 17 — открытые вопросы. Номера вопросов этого документа — `F2-Qn`, глоссария — `GLOSSARY Qn`, допущений и решений бизнеса — `BUSINESS Dn`.
 
@@ -90,7 +91,7 @@
 
 | № | Решение | Источник | Альтернатива и почему не она |
 |---|---|---|---|
-| A21 | Rate limit: REST — `@fastify/rate-limit` по IP для гостя и по User для Session (П1 и Игрок). Регистрирует `platform` (`global: false`, `hook: "preHandler"`): лимит у каждого маршрута `/api/*` ставит `registerRoute`, ту же настройку `platform` отдаёт для `/auth/*` и WebSocket-upgrade; ключ — `keyGenerator` по `request.caller`: `user:<user_id>` или `ip:<ip>`; `platform` не зависит от `auth` (ADR-0006). WebSocket-upgrade входит в лимит REST; сообщения внутри WebSocket — token bucket в `realtime` на соединение; на User вместо token bucket — лимит открытых соединений. Набор и значения лимитов — F3 §9 | ТЗ §5; ревью r1; текст — reopen (F3 §9, F3-Q3); регистрация и ключ — ADR-0006 (F2-Q9), принят Ivan 2026-11-05 | Лимит в Caddy — не видит User и сообщения WebSocket; хук лимита в `auth` — `platform` зависел бы от `auth` или лимит по User — от порядка регистрации плагинов |
+| A21 | Rate limit: REST — `@fastify/rate-limit` по IP для гостя и по User для Session (П1 и Игрок). Регистрирует `platform` (`global: false`, `hook: "preHandler"`): лимит у каждого маршрута `/api/*` ставит `registerRoute`, ту же настройку `platform` отдаёт для `/auth/*` и WebSocket-upgrade; ключ — `keyGenerator` по `request.caller`: `user:<user_id>` или `ip:<ip>` (IPv6 — подсеть /64, IPv4-mapped — как IPv4); у ключа один счётчик на весь REST и upgrade, особые лимиты — отдельные группы; окно — по `TimeSource` (ADR-0006 п.1–2); `platform` не зависит от `auth` (ADR-0006). WebSocket-upgrade входит в лимит REST; сообщения внутри WebSocket — token bucket в `realtime` на соединение; на User вместо token bucket — лимит открытых соединений. Набор и значения лимитов — F3 §9 | ТЗ §5; ревью r1; текст — reopen (F3 §9, F3-Q3); регистрация и ключ — ADR-0006 (F2-Q9), принят Ivan 2026-11-05; ключ IPv6, общий счётчик, окно — сверка E01 (E01 v0.3, утверждено Ivan 2026-11-07) | Лимит в Caddy — не видит User и сообщения WebSocket; хук лимита в `auth` — `platform` зависел бы от `auth` или лимит по User — от порядка регистрации плагинов |
 | A22 | Sentry (`@sentry/node`, SaaS) на клиенте и сервере; `app` отдаёт `/metrics` (`prom-client`) на отдельном порту, который не публикуется через `edge` и слушает только `127.0.0.1` хоста (F3 S32, F7 §6.1); состав метрик, включая задержку event loop и `app_info{version}`, — F7 §12.2; `GET /api/health` наружу без версии (F4 P16); логи — `pino` (встроен в Fastify). Мониторинг по этапам: с первой выкатки — Sentry и внешний пинг (UptimeRobot), с этапа 4 — `watch.sh` (чтение `/metrics`, алерты метрик в Telegram) (F7 O19, §12–13) | ТЗ §5; по умолчанию; порт, метрики, этапы — reopen (F3 S32, F4 P16, F7 O19) | Prometheus + Grafana на VPS — сотни МБ памяти |
 | A26 | Аналитика — модуль `analytics`, таблица `analytics_events`; событие — техническая запись (как строка лога), не сущность домена; имена событий — технические идентификаторы (раздел 7.5) | ТЗ §5 «Аналитика», §7 «Метрики»; ревью r1, r2 | Внешний сервис аналитики — сторонний трекер и ПДн вне VPS (ТЗ §5); без событий — метрики ТЗ §7 нечем считать |
 
@@ -372,7 +373,7 @@ apps/server/                 Node.js + TS, процесс app
   src/main.ts                собирает зависимости и вызывает listen
   src/app.ts                 buildApp(config, deps) — для main.ts и тестов (F6 §7.3)
   src/database.ts            Database — пересечение XTables всех модулей (ADR-0005 п.5)
-  src/platform/              config, db (Db, Trx, withTransaction, migrateToLatest), time, http (Caller, registerRoute), ws (типы), errors (AppError)
+  src/platform/              config, db (Db, Trx, createDb, forTables, withTransaction, migrateToLatest), time, http (Caller, installHttp, registerRoute, apiRateLimit), rate-limit-store (счётчики лимита, ADR-0006), log (pino, F3 §15), errors (AppError), health (registerHealthRoute, databaseAvailable), repo (pingDatabase — SELECT 1), ws (типы)
   src/platform/time.ts       TimeSource (A27)
   src/platform/*.int.test.ts проверки скелета: routes, cors (F4 §16, P32)
   src/<модуль>/              api.ts, service.ts, events.ts, domain/, repo.ts, tables.ts (7.2)
