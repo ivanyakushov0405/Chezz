@@ -18,6 +18,9 @@
     },
     {
       "path": "tests/e2e"
+    },
+    {
+      "path": "tests/deploy"
     }
   ]
 }

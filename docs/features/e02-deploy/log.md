@@ -7,7 +7,7 @@
 - Ограничения: срок — не задан; лимит вызовов — 35 (профиль, M); макеты — не нужны
 - Этап 0: документы на месте; E01 (PR #3) и E03 (PR #9) смержены; infra-up — зелёный
 
-## Вызовы агентов (4/35)
+## Вызовы агентов (11/35)
 | # | Агент | Модель | Этап | Итог |
 |---|---|---|---|---|
 | 1 | analyst | opus | требования | 64 AC, 42 EC, 10 рисков; 5 вопросов Ivan, 10 — architect (A1–A10); блокеров нет; зона OK |
@@ -18,3 +18,14 @@
 - Jira: T-1…T-5 = KAN-39…KAN-43 (эпик KAN-5).
 - 2026-11-08: Ivan утвердил корректирующую правку OPERATIONS §9.4 (а–г под п.11, «A4», ссылки 9.4 п.N в OPERATIONS и PIPELINE_DECISIONS) — «Да, внести».
 | 4 | architect | opus | apply (корректирующая) | §9.4 п.11 а–г восстановлены дословно (сверено с 9d0f351), «A4», ссылки 9.4 п.N в OPERATIONS и PIPELINE_DECISIONS; зона OK |
+| 5 | backend-dev | sonnet | T-1 код, раунд 1 | vitest deploy/deploy-image, test:unit, yaml, tsconfig, eslint; check зелёный; ЗОНА: tests/deploy/{tsconfig.json,placeholder.ts} вне backend:platform (план отнёс tsconfig tests/deploy к T-1) — удалены, каталог создаёт tester (зона tests), k=2 |
+| 6 | tester | sonnet | T-1 режим 1 (основа tests/deploy) | tsconfig.json, support/bash.ts (runScript, makeTempDir, writeFake, writeLoggingFake, toBashPath); lint/tsc OK; зона OK |
+- T-1 проверки (оркестратор): check зелёный; vitest --project deploy и deploy-image — код 0.
+| 7 | reviewer | opus | T-1 ревью, итерация 1 | CHANGES_REQUESTED: eslint запрещает it.skipIf в tests/deploy (нужен блок V24); желательно — groupOrder 3 в TESTING §6, test:affected и deploy-image; зона OK |
+| 8 | backend-dev | sonnet | T-1 раунд 3 | блок eslint tests/deploy: только skipIf(process.platform === "win32"); check зелёный, unit 178/178; зона OK |
+| 9 | reviewer | opus | T-1 ревью, итерация 2 | CHANGES_REQUESTED: блок tests/deploy выключил vitest/no-disabled-tests и потерял селектор MemberExpression (it.concurrent.skip, const s = it.skip проходят); блокер итерации 1 закрыт; зона OK |
+- T-1: k = 4 > 3 — ⛔ лимит раундов, выбор Ivan.
+- 2026-11-08: Ivan — вариант (1) «Ещё 2 раунда» для T-1; подсказка — убрать "off" для vitest/no-disabled-tests и вернуть селектор MemberExpression.
+| 10 | backend-dev | sonnet | T-1 раунд 4 | no-disabled-tests вернул, MemberExpression + it.concurrent.*; 6 случаев по заданию; check зелёный; зона OK |
+| 11 | reviewer | opus | T-1 ревью, итерация 3 | APPROVE; желательно — сообщение правила, отложенное из итерации 1 (groupOrder 3 в TESTING §6, test:affected и deploy-image); зона OK |
+- T-1 [backend:platform] готова, раундов: 4 (лимит, выбор Ivan — +2), вызовов: 11/35
