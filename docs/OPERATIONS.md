@@ -1,6 +1,6 @@
 # F7. Эксплуатация и DevOps
 
-Статус: утверждён Ivan 2026-11-05. Версия 0.8 от 2026-11-08 — apply E02 (design E02 утверждён Ivan): 5, 6.1, 7, 9.2, 9.3, 9.4, 9.5, 11, 14.1; решения O46, O47; ADR-0011. Версия 0.7 от 2026-11-07 — apply E03 (design E03 утверждён Ivan 2026-11-07): 6.2 (`APP_VERSION` в `<meta name="chezz-release">`, обязателен в prod/staging; `HOST`, `METRICS_HOST`, `METRICS_PORT` в образе), 9.4 п.0 и 11 п.2 (нет метрики `chezz_games_active` или `app` не отвечает — 0); ARCHITECTURE A31, ADR-0010; новых решений F7 нет. Версия 0.6 от 2026-11-07 — сверка E01 с реализацией (E01 v0.3, утверждено Ivan 2026-11-07): раздел 8 (образ `gitleaks` по digest и его обновление, место `check-workflows.sh`, `--no-renames` в `e2e`), 16.1 п.2 (`/.claude/` в `CODEOWNERS`) и п.6 (`docker-compose` в Dependabot); новых решений нет. Версия 0.5 от 2026-11-05 — точечный reopen в этапе 1R по решению Ivan: O45 (сверка PR в плане выкатки, ревью reopen r1 security-1), уточнение O15 (режимы сида), 6.1 (ссылка), §23 (отметки выполнения); ответы — `docs/setup/reviews/reopen-response-r2.md`, `docs/setup/reviews/reopen-response-r3.md` (честные границы O45, `--match-head-commit`, inline-цикл и экранирование 9.2а, список при `bootstrap=true`, проверка журнала 14.3). Версия 0.4 утверждена Ivan 2026-11-05 (ответы — `docs/setup/reviews/F7-response-r1.md`, `docs/setup/reviews/F7-response-r2.md`, `docs/setup/reviews/F7-response-r3.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5 (+ `docs/adr/`), `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4, `docs/TESTING.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05; прежние утверждённые — v0.3 / v0.4 / v0.3 / v0.3 / v0.3 / v0.3).
+Статус: утверждён Ivan 2026-11-05. Версия 0.8 от 2026-11-08 — apply E02 (design E02 утверждён Ivan): 5, 6.1, 7, 9.2, 9.3, 9.4, 9.5, 11, 14.1; решения O46, O47; ADR-0011; сверка ссылок 9.4 (утверждено Ivan). Версия 0.7 от 2026-11-07 — apply E03 (design E03 утверждён Ivan 2026-11-07): 6.2 (`APP_VERSION` в `<meta name="chezz-release">`, обязателен в prod/staging; `HOST`, `METRICS_HOST`, `METRICS_PORT` в образе), 9.4 п.0 и 11 п.2 (нет метрики `chezz_games_active` или `app` не отвечает — 0); ARCHITECTURE A31, ADR-0010; новых решений F7 нет. Версия 0.6 от 2026-11-07 — сверка E01 с реализацией (E01 v0.3, утверждено Ivan 2026-11-07): раздел 8 (образ `gitleaks` по digest и его обновление, место `check-workflows.sh`, `--no-renames` в `e2e`), 16.1 п.2 (`/.claude/` в `CODEOWNERS`) и п.6 (`docker-compose` в Dependabot); новых решений нет. Версия 0.5 от 2026-11-05 — точечный reopen в этапе 1R по решению Ivan: O45 (сверка PR в плане выкатки, ревью reopen r1 security-1), уточнение O15 (режимы сида), 6.1 (ссылка), §23 (отметки выполнения); ответы — `docs/setup/reviews/reopen-response-r2.md`, `docs/setup/reviews/reopen-response-r3.md` (честные границы O45, `--match-head-commit`, inline-цикл и экранирование 9.2а, список при `bootstrap=true`, проверка журнала 14.3). Версия 0.4 утверждена Ivan 2026-11-05 (ответы — `docs/setup/reviews/F7-response-r1.md`, `docs/setup/reviews/F7-response-r2.md`, `docs/setup/reviews/F7-response-r3.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5 (+ `docs/adr/`), `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4, `docs/TESTING.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05; прежние утверждённые — v0.3 / v0.4 / v0.3 / v0.3 / v0.3 / v0.3).
 Утверждает: Ivan (BUSINESS D9).
 
 Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры и стоимость, 3 — решения (3.1 среды и инфраструктура, 3.2 CI и поток выкатки, 3.3 проверки, откат, нагрузка, 3.4 наблюдаемость, 3.5 бэкапы и аварии, 3.6 прочее), 4 — среды, 5 — VPS и первичная настройка, 6 — контейнеры (6.1 compose, 6.2 образы, 6.3 Caddy, 6.4 тестовая БД), 7 — переменные и секреты, 8 — CI, 9 — выкатка (9.1 поток и подтверждения, 9.2 workflow, 9.2а список PR в плане, 9.3 команды на VPS и коды, 9.4 выкатка prod и проверки, 9.5 откат, 9.6 staging и его smoke, 9.7 окна и плановые работы), 10 — команды для `/release`, 11 — нагрузочный тест, 12 — наблюдаемость, 13 — алерты, 14 — бэкапы и восстановление, 15 — кто и что может в проде, 16 — настройки GitHub, учётная запись, правила Claude Code, 17 — лицензия и публичный репозиторий, 18 — чего не делаем, 19 — план роста, 20 — что нужно от Ivan и когда, 21 — открытые вопросы, 22 — закрытые пункты других документов, 23 — правки утверждённых документов (для reopen). Номера: решения `O#`, вопросы `F7-Qn`; ссылки — `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`, `DESIGN U#`, `TESTING V#` / `§N`.
@@ -422,7 +422,12 @@ staging=up|down
 9. staging запущен → `rm -sfv app-staging db-staging`.
 10. `up … edge db app`.
 11. Проверки а–г (`sleep 60` перед г).
-12. Провал 10/11: есть `prod.image.prev` → `restore_prev` (вернуть клон) → 1 / 4; нет → A4 → 4.
+   Проверки (smoke prod), все обязательны; `revision` — ожидаемый SHA:
+   - а) `curl -fsS http://127.0.0.1:9464/metrics` содержит `app_info{version="<revision>"} 1`;
+   - б) `curl -fsS https://$APP_DOMAIN/api/health` = `{"status":"ok"}`;
+   - в) в ответе б) есть `Strict-Transport-Security` и `Content-Security-Policy`;
+   - г) через 60 с `docker inspect -f '{{.RestartCount}}'` у `app` = 0 и б) снова `ok`.
+12. Провал 10/11: есть `prod.image.prev` → `restore_prev` (вернуть клон) → 1 / 4; нет → 9.5, «Нет `prod.image.prev`» → 4.
 13. `image prune` → 0.
 
 - Пример: миграция с ошибкой SQL → `app` не здоров 120 с → `restore_prev` возвращает клон и образ, `result=rolled_back`, job `prod` красный. Схема не изменилась: Kysely Migrator выполняет миграцию в транзакции.
@@ -430,12 +435,12 @@ staging=up|down
 
 ### 9.5. Откат
 
-Функция `restore_prev` (общая для 9.4 п.9 и команды `rollback`), вход — целевой digest и признак «вернуть клон»:
+Функция `restore_prev` (общая для 9.4 п.12 и команды `rollback`), вход — целевой digest и признак «вернуть клон»:
 1. Если «вернуть клон» — `git checkout --detach $(cat state/prod.repo.prev)`.
 2. `docker pull ghcr.io/<owner>/chezz-app@<цель>`; `revision` цели — из её метки.
 3. `state/prod.image` ← цель; `PROD_APP_IMAGE` в `compose.prod.env` ← цель; строка `restore` в `prod.history`.
 4. `docker compose … up -d --wait --wait-timeout 120 app`.
-5. Проверки 9.4 п.8 а–г с `revision` цели. Успех → 0, провал → 4.
+5. Проверки 9.4 п.11 а–г с `revision` цели. Успех → 0, провал → 4.
 
 Нет `prod.image.prev` (провал первой выкатки): `restore_prev` не выполняется — `stop app`, клон ← `prod.repo.prev`, `state/prod.image` удаляется, вывод `restore=no_prev`, код 4; повтор — `bootstrap=true`. `docker pull` цели не удался — код 4.
 
@@ -459,10 +464,10 @@ Job `staging` в `deploy.yml` (`action=deploy`), шаги строго по по
 
 Ручная проверка (Ivan, TESTING V17): вход через Google тестовым пользователем → выбор ника → лобби → выход. Фича про удаление аккаунта — удаление по SECURITY §4.1.
 
-Гашение: выкатка prod (9.4 п.6), `action=down` или `chezz-staging-ttl.timer` — `staging.started` старше 12 ч → `down`.
+Гашение: выкатка prod (9.4 п.9), `action=down` или `chezz-staging-ttl.timer` — `staging.started` старше 12 ч → `down`.
 
 - Код ветки в шагах 2–3 видит `SEED_TOKEN_SECRET` — принятый риск SECURITY §17: секрет даёт вход только на staging с сид-данными.
-- Ограничение: compose и скрипты staging — из клона на SHA последней выкатки prod (O9). Изменение `deploy/**` проверяется проверками 9.4 п.8 с возвратом клона.
+- Ограничение: compose и скрипты staging — из клона на SHA последней выкатки prod (O9). Изменение `deploy/**` проверяется проверками 9.4 п.11 с возвратом клона.
 
 ### 9.7. Окна и плановые работы
 
@@ -511,7 +516,7 @@ gh workflow run load.yml --ref "$REF"
 `.github/workflows/load.yml`, `workflow_dispatch` из ветки: `plan` → `build` (обе цели, пакеты `*-staging`) → job `load` в environment `staging`, только SSH-шаги, без кода ветки на runner:
 `concurrency: deploy-staging` (общая с `deploy.yml env=staging`), без отмены. `load` при неподнятом `app-staging` — код 2; отчёт выводится между строками `report_begin` и `report_end`.
 1. `up <app> <tools>` (9.6 п.1).
-2. `load`: `entry.sh` — `games_active` prod > 2 → код 3 (нет метрики или `app` prod не отвечает — 0, как 9.4 п.0). Иначе `docker compose -p chezz run --rm -e LOAD_REPORT=/tmp/report.json tools-staging sh -c 'node apps/server/scripts/seed.ts --load 150 --tokens /tmp/tokens && LOAD_TOKENS=/tmp/tokens LOAD_BASE_URL="$APP_ORIGIN" node tests/load/run.ts; rc=$?; cat /tmp/report.json; exit $rc'` (`APP_ORIGIN` — из `staging.env`).
+2. `load`: `entry.sh` — `games_active` prod > 2 → код 3 (нет метрики или `app` prod не отвечает — 0, как 9.4 п.2). Иначе `docker compose -p chezz run --rm -e LOAD_REPORT=/tmp/report.json tools-staging sh -c 'node apps/server/scripts/seed.ts --load 150 --tokens /tmp/tokens && LOAD_TOKENS=/tmp/tokens LOAD_BASE_URL="$APP_ORIGIN" node tests/load/run.ts; rc=$?; cat /tmp/report.json; exit $rc'` (`APP_ORIGIN` — из `staging.env`).
 3. `report.json` → итог job; код ≠ 0 при нарушении порога (TESTING §10).
 4. `down` — `if: always()`.
 
@@ -611,7 +616,7 @@ RPO ≤ 24 ч, RTO ≤ 4 ч рабочего времени Ivan (O26, O31). Д�
    - `local` (до этапа 4, VPS жив, БД испорчена): `ssh ops@<vps> /srv/chezz/repo/scripts/ops/restore-prod.sh --local <файл .dump>` — без ключа.
    - Скрипт: сверяет SHA-256 (для `offsite`), останавливает `app`, пересоздаёт базу `chezz`, `pg_restore --no-owner --no-privileges` ролью `app` (не `postgres`), выполняет `logout-everyone.sql`, печатает `user_id` из строк `account_deleted` журнала после времени бэкапа (12.1), запускает `app`.
    - Полнота журнала (MUST, reopen r3, security-3): журнал общий и ограничен `SystemMaxUse=1G` (O17), старые строки могут быть вытеснены раньше 14 дней. Скрипт берёт время самой ранней записи `journalctl CONTAINER_TAG=chezz-app-1 -o short-unix | head -n 1`; если записей нет или она не старше времени бэкапа — печатает крупно `WARNING: журнал app начинается позже бэкапа (<время>), список удалений может быть неполным — SECURITY S39`, и Ivan действует по шагу 7 как при потере VPS для удалений до начала журнала.
-7. Удаления после бэкапа: напечатанные `user_id` Ivan записывает в Issue (без ПДн) и повторяет их удаление, когда появится способ (F7-Q8). При потере VPS журнала нет — эти удаления не восстановить (принятое отступление O31 п.2). Smoke prod (9.4 п.8), сообщение игрокам по каналу F7-Q5.
+7. Удаления после бэкапа: напечатанные `user_id` Ivan записывает в Issue (без ПДн) и повторяет их удаление, когда появится способ (F7-Q8). При потере VPS журнала нет — эти удаления не восстановить (принятое отступление O31 п.2). Smoke prod (9.4 п.11), сообщение игрокам по каналу F7-Q5.
 
 - Потеря только БД — шаги 5–7.
 - Принятый риск: дамп не подписан (подписать без ключа на VPS нельзя) — защита выбором файла в шаге 5 и сверкой SHA-256.
@@ -751,7 +756,7 @@ O36, O43: учётная запись одна — Ivan. Сессия Claude Cod
 |---|---|
 | ARCHITECTURE §5: место копий, проверка восстановления, плановая ли выкатка, выкатка только через CI; A22 сборщик и алерты; §14 мессенджер, хранилище, сборщик | O13, O19–O23, разделы 9, 12–14 |
 | SECURITY S8/§6 Caddyfile; §14 ротация логов, хранилище без удаления, скрипт проверки; §16 SSH, `command=`; §17 защита GitHub, сборка без секретов, `deploy/**` из `main`; §11 алерт скриншотов; §18 CI | 6.3, 12.1, 14, 5, 9.3–9.4, 16, 13 (AL7), 8 |
-| API P16 (версия в smoke), §17.2 п.15 (`/challenge/<id>` в логах) | 9.4 п.8а; O18 |
+| API P16 (версия в smoke), §17.2 п.15 (`/challenge/<id>` в логах) | 9.4 п.11а; O18 |
 | DESIGN §18.2 п.10 (`LICENSE`) | 17, O28 |
 | TESTING §18.2 п.8 (compose.test, ci.yml, обязательные проверки, нагрузка, файл токенов, smoke, версия PostgreSQL, форки), п.10 (публичный репозиторий — часть F7) | 6.4, 8, 16, 11, 9.6, 6.1, 17 |
 | ADR-0004 (подробности workflow staging) | 9.2, 9.6 |

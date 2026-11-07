@@ -70,8 +70,8 @@
 | smoke-staging | `conclusion` того же run (шаг `@smoke` в job `staging`) | OPERATIONS §9.6 п.3 |
 | rollback-staging | `… -f env=staging -f action=down` | OPERATIONS §10, §9.6 (staging не откатывают — гасят) |
 | deploy-prod | `gh workflow run deploy.yml --ref main -f env=prod` | OPERATIONS §10, §9.1 шаг 5 |
-| smoke-prod | `result=` того же run | OPERATIONS §9.4 п.8, §9.3 |
-| post-deploy-check | `conclusion` того же run (проверка 60 с, 9.4 п.8 г); дальше — алерты `watch.sh` | OPERATIONS §9.4, §12.3, §13 |
+| smoke-prod | `result=` того же run | OPERATIONS §9.4 п.11, §9.3 |
+| post-deploy-check | `conclusion` того же run (проверка 60 с, 9.4 п.11 г); дальше — алерты `watch.sh` | OPERATIONS §9.4, §12.3, §13 |
 | rollback-prod | `… -f env=prod -f action=rollback` | OPERATIONS §10, §9.5 |
 | load-staging | `gh workflow run load.yml --ref "$REF"` | OPERATIONS §10, §11 |
 
