@@ -1,6 +1,6 @@
 # F7. Эксплуатация и DevOps
 
-Статус: утверждён Ivan 2026-11-05, версия 0.7 от 2026-11-07 — apply E03 (design E03 утверждён Ivan 2026-11-07): 6.2 (`APP_VERSION` в `<meta name="chezz-release">`, обязателен в prod/staging; `HOST`, `METRICS_HOST`, `METRICS_PORT` в образе), 9.4 п.0 и 11 п.2 (нет метрики `chezz_games_active` или `app` не отвечает — 0); ARCHITECTURE A31, ADR-0010; новых решений F7 нет. Версия 0.6 от 2026-11-07 — сверка E01 с реализацией (E01 v0.3, утверждено Ivan 2026-11-07): раздел 8 (образ `gitleaks` по digest и его обновление, место `check-workflows.sh`, `--no-renames` в `e2e`), 16.1 п.2 (`/.claude/` в `CODEOWNERS`) и п.6 (`docker-compose` в Dependabot); новых решений нет. Версия 0.5 от 2026-11-05 — точечный reopen в этапе 1R по решению Ivan: O45 (сверка PR в плане выкатки, ревью reopen r1 security-1), уточнение O15 (режимы сида), 6.1 (ссылка), §23 (отметки выполнения); ответы — `docs/setup/reviews/reopen-response-r2.md`, `docs/setup/reviews/reopen-response-r3.md` (честные границы O45, `--match-head-commit`, inline-цикл и экранирование 9.2а, список при `bootstrap=true`, проверка журнала 14.3). Версия 0.4 утверждена Ivan 2026-11-05 (ответы — `docs/setup/reviews/F7-response-r1.md`, `docs/setup/reviews/F7-response-r2.md`, `docs/setup/reviews/F7-response-r3.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5 (+ `docs/adr/`), `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4, `docs/TESTING.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05; прежние утверждённые — v0.3 / v0.4 / v0.3 / v0.3 / v0.3 / v0.3).
+Статус: утверждён Ivan 2026-11-05. Версия 0.8 от 2026-11-08 — apply E02 (design E02 утверждён Ivan): 5, 6.1, 7, 9.2, 9.3, 9.4, 9.5, 11, 14.1; решения O46, O47; ADR-0011. Версия 0.7 от 2026-11-07 — apply E03 (design E03 утверждён Ivan 2026-11-07): 6.2 (`APP_VERSION` в `<meta name="chezz-release">`, обязателен в prod/staging; `HOST`, `METRICS_HOST`, `METRICS_PORT` в образе), 9.4 п.0 и 11 п.2 (нет метрики `chezz_games_active` или `app` не отвечает — 0); ARCHITECTURE A31, ADR-0010; новых решений F7 нет. Версия 0.6 от 2026-11-07 — сверка E01 с реализацией (E01 v0.3, утверждено Ivan 2026-11-07): раздел 8 (образ `gitleaks` по digest и его обновление, место `check-workflows.sh`, `--no-renames` в `e2e`), 16.1 п.2 (`/.claude/` в `CODEOWNERS`) и п.6 (`docker-compose` в Dependabot); новых решений нет. Версия 0.5 от 2026-11-05 — точечный reopen в этапе 1R по решению Ivan: O45 (сверка PR в плане выкатки, ревью reopen r1 security-1), уточнение O15 (режимы сида), 6.1 (ссылка), §23 (отметки выполнения); ответы — `docs/setup/reviews/reopen-response-r2.md`, `docs/setup/reviews/reopen-response-r3.md` (честные границы O45, `--match-head-commit`, inline-цикл и экранирование 9.2а, список при `bootstrap=true`, проверка журнала 14.3). Версия 0.4 утверждена Ivan 2026-11-05 (ответы — `docs/setup/reviews/F7-response-r1.md`, `docs/setup/reviews/F7-response-r2.md`, `docs/setup/reviews/F7-response-r3.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5 (+ `docs/adr/`), `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4, `docs/TESTING.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05; прежние утверждённые — v0.3 / v0.4 / v0.3 / v0.3 / v0.3 / v0.3).
 Утверждает: Ivan (BUSINESS D9).
 
 Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры и стоимость, 3 — решения (3.1 среды и инфраструктура, 3.2 CI и поток выкатки, 3.3 проверки, откат, нагрузка, 3.4 наблюдаемость, 3.5 бэкапы и аварии, 3.6 прочее), 4 — среды, 5 — VPS и первичная настройка, 6 — контейнеры (6.1 compose, 6.2 образы, 6.3 Caddy, 6.4 тестовая БД), 7 — переменные и секреты, 8 — CI, 9 — выкатка (9.1 поток и подтверждения, 9.2 workflow, 9.2а список PR в плане, 9.3 команды на VPS и коды, 9.4 выкатка prod и проверки, 9.5 откат, 9.6 staging и его smoke, 9.7 окна и плановые работы), 10 — команды для `/release`, 11 — нагрузочный тест, 12 — наблюдаемость, 13 — алерты, 14 — бэкапы и восстановление, 15 — кто и что может в проде, 16 — настройки GitHub, учётная запись, правила Claude Code, 17 — лицензия и публичный репозиторий, 18 — чего не делаем, 19 — план роста, 20 — что нужно от Ivan и когда, 21 — открытые вопросы, 22 — закрытые пункты других документов, 23 — правки утверждённых документов (для reopen). Номера: решения `O#`, вопросы `F7-Qn`; ссылки — `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`, `DESIGN U#`, `TESTING V#` / `§N`.
@@ -106,6 +106,8 @@
 | O15 | Session сида `--demo` на staging — `HMAC(SEED_TOKEN_SECRET, ник)`; сид `--load` (раздел 11) секрет не использует — случайные токены в файл `/tmp/tokens` (TESTING §7.6, V20) | человек (публичный репозиторий); режимы — ревью reopen r2 (agentability-9) | Фиксированные токены публичны |
 | O16 | Нагрузка — `load.yml`, один job только с SSH-шагами (раздел 11) | TESTING V11, §10 | Запуск по SSH руками — против «только CI» |
 | O38 | `prod deploy` при > 10 активных партиях — код 3; обход — `force=true` (Ivan) | ARCHITECTURE §5; ревью r1 (agent-4) | Правило без проверки — агент не видит партий |
+| O46 | Одна блокировка `flock` на VPS для команд обеих сред и таймеров (ожидание ≤ 900 с, иначе код 9 `locked`); `docker pull` не удался — код 8 `pull_failed`; `deploy`/`up` сначала выполняют все проверки, затем меняют состояние (9.4) | design E02 (A3, A5); ADR-0011 | `concurrency` GitHub — не видит таймеров и команд разных групп |
+| O47 | Пустой секрет environment — ключ не пишется; обязательные ключи — `required` в `env.allowlist`, без значения — код 2 (7) | design E02 (A2) | Код 2 на любой пустой — не выкатить до E04 и этапа 4 |
 
 ### 3.4. Наблюдаемость
 
@@ -178,6 +180,8 @@
 
 8. Юниты: `chezz-backup.timer` (03:30 UTC), `chezz-staging-ttl.timer` (каждые 30 мин, 9.6); с этапа 4 — `chezz-watch.timer` (каждую минуту). Все от `deploy`.
 
+Запуск: `ssh root@<ip> 'bash -s -- --repo-url https://github.com/<owner>/chezz.git --ops-key "<ключ Ivan>" --ci-prod-key "<ключ>" --ci-staging-key "<ключ>" --ops-password-hash "<openssl passwd -6>"' < deploy/bootstrap.sh`. Ключи — открытые, в репозиторий не попадают; неверный аргумент — код 2 без изменений. Клон — `git clone --branch main`; существующий клон, `*.env` и `authorized_keys` `ops` не перезаписываются (`authorized_keys` `deploy` пересобирается ровно из двух строк). `/srv/chezz/env` и `/srv/chezz/state` — setgid (2750): файлы получают группу `ops` без `chown`. `sshd` перезапускается после `sshd -t`. `deploy/backup.age.pub` до E20 нет — бэкап в режиме `local` (14.1).
+
 - MUST: IP VPS, ключ хоста, логин GitHub — только в vars environments (раздел 7), не в репозитории.
 - После bootstrap: Ivan заносит IP и строку `known_hosts` в vars обоих environments; первая выкатка — `env=prod`, `bootstrap=true` (O40, O44).
 
@@ -197,6 +201,7 @@
 | `tools-staging` (только `run`) | `${STAGING_TOOLS_IMAGE}` | `staging`, `edge-staging` | нет | `tmpfs: /tmp` | `env_file: staging.env` | `512m`, `cpus: 1.0`, `pids_limit: 256` |
 
 - Профиль `staging` — у трёх staging-сервисов.
+- `env_file` — `${CHEZZ_ROOT:-/srv/chezz}/env/<файл>`. Том `screenshots` монтируется в `/data/screenshots` (в образе — `node:node`, 700); у `app-staging` там `tmpfs` с `uid=1000,gid=1000,mode=0700`.
 - БД: `POSTGRES_USER=app`, `POSTGRES_DB=chezz` — константы в compose; `POSTGRES_PASSWORD` и `DATABASE_URL` — в одном файле `prod.env` / `staging.env`.
 - Сети `prod` и `staging` — `internal: true`; `edge-*` дают выход к Google и Sentry. У staging-сервисов нет сетей prod.
 - O33 для `app`, `app-staging`, `tools-staging`: `user: "1000:1000"`, `cap_drop: [ALL]`, `security_opt: [no-new-privileges:true]`, `read_only: true`, `tmpfs: /tmp`. Всё, что пишут эти контейнеры, — в `/tmp` или в томе (например, отчёт нагрузки — `/tmp/report.json`, раздел 11).
@@ -264,7 +269,7 @@ staging.{$APP_DOMAIN} {
 | `SENTRY_DSN` | prod / staging | общий проект | то же | нет | `app`, клиент |
 | `RATE_LIMIT_IP_PER_MIN` | staging | не задан (300, SECURITY §9) | `100000` | нет | `app` |
 | `SEED_TOKEN_SECRET` | staging | — | да (O15) | да | `tools-staging`, шаг smoke |
-| `APP_DOMAIN`, `ACME_EMAIL`, `SENTRY_INGEST` | prod → `compose.prod.env`; vars `prod` | да | — | нет | `edge`, скрипты |
+| `APP_DOMAIN`, `ACME_EMAIL`, `SENTRY_INGEST` | ops → `compose.prod.env`; vars `prod` | да | — | нет | `edge`, скрипты |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (этап 4) | ops | да | — | да | `watch.sh`, `backup.sh` |
 | `B2_KEY_ID`, `B2_APP_KEY`, `B2_BUCKET` (этап 4) | ops | да | — | да | `backup.sh`, `backups.sh`, `restore-*.sh` |
 | `BACKUP_REQUIRE_OFFSITE` | ops; vars `prod` | `true` с этапа 4 | — | нет | `backup.sh` (O35) |
@@ -272,6 +277,8 @@ staging.{$APP_DOMAIN} {
 | `VPS_HOST`, `VPS_HOST_KEY` | vars обоих environments | да | да | нет, но не в git | шаг SSH |
 
 - Файлы на VPS: `prod.env`, `staging.env` — 600 `deploy`; `ops.env` — 640 `deploy:ops`; `compose.*.env` — 640 `deploy:ops`; запись атомарная (временный файл + `mv`).
+- `env.allowlist`: строка — `ИМЯ required|optional`. Пустое значение (секрет не задан) — ключ не пишется; `required` без значения или `APP_ENV` ≠ среды — код 2 (O47). `required`: `[prod]` `APP_ENV`, `APP_ORIGIN`, `DATABASE_URL`, `POSTGRES_PASSWORD`; `[ops]` `APP_DOMAIN`, `ACME_EMAIL`, `SENTRY_INGEST`; `[staging]` то же, что `[prod]`, и `SEED_TOKEN_SECRET`. `GOOGLE_*`, `COOKIE_SECRET` становятся `required` в E04.
+- Ключи `[ops]` `APP_DOMAIN`, `ACME_EMAIL`, `SENTRY_INGEST` пишутся в `compose.prod.env` (с `PROD_APP_IMAGE`), остальные `[ops]` — в `ops.env`.
 - Команды staging пишут только `staging.env` и `compose.staging.env` (O10, 6.1); `prod deploy` — `prod.env`, `ops.env`, `compose.prod.env`.
 - Передача: шаг получает секреты через `env:` и пишет `printf '%s=%s\n' …` прямо в stdin `ssh`, без файла и вывода.
 - Имя `RATE_LIMIT_IP_PER_MIN` — по умолчанию; переименование — developer в той же задаче правит `env.allowlist` и эту таблицу.
@@ -313,8 +320,8 @@ staging.{$APP_DOMAIN} {
 
 | Job | `needs` и условие | `environment` | Права | Шаги |
 |---|---|---|---|---|
-| `plan` | всегда | нет | `contents: read`, `actions: read`, `pull-requests: read` | проверка сочетаний (`prod`+`down`, `staging`+`rollback`, `prod` не с `main` → ошибка; `image` по regex). Для `prod deploy` без `bootstrap`: `BASE` = `headSha` последнего запуска с `displayTitle == "prod deploy"` и `conclusion == success` (`gh run list --workflow deploy.yml --branch main --event workflow_dispatch --json displayTitle,headSha,conclusion -L 200`); не найден → ошибка «нужен `bootstrap=true`». `git diff --stat $BASE..HEAD -- deploy/ scripts/ops/ .github/ apps/server/migrations/` → `$GITHUB_STEP_SUMMARY`. Затем список O45 → `$GITHUB_STEP_SUMMARY` (9.2а). С `bootstrap=true`: `BASE=bootstrap`, в итог — полный список файлов `deploy/` и `.github/` (`git ls-files`) и пометка «bootstrap: проверка базы пропущена»; поиск последнего успешного `prod deploy` тот же, найден — `LIST_BASE` = его `headSha` для списка O45, не найден — без ошибки (9.2а). Выход: `base`. Скриптов репозитория на runner не запускает: все шаги — inline `run:` в `deploy.yml` (9.2а) |
-| `build` | `needs: plan`; `if: inputs.action == 'deploy'` | нет | `contents: read`, `packages: write` | `checkout` → `docker buildx build`: `env=prod` → `app` в `chezz-app`; `env=staging` → `app` в `chezz-app-staging`, `tools` в `chezz-tools-staging`; `APP_VERSION=${{ github.sha }}`; выход — digest. Скриптов репозитория на runner не запускает |
+| `plan` | всегда | нет | `contents: read`, `actions: read`, `pull-requests: read` | проверка сочетаний (`prod`+`down`, `staging`+`rollback`, `prod` не с `main` → ошибка; `force=true` при `env=staging` или `action≠deploy`, `bootstrap=true` при `env=staging` или `action≠deploy`, `image` при `action≠rollback` → ошибка; `image` по regex). Для `prod deploy` без `bootstrap`: `BASE` = `headSha` последнего запуска с `displayTitle == "prod deploy"` и `conclusion == success` (`gh run list --workflow deploy.yml --branch main --event workflow_dispatch --json displayTitle,headSha,conclusion -L 200`); не найден → ошибка «нужен `bootstrap=true`». `git diff --stat $BASE..HEAD -- deploy/ scripts/ops/ .github/ apps/server/migrations/` → `$GITHUB_STEP_SUMMARY`. Затем список O45 → `$GITHUB_STEP_SUMMARY` (9.2а). С `bootstrap=true`: `BASE=bootstrap`, в итог — полный список файлов `deploy/` и `.github/` (`git ls-files`) и пометка «bootstrap: проверка базы пропущена»; поиск последнего успешного `prod deploy` тот же, найден — `LIST_BASE` = его `headSha` для списка O45, не найден — без ошибки (9.2а). Выход: `base`. Скриптов репозитория на runner не запускает: все шаги — inline `run:` в `deploy.yml` (9.2а) |
+| `build` | `needs: plan`; `if: inputs.action == 'deploy'` | нет | `contents: read`, `packages: write` | `checkout` → `docker buildx build`: `env=prod` → `app` в `chezz-app`; `env=staging` → `app` в `chezz-app-staging`, `tools` в `chezz-tools-staging`; `APP_VERSION=${{ github.sha }}`; выход — digest; метки `revision` и `org.opencontainers.image.source` (связь пакета с репозиторием, 16.1 п.7). Скриптов репозитория на runner не запускает |
 | `prod` | `needs: [plan, build]`; `if: always() && needs.plan.result == 'success' && inputs.env == 'prod' && (needs.build.result == 'success' \|\| needs.build.result == 'skipped')` | `prod` | `contents: read` | один шаг SSH: `deploy <sha> <digest> <base> [force]` или `rollback [<digest>]`; вывод `result=…` и `status` (9.3) — в итог |
 | `staging` | то же условие с `inputs.env == 'staging'` | `staging` | `contents: read` | 9.6 |
 
@@ -355,7 +362,7 @@ done
 
 ### 9.3. Команды на VPS и коды
 
-`deploy/remote/entry.sh <среда>` (из `command=`): копирует `deploy/remote/` во временный каталог (`mktemp -d`) и запускает копию — правка клона во время работы на неё не влияет. Разбирает `$SSH_ORIGINAL_COMMAND` по белому списку: SHA — `^[0-9a-f]{40}$`, база — SHA или `bootstrap`, digest — `^sha256:[0-9a-f]{64}$`; иначе код 2. Долгие команды идут через `setsid` с журналом в `state/last-<среда>.log`; `entry.sh` выводит журнал до конца и код выхода; обрыв SSH скрипт не останавливает.
+`deploy/remote/entry.sh <среда>` (из `command=`): копирует `deploy/remote/` во временный каталог (`mktemp -d`) и запускает копию — правка клона во время работы на неё не влияет. Разбирает `$SSH_ORIGINAL_COMMAND` по белому списку: SHA — `^[0-9a-f]{40}$`, база — SHA или `bootstrap`, digest — `^sha256:[0-9a-f]{64}$`; иначе код 2. Долгие команды идут через `setsid` с журналом в `state/last-<среда>.log`; `entry.sh` выводит журнал до конца и код выхода; обрыв SSH скрипт не останавливает. Команды, кроме `status`, выполняются под одной блокировкой `flock -w 900 /srv/chezz/state/lock` для обеих сред (её держит процесс под `setsid`; таймеры 14.1 и 9.6 берут ту же); не дождался — код 9 (O46). Владелец образов — из `remote.origin.url` клона. Корень `/srv/chezz` и каталог бэкапов переопределяются `CHEZZ_ROOT`, `CHEZZ_BACKUP_DIR` (тесты, ADR-0011).
 
 | Среда | Команда | Действие |
 |---|---|---|
@@ -379,6 +386,8 @@ done
 | 5 | `backup_failed` | бэкап перед выкаткой не удался, выкатки не было | сообщить Ivan |
 | 6 | `base_mismatch` | SHA клона ≠ база из `plan` (O41) | сообщить Ivan |
 | 7 | `prod_missing` | staging до первой выкатки prod (O40) | выкатить prod |
+| 8 | `pull_failed` | образ не скачан (сеть, пакет GHCR приватный), ничего не изменено | сообщить Ivan: проверить видимость пакета, повторить |
+| 9 | `locked` | другая команда на VPS идёт дольше 15 мин, ничего не изменено | повторить позже, сообщить Ivan |
 
 `status` — строки `ключ=значение`:
 ```
@@ -397,24 +406,24 @@ disk_used_pct=41
 staging=up|down
 ```
 
+Для staging: `env=staging`, `image`, `tools_image`, `repo`, `health`, `restarts`, `started_at` (из `state/staging.started` или `none`), `staging=up|down`.
+
 ### 9.4. Выкатка prod и проверки
 
 `deploy.sh prod deploy <sha> <digest> <base> [force]`:
-0. `chezz_games_active` > 10 и нет `force` → код 3 (O38). Метрики нет в ответе `/metrics` (до E06) или `app` не отвечает (первая выкатка) — значение 0.
-1. Секреты из stdin → разделы `[prod]`, `[ops]` → `prod.env`, `ops.env`, `compose.prod.env`.
-2. Клон: `base` = `bootstrap` → проверка базы пропускается (O44); иначе SHA клона ≠ `base` → код 6. `git fetch origin main`; `git merge-base --is-ancestor <sha> origin/main`, иначе код 2; SHA клона → `state/prod.repo.prev`; `git checkout --detach <sha>`.
-3. `docker pull ghcr.io/<owner>/chezz-app@<digest>`; метка `revision` = `<sha>`, иначе код 2.
-4. `backup.sh --reason pre-deploy` (14.1); ошибка → код 5. Контейнер `db` не запущен → пропуск, `backup=skipped_no_db`.
-5. `state/prod.image` → `state/prod.image.prev`; новый digest → `state/prod.image` и `PROD_APP_IMAGE`; строка в `state/prod.history` (`время digest sha deploy`).
-6. staging запущен → `rm -sfv app-staging db-staging` (O5).
-7. `docker compose … up -d --wait --wait-timeout 120 edge db app` (миграции — при старте `app`, ARCHITECTURE A18).
-8. Проверки (smoke prod), все обязательны; `revision` — ожидаемый SHA:
-   - а) `curl -fsS http://127.0.0.1:9464/metrics` содержит `app_info{version="<revision>"} 1`;
-   - б) `curl -fsS https://$APP_DOMAIN/api/health` = `{"status":"ok"}`;
-   - в) в ответе б) есть `Strict-Transport-Security` и `Content-Security-Policy`;
-   - г) через 60 с `docker inspect -f '{{.RestartCount}}'` у `app` = 0 и б) снова `ok`.
-9. Провал 7 или 8 → `restore_prev` (9.5) → успех — код 1, провал — код 4.
-10. `docker image prune -af --filter until=168h`.
+1. Разбор и проверка секретов (2).
+2. Занятость `chezz_games_active` > 10 без `force` (3; метрики нет или `curl` ≠ 0 → 0).
+3. База: не `bootstrap` и `git rev-parse HEAD` ≠ base (6); `fetch`; `<sha>` не предок `origin/main` (2).
+4. `docker pull` (8); метка `revision` ≠ `<sha>` (2).
+5. `db` не запущен → `backup=skipped_no_db`; иначе `backup.sh --reason pre-deploy` (5). До этого шага **ничего** не изменено (state, env, клон).
+6. Запись env-файлов (`PROD_APP_IMAGE` прежний).
+7. `prod.repo.prev` ← HEAD; `checkout --detach <sha>`.
+8. `prod.image` → `prod.image.prev`; новый → `prod.image` и `PROD_APP_IMAGE`; строка `deploy` в `prod.history`.
+9. staging запущен → `rm -sfv app-staging db-staging`.
+10. `up … edge db app`.
+11. Проверки а–г (`sleep 60` перед г).
+12. Провал 10/11: есть `prod.image.prev` → `restore_prev` (вернуть клон) → 1 / 4; нет → A4 → 4.
+13. `image prune` → 0.
 
 - Пример: миграция с ошибкой SQL → `app` не здоров 120 с → `restore_prev` возвращает клон и образ, `result=rolled_back`, job `prod` красный. Схема не изменилась: Kysely Migrator выполняет миграцию в транзакции.
 - После выкатки Ivan открывает сайт и входит своим аккаунтом (не условие успеха job).
@@ -428,6 +437,8 @@ staging=up|down
 4. `docker compose … up -d --wait --wait-timeout 120 app`.
 5. Проверки 9.4 п.8 а–г с `revision` цели. Успех → 0, провал → 4.
 
+Нет `prod.image.prev` (провал первой выкатки): `restore_prev` не выполняется — `stop app`, клон ← `prod.repo.prev`, `state/prod.image` удаляется, вывод `restore=no_prev`, код 4; повтор — `bootstrap=true`. `docker pull` цели не удался — код 4.
+
 Команда `rollback [<digest>]`:
 1. Цель: `<digest>`, только если он есть в `state/prod.history`; без аргумента — `state/prod.image.prev`; нет — код 2.
 2. Текущий digest → `state/prod.image.prev`; строка `rollback` в `prod.history`.
@@ -439,7 +450,7 @@ staging=up|down
 ### 9.6. staging и его smoke
 
 Job `staging` в `deploy.yml` (`action=deploy`), шаги строго по порядку (раздел 1):
-1. SSH: `up <app-digest> <tools-digest>` + секреты `[staging]` в stdin. На VPS: нет `state/prod.image` → код 7; секреты → `staging.env`; шаблон → `compose.staging.env`; клон не меняется; `rm -sfv` старых staging-сервисов → `up -d --wait app-staging db-staging` → `run --rm tools-staging node apps/server/scripts/seed.ts --demo` → `state/staging.started`. Сбой → код 1 `up_failed`.
+1. SSH: `up <app-digest> <tools-digest>` + секреты `[staging]` в stdin. На VPS: нет `state/prod.image` → код 7; проверка секретов → `docker pull` обоих образов (код 8) → секреты → `staging.env`; шаблон → `compose.staging.env`; клон не меняется; `rm -sfv` старых staging-сервисов → `up -d --wait app-staging db-staging` → `run --rm tools-staging node apps/server/scripts/seed.ts --demo` → `state/staging.started`. Сбой → код 1 `up_failed`.
 2. `checkout` ref (`persist-credentials: false`) → `npm ci` → `npx playwright install chromium`.
 3. `E2E_BASE_URL=${{ vars.APP_ORIGIN }} npm run test:e2e -- --grep @smoke --project=desktop` (TESTING §9); `SEED_TOKEN_SECRET` — env этого шага.
 4. После шагов 2–3 SSH не вызывается; staging остаётся поднятым для ручной проверки.
@@ -498,6 +509,7 @@ gh workflow run load.yml --ref "$REF"
 ## 11. Нагрузочный тест
 
 `.github/workflows/load.yml`, `workflow_dispatch` из ветки: `plan` → `build` (обе цели, пакеты `*-staging`) → job `load` в environment `staging`, только SSH-шаги, без кода ветки на runner:
+`concurrency: deploy-staging` (общая с `deploy.yml env=staging`), без отмены. `load` при неподнятом `app-staging` — код 2; отчёт выводится между строками `report_begin` и `report_end`.
 1. `up <app> <tools>` (9.6 п.1).
 2. `load`: `entry.sh` — `games_active` prod > 2 → код 3 (нет метрики или `app` prod не отвечает — 0, как 9.4 п.0). Иначе `docker compose -p chezz run --rm -e LOAD_REPORT=/tmp/report.json tools-staging sh -c 'node apps/server/scripts/seed.ts --load 150 --tokens /tmp/tokens && LOAD_TOKENS=/tmp/tokens LOAD_BASE_URL="$APP_ORIGIN" node tests/load/run.ts; rc=$?; cat /tmp/report.json; exit $rc'` (`APP_ORIGIN` — из `staging.env`).
 3. `report.json` → итог job; код ≠ 0 при нарушении порога (TESTING §10).
@@ -572,7 +584,7 @@ gh workflow run load.yml --ref "$REF"
   rclone copyto <файл> b2:$B2_BUCKET/<имя>
   ```
   после загрузки — сообщение в Telegram: `backup <имя> sha256=<хэш> size=<байт>` (O42).
-- `local` (до этапа 4, O35) — тот же `pg_dump` в `/var/backups/chezz/…dump` (каталог 700), без выгрузки. При `BACKUP_REQUIRE_OFFSITE=true` режим `local` — ошибка (AL8, код 5 выкатки). Первый запуск `offsite` удаляет нешифрованные дампы и меняет права каталога (раздел 5 п.7).
+- `local` (до этапа 4, O35) — тот же `pg_dump` в `/var/backups/chezz/…dump` (каталог 700), без выгрузки. Файл пишется как `….dump.partial` и переименовывается после успеха; неполный удаляется. До E20 файла `deploy/backup.age.pub` нет, ветка `offsite` в `backup.sh` завершается ошибкой. При `BACKUP_REQUIRE_OFFSITE=true` режим `local` — ошибка (AL8, код 5 выкатки). Первый запуск `offsite` удаляет нешифрованные дампы и меняет права каталога (раздел 5 п.7).
 
 - На VPS — 3 последних файла. В B2 — Object Lock (compliance, 14 дней), правило жизненного цикла удаляет через 15 дней. Ключ B2 на VPS — `listBuckets`, `listFiles`, `readFiles`, `writeFiles`, без `deleteFiles` и прав на блокировку (SECURITY §14).
 - Успех → `state/last-backup`; в `status` — `backup_mode`, `last_backup`.
