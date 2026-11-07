@@ -1,5 +1,7 @@
 # Design: E01 «Скелет репозитория»
 
+Версия 0.3 · 2026-11-07 · architect (режим design, сверка после реализации). T-1…T-7 сделаны и приняты ревью. Design приведён к коду. Источники: `review.md`: отклонения, принятые в T-2, T-4, T-5, T-6, и списки «Правки design.md»; `log.md`: вопросы tester T-4 и T-5, хвосты; код `apps/`, `packages/`, `scripts/`, `.github/`, `tests/e2e/`. Что изменено: «Выжимка правил»; «Публичные интерфейсы» (`startApp`, HTTP-контракты, клиент и e2e, «Сигнатуры скелета», порядок `registerRoute`, «Перевод ошибок»); «Решения (ADR)»; «План задач» (поправки по факту); новые разделы «Изменения документов основ (v0.3, на утверждение Ivan)» и «Хвосты»; «Риски и открытые вопросы». Новых задач нет. Документы основ не правлены: правки ждут утверждения.
+
 Версия 0.1 · 2026-11-06 · architect (режим design). Основа: `requirements.md` v0.2 (51 AC, EC-1…EC-29), `design-spec.md` v0.3 (Figma `z6VyHSdwqFzCQIdP7ScisI`), профиль «Скелет репозитория (первый эпик) — 7 задач», ADR-0005, ADR-0006 (приняты Ivan 2026-11-05), новый ADR-0009, ARCHITECTURE §3, §5, §7, §12, §13; API §3, §5, §7, §12.6, §14–§17; SECURITY §6, §9, §15; TESTING §5–§7, §9, §11–§13; DESIGN §1, §4, §5, §7, §9.2, §10, §15–§17; OPERATIONS §1, §6.4, §7, §8, §16.1.
 
 Версия 0.2 · 2026-11-06: план утверждён Ivan; apply «Изменений документов основ» п.1–8 выполнен 2026-11-06, п.9 не внесён (решение Ivan); `.github/CODEOWNERS` пишет Ivan сам — убран из T-6.
@@ -36,7 +38,11 @@ SPA (Vite + React, CSS Modules + `tokens.css`): один экран `lobby` в �
 - Изменяющие — только POST/PATCH; `Origin` = `APP_ORIGIN` на POST/PATCH, иначе `403 origin_forbidden` (SECURITY §6). CORS нет совсем, `@fastify/cors` нет (API §3).
 - `X-Protocol-Version` ≠ `PROTOCOL_VERSION` или нет → `409 client_outdated`; без проверки: `/api/health`, `/auth/*`, страницы (API §7).
 - Тело REST ≤ 16 КБ; ответы `/api` — `Cache-Control: no-store` (API §3, SECURITY §9).
-- Rate limit: `@fastify/rate-limit`, `global: false`, `hook: "preHandler"`, ключ `user:<user_id>` / `ip:<ip>`, 300/мин; IP-лимит — `RATE_LIMIT_IP_PER_MIN`; `trustProxy` не `true` (в E01 — выключен; адрес `edge` — E02); статика и HTML — без лимита (ADR-0006, SECURITY §9).
+- Rate limit: `@fastify/rate-limit`, `global: false`, `hook: "preHandler"`, 300/мин; IP-лимит — `RATE_LIMIT_IP_PER_MIN`; `trustProxy` не `true` (в E01 — выключен; адрес `edge` — E02); статика и HTML — без лимита (ADR-0006, SECURITY §9).
+  - Ключ: `user:<user_id>` у Session. У гостя — `ip:<normalizeIP(ip)>`: IPv4 как есть; IPv4-mapped (`::ffff:a.b.c.d`) — как IPv4; IPv6 — начало подсети /64 (`2001:db8:1:2::`).
+  - У ключа один счётчик на все `/api/*`, позже и на `/auth/*` и upgrade. Отдельный счётчик — только у особого лимита (`group`, Feedback).
+  - Окно считает `TimeSource` (A27).
+- Отказы `registerRoute` считаются в лимит, включая 413, `content_type` и `json`: тело разбирается без исключения, а отказ по нему — на шаге схем, после `Origin`, версии и «Кто» (ADR «Проверки в `registerRoute`»).
 - `GET /api/health`: `200 {"status":"ok"}` / `503 {"status":"unavailable"}`, не формат §5 (API §12.6, P16).
 - Сид: `--demo` детерминированный; при `APP_ENV=prod` — ошибка без записи (TESTING §7.6).
 
@@ -54,6 +60,9 @@ SPA (Vite + React, CSS Modules + `tokens.css`): один экран `lobby` в �
 - Тема гостя — только медиа-запрос, атрибута `data-theme` нет, inline-скриптов нет (DESIGN §5, U8; SECURITY §6 CSP).
 - От 360 px без горизонтальной прокрутки; фокус виден (`--focus-width`, `--color-focus`) (DESIGN §1, §14).
 - Главная ≤ 300 КБ gzip; ресурсы только со своего origin, шрифтов и CDN нет (ARCHITECTURE §12, §14; DESIGN §1, U4).
+- Адреса страниц — только `PAGES` (API §14). `check-architecture.sh` (правило 8) считает нарушением литерал, который **начинается** с `/game/`, `/player/`, `/challenge/` или `/leaderboard/` в кавычках `"`, `'` или `` ` ``, в любом контексте. Проверяются все `*.ts(x)` в `apps/web/src` и `apps/server/src/seo`, кроме `pages.ts` и `*.test.ts(x)`. `"/api/leaderboard/…"` не нарушение: литерал начинается с `/api/`. Исключения для шаблонов маршрутов Fastify в `seo` (`"/game/:id"`) пока нет: нужно — вводит design E15 вместе с правкой правила.
+- Тесты `apps/web` — проект Vitest `web` (jsdom). Тест, которому нужен `node:fs` (`contrast.test.ts`, `favicon.test.ts` читают `tokens.css` и `favicon.svg`), остаётся в проекте `web` с комментарием `// @vitest-environment node` в первой строке.
+- `apps/web/tsconfig.json` и `apps/server/tsconfig.json` без `references` на `packages/*` (TS6310). Пакеты проверяются в программе потребителя через workspace и корневой `tsconfig.json`.
 
 e2e (T-5 шаг tester, T-7):
 - Селекторы — `data-screen`, `data-state`, роли и подписи доступности, не классы (TESTING §9).
@@ -63,6 +72,10 @@ e2e (T-5 шаг tester, T-7):
 CI (T-6):
 - Триггеры `pull_request` в `main`, `push` в `main`; `permissions: contents: read`; без `paths`; без `pull_request_target`, `workflow_run`; actions по полному SHA; `persist-credentials: false` (OPERATIONS §1, §8; TESTING §12).
 - Секретов в `ci.yml` нет; `.github/workflows/**` коммитит и пушит Ivan (OPERATIONS §1, O36).
+- Пропуск e2e: `git diff --no-renames --name-only origin/main...HEAD`. При переносе `apps/x → docs/x` выводятся оба пути, и e2e идёт (EC-24, TESTING §12).
+- `scripts/check-workflows.sh` вызывает шаг `check-workflows` job `check` в `ci.yml`, сразу после `npm run check`. В корневом `check` его нет: корневой `package.json` не в зоне devops. Слово `secrets.` ищется в `ci.yml` вместе с комментариями: в комментариях `ci.yml` его тоже нельзя писать.
+- Образ gitleaks закреплён digest в `env:` шага `gitleaks` (`GITLEAKS_IMAGE`). Dependabot его не обновляет, обновление ручное («Изменения документов основ (v0.3)», п.13).
+- `.github/CODEOWNERS` кладёт и правит Ivan, агенты его не пишут. Сейчас в файле `/.github/`, `/deploy/`, `/scripts/ops/`, `/.claude/`, `/LICENSE`, `/docs/SECURITY.md`, `/docs/OPERATIONS.md`.
 
 ## Публичные интерфейсы для тестов
 
@@ -78,12 +91,18 @@ export interface TestApp {
     block(): Promise<void>;   // база воркера недоступна для app (соединения рвутся, новые отклоняются)
     unblock(): Promise<void>; // снова доступна; app восстанавливается без перезапуска
   };
-  close(): Promise<void>;   // без штатного завершения (TESTING §7.3)
+  close(): Promise<void>;   // без штатного завершения (TESTING §7.3): сервер и пул закрываются, onClose сервисов не вызывается
 }
-export function startApp(options?: { config?: Partial<AppConfig> }): Promise<TestApp>;
+export interface StartAppOptions {
+  config?: Partial<AppConfig>;
+  logDestination?: DestinationStream; // pino; нет — лог не пишется (уровень "silent")
+}
+export function startApp(options?: StartAppOptions): Promise<TestApp>;
 ```
-- База — `chezz_test_<n>` воркера (TESTING §7.1); `APP_ORIGIN` = `url`; `RATE_LIMIT_IP_PER_MIN` — по умолчанию (300), если не задан в `options.config`.
-- `AppConfig` экспортирует `apps/server/src/platform/config.ts` (поля — ниже, «Сигнатуры скелета»).
+- База — `chezz_test_<n>` воркера (TESTING §7.1); `APP_ORIGIN` = `url`. Конфиг по умолчанию: `appEnv: "dev"`, `appOrigin: url`, `rateLimitIpPerMin: 300`, `webDistDir: null` (SPA не раздаётся), `logLevel`: `"info"` при `logDestination`, иначе `"silent"`. Поля из `options.config` заменяют эти значения.
+- `AppConfig` экспортирует `apps/server/src/platform/config.ts`: `appEnv: "dev" | "staging" | "prod"`, `appOrigin: string`, `rateLimitIpPerMin: number`, `webDistDir: string | null`, `logLevel: string`. Подробнее — ниже, «Сигнатуры скелета».
+- Время лимита — `time` этого `TestApp` (ADR «Сброс окна лимита»). Само окно в тесте не сбрасывается: сбрасывает `await time.advance(60_000)`.
+- Порт занят (`EADDRINUSE`) — до 5 попыток с новым портом.
 
 `apps/server/test/support/time.ts`:
 ```ts
@@ -103,12 +122,18 @@ export class ManualTimeSource implements TimeSource {
 | `GET /api/health`, БД доступна | `200`, тело ровно `{"status":"ok"}`, `Cache-Control: no-store`, `Content-Type: application/json; charset=utf-8` |
 | `GET /api/health`, БД недоступна (`database.block()`) | `503`, тело ровно `{"status":"unavailable"}`; ответ ≤ 3 с (таймаут проверки БД 2 с) |
 | `GET /api/health` без `X-Protocol-Version` или с чужим | как выше (без проверки версии) |
-| 301-й запрос к `/api/*` за 60 с с одного IP (гость) | `429`, `{"error":{"code":"rate_limited","message":<строка>,"details":{"retry_after_ms":<int > 0, ≤ 60000>},"request_id":<UUID>}}`, заголовок `Retry-After: <целое ≥ 1, секунды>` |
+| 301-й запрос к `/api/*` за 60 с с одного IP (гость) | `429`, `{"error":{"code":"rate_limited","message":<строка>,"details":{"retry_after_ms":<int > 0, ≤ 60000>},"request_id":<UUID>}}`, заголовок `Retry-After: <целое ≥ 1, секунды>` (`ceil(retry_after_ms / 1000)`) |
+| Счётчик гостя | один на ключ `ip:<…>` для всех маршрутов `/api/*`, включая `/api/<нет такого>` и `/api/health`. 150 запросов к одному маршруту и 150 к другому — это 300. Свой `buildApp` — свои счётчики |
+| Окно лимита | 60 000 мс по `TimeSource`. Первый запрос открывает окно, после `time.advance(60_000)` счёт идёт заново |
+| Гость с IPv6 | ключ — подсеть /64: `2001:db8:1:2::1` и `2001:db8:1:2::2` — один счётчик. `::ffff:203.0.113.7` = `203.0.113.7` |
 | Любой ответ `app` | заголовок `X-Request-Id: <UUID v4>`, сгенерированный сервером; входящий `X-Request-Id` игнорируется; в теле ошибки `request_id` = заголовку |
 | `GET /api/<нет такого>` | `404 {"error":{"code":"not_found","message":…,"details":null,"request_id":…}}`; считается в rate limit |
 | Любой запрос с `Origin: https://evil.example` (включая `OPTIONS`) | нет заголовков `Access-Control-Allow-*` |
 | `X-Forwarded-For` от клиента | не влияет на ключ лимита (ключ — адрес сокета) |
 | `GET /` (собранный `apps/web/dist` есть) | `200 text/html` — `index.html` SPA, `Cache-Control: no-cache`; `/assets/*` — `public, max-age=31536000, immutable`; другие пути вне `/api`, `/auth`, `/ws` без файла — тот же `index.html` |
+| `GET`/`HEAD` пути вне `/api`, `/auth`, `/ws`, когда SPA не раздаётся (`webDistDir: null`), или другой метод на такой путь | `404 not_found` в формате §5, без счётчика лимита |
+| `/auth/<нет такого>`, `/ws…` без маршрута | `404 not_found` в формате §5. В E01 без счётчика лимита (хвост «404 по `/auth/*`») |
+| Ответ `/api/*` (включая 404 и 429) | `Cache-Control: no-store` |
 
 Коды и форма ошибок — API §5; заголовок версии — `X-Protocol-Version: <PROTOCOL_VERSION>` из `@chezz/protocol`.
 
@@ -140,7 +165,9 @@ export class ManualTimeSource implements TimeSource {
 - `document.title` = `Chezz`; `<link rel="icon" href="/favicon.svg" type="image/svg+xml">`.
 - Язык: `localStorage["chezz.locale"]` ∈ {`ru`, `en`} (другое значение игнорируется) → иначе `navigator.language` начинается с `ru` → `ru`, иначе `en`; `<html lang>` = выбранный язык после загрузки.
 - Тема гостя: у `<html>` нет `data-theme`.
+- Фон темы (ответ на вопрос tester T-5): `body { background: var(--color-bg) }` (`apps/web/src/shared/ui/global.css`), корень `lobby` — тот же токен. Тест читает `getComputedStyle(document.body).backgroundColor` при `colorScheme: "light"` и `"dark"`. Значения разные: светлая — `--base-gray-50`, тёмная — `--base-gray-950` (DESIGN §5). Точные RGB тест не сравнивает с литералом: их источник — `tokens.css`.
 - Все запросы страницы — на свой origin.
+- Проекты Playwright (ответ на вопрос tester T-5): `desktop` — `Desktop Chrome`, 1280×800; `mobile-360` — `Desktop Chrome`, 360×740, `hasTouch`; `webkit` — `devices["iPhone 13"]` (WebKit, мобильный UA, касание), окно 390×844; `firefox` — `Desktop Firefox`. В webkit Tab не переводит фокус на ссылки (`tabsToLinks`). Поэтому AC-39 в webkit проверяет только вид фокуса, а достижимость по Tab — в Chromium (вердикт arbiter TEST, `log.md` #31). Код из-за этого не меняется.
 - Сборка: `npm run build -w @chezz/web` → `apps/web/dist/`. Разработка: `npm run dev -w @chezz/web` (Vite, прокси `/api`, `/auth`, `/ws` → `http://127.0.0.1:3000`).
 - `webServer` Playwright (рекомендуемая команда; один `command` через `&&`):
   ```
@@ -151,37 +178,137 @@ export class ManualTimeSource implements TimeSource {
 
 ### Сигнатуры скелета (для следующих эпиков; закрывают API F4-Q5)
 
+Сверено с кодом 2026-11-07 (v0.3).
+
 ```ts
 // apps/server/src/platform/config.ts
-export interface AppConfig { appEnv: "dev" | "staging" | "prod"; appOrigin: string;
-  rateLimitIpPerMin: number; webDistDir: string | null; logLevel: string }
-export function loadConfig(env: NodeJS.ProcessEnv): AppConfig & { host: string; port: number; databaseUrl: string };
+export type AppEnv = "dev" | "staging" | "prod";
+export interface AppConfig {          // то, что получает buildApp (в тестах собирает startApp)
+  appEnv: AppEnv;
+  appOrigin: string;                  // без завершающего "/"
+  rateLimitIpPerMin: number;
+  webDistDir: string | null;          // абсолютный путь к собранному SPA; null — SPA не раздаётся
+  logLevel: string;                   // fatal | error | warn | info | debug | trace | silent
+}
+export type ProcessConfig = AppConfig & { host: string; port: number; databaseUrl: string };
+export function loadConfig(env: NodeJS.ProcessEnv): ProcessConfig;   // ошибка — ConfigError, в тексте только имена переменных
+export class ConfigError extends Error {}
+
 // apps/server/src/app.ts
-export interface AppDeps { db: Db; time: TimeSource; logDestination?: pino.DestinationStream }
+export interface AppDeps {
+  db: Db<Database>;
+  time: TimeSource;
+  logDestination?: DestinationStream; // pino; нет — stdout
+  onRoute?: (route: RouteOptions) => void; // наблюдатель хука onRoute до любых маршрутов (routes.int.test.ts, API §16);
+                                           // поведения не меняет, в main.ts не передаётся
+}
 export function buildApp(config: AppConfig, deps: AppDeps): Promise<FastifyInstance>;
+
 // apps/server/src/platform/http.ts
 export type Caller = { who: "guest" } | { who: "onboarding" | "player"; user_id: string; session_id: string };
 export type CallerResolver = (req: FastifyRequest) => Promise<Caller>;
+export const alwaysGuest: CallerResolver;            // до E04 — любой запрос, в том числе с cookie, гость
+export const BODY_LIMIT_BYTES = 16_384;
+export const USER_RATE_LIMIT_PER_MIN = 300;
+export const RATE_LIMIT_WINDOW_MS = 60_000;
+export type BodyIssue = "too_large" | "content_type" | "json";
+// FastifyRequest дополнен полями: caller: Caller; bodyIssue: BodyIssue | null
+export function rateLimitKey(caller: Caller, ip: string): string; // "user:<user_id>" | "ip:<normalizeIP(ip)>"
+export interface HttpOptions {
+  appOrigin: string;
+  rateLimitIpPerMin: number;
+  resolveCaller: CallerResolver;
+  time: TimeSource;                                  // часы счётчиков лимита
+  notFoundFallback?: (request: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
+                                                     // GET/HEAD вне /api, /auth, /ws без маршрута (index.html SPA); нет — 404 not_found
+}
+export function installHttp(app: FastifyInstance, options: HttpOptions): Promise<void>;
+  // один раз на экземпляр: хуки onRequest (X-Request-Id, request.caller) и onSend (no-store на /api),
+  // разбор тела (парсер "*"), @fastify/rate-limit, обработчик ошибок, setNotFoundHandler; вызывает buildApp, в тестах — голый Fastify
+export interface RouteRateLimit { max: number; timeWindowMs: number }
+export type RouteRateLimitConfig = RateLimitOptions; // значение config.rateLimit маршрута
+export function apiRateLimit(opts?: RouteRateLimit & { group: string }): RouteRateLimitConfig;
+  // без opts — общий счётчик ключа (300/мин гостя/игрока); с opts — свой счётчик группы (groupId "#<group>").
+  // Для маршрутов вне registerRoute: /auth/* (auth), upgrade (realtime), ADR-0006 п.2
+export interface RouteContext<R extends RouteDef> {
+  caller: Caller; params: z.output<R["params"]>; query: z.output<R["query"]>; body: z.output<R["body"]>;
+  request: FastifyRequest;
+  reply: FastifyReply;                               // статус по умолчанию — def.status; другой — reply.code() (только getHealth → 503)
+}
+export type RouteResponse<R extends RouteDef> = z.input<R["response"]>;
+export interface RegisterRouteOptions {
+  rateLimit?: RouteRateLimit;                        // особый лимит (Feedback): свой счётчик, group = "<METHOD> <path>"
+  checkProtocolVersion?: boolean;                    // false — без проверки X-Protocol-Version (/api/health)
+}
 export function registerRoute<R extends RouteDef>(app: FastifyInstance, def: R,
-  handler: (ctx: { caller: Caller; params; query; body; request: FastifyRequest; reply: FastifyReply }) => Promise<Response<R>>,
-  opts?: { rateLimit?: { max: number; timeWindowMs: number }; checkProtocolVersion?: boolean }): void;
-export const apiRateLimit: (opts?) => RouteRateLimitConfig; // для /auth/* (auth) и upgrade (realtime), ADR-0006 п.2
+  handler: (ctx: RouteContext<R>) => Promise<RouteResponse<R>>, opts?: RegisterRouteOptions): void;
+  // до него — installHttp (иначе throw); def.path только под /api (иначе throw)
+
+// apps/server/src/platform/rate-limit-store.ts
+export class SharedRateLimitStore implements FastifyRateLimitStore { constructor(time: TimeSource) }
+  // в памяти app, своё у каждого buildApp; child() возвращает себя; ≤ 10 000 ключей, старые вытесняются; таймеров нет
+
+// apps/server/src/platform/health.ts
+export const HEALTH_DB_TIMEOUT_MS = 2_000;
+export function registerHealthRoute(app: FastifyInstance, deps: { db: Db; time: TimeSource }): void;
+
 // apps/server/src/platform/errors.ts
-export class AppError extends Error { constructor(code: ErrorCode, details?: unknown) }
+export class AppError extends Error { readonly code: ErrorCode; readonly details: unknown; constructor(code: ErrorCode, details?: unknown) }
+export type IssueRule = "max" | "min" | "unknown_key" | "type" | "enum" | "format" | "content_type" | "json" | "invalid";
+export function validationError(issues: { path: string; rule: IssueRule }[]): AppError;
+export function errorBody(code: ErrorCode, details: unknown, requestId: string): ErrorResponse;
+
 // apps/server/src/platform/db.ts
-export type Db; export type Trx; export function withTransaction<T>(db: Db, fn: (trx: Trx) => Promise<T>): Promise<T>;
+export type Db<Tables = any> = Kysely<Tables>; export type Trx<Tables = any> = Transaction<Tables>;
+export function createDb<Tables>(databaseUrl: string, options?: { onPoolError?: (err: Error) => void; max?: number }): Db<Tables>;
+export function forTables<Tables>(db: Db | Trx): Db<Tables>;  // repo модуля сужает Db до своих таблиц
+export function withTransaction<T, Tables>(db: Db<Tables>, fn: (trx: Trx<Tables>) => Promise<T>): Promise<T>;
 export function migrateToLatest(db: Db): Promise<void>;
+
 // apps/server/src/platform/time.ts
+export type TimerId = { readonly __brand: "TimerId" };
 export interface TimeSource { now(): number; wallNow(): Date; setTimer(ms: number, fn: () => void): TimerId; clearTimer(id: TimerId): void }
-// apps/server/src/platform/ws.ts — только типы WsHandlers, WsContext (ADR-0005 п.8)
+export function createSystemTimeSource(): TimeSource;   // только main.ts
+
+// apps/server/src/platform/ws.ts — только типы WsContext, WsHandler, WsHandlers (ADR-0005 п.8)
 ```
-Конфиг из окружения: `APP_ENV` (нет → `dev`; `staging`/`prod` требуют `APP_ORIGIN`), `APP_ORIGIN` (нет в `dev` → `http://localhost:5173`), `DATABASE_URL`, `HOST` (`127.0.0.1`), `PORT` (`3000`), `RATE_LIMIT_IP_PER_MIN` (`300`), `WEB_DIST_DIR` (`apps/web/dist` от корня репозитория; каталога нет → SPA не раздаётся, предупреждение в лог), `LOG_LEVEL` (`info`).
+Конфиг из окружения. Пустая строка значит «не задано».
+- `APP_ENV`: нет — `dev`; при `staging` и `prod` нужен `APP_ORIGIN`.
+- `APP_ORIGIN`: `http(s)` URL; нет в `dev` — `http://localhost:5173`.
+- `DATABASE_URL`: `postgres://` или `postgresql://`.
+- `HOST`: `127.0.0.1`.
+- `PORT`: `3000`.
+- `RATE_LIMIT_IP_PER_MIN`: `300`.
+- `WEB_DIST_DIR`: `apps/web/dist` от корня репозитория, путь разрешается в абсолютный. Каталога нет — `webDistDir: null`: SPA не раздаётся, в лог идёт предупреждение.
+- `LOG_LEVEL`: `info`.
 
-Порядок в `registerRoute` (после хука `onRequest` с `request.caller` и `preHandler` лимита): `Origin` (POST/PATCH) → `X-Protocol-Version` (если `checkProtocolVersion !== false`) → «Кто» (`guest` вне списка → `unauthenticated`; `onboarding` → `onboarding_required`; `player` → `forbidden`) → схемы `params`, `query`, `body` (`z.strictObject`) → обработчик → `def.response.parse(результат)` (ошибка — `500 internal`) → `def.status`.
+Маршрут вне `registerRoute`, который читает тело (будущие `/auth/*` у `auth`), обязан сам проверить `request.bodyIssue`. Парсер не бросает ошибку: при отказе по телу он ставит `request.body = undefined` и `request.bodyIssue`.
 
-Перевод ошибок (обработчик ошибок `platform`): `AppError(code)` → статус API §5.2; ошибка zod → `400 validation_failed`, `details.issues: [{path: "a.b", rule}]`, `rule` по коду zod: `too_big` → `max`, `too_small` → `min`, `unrecognized_keys` → `unknown_key` (путь — сам ключ), `invalid_type` → `type`, `invalid_value` → `enum`, `invalid_format` → `format`, прочее → `invalid`; тело > 16 КБ → `413 payload_too_large`; тело не `application/json` → `400 validation_failed` (`rule: "content_type"`, `path: ""`); битый JSON → `400 validation_failed` (`rule: "json"`, `path: ""`); лимит → `429 rate_limited`; прочее → `500 internal` (причина — в лог с `request_id`).
+Порядок в `registerRoute`:
+1. До `registerRoute` работают хук `onRequest` (`X-Request-Id`, `request.caller`), разбор тела и `preHandler` лимита. Разбор тела только помечает `request.bodyIssue` и ошибку не бросает.
+2. `Origin` (POST/PATCH): нет заголовка или он ≠ `appOrigin` — `403 origin_forbidden`.
+3. `X-Protocol-Version`, если `checkProtocolVersion !== false`: ≠ `PROTOCOL_VERSION` или нет заголовка — `409 client_outdated`.
+4. «Кто»: `guest` вне списка — `unauthenticated`; `onboarding` — `onboarding_required`; `player` — `forbidden`.
+5. Тело: `bodyIssue` = `too_large` — `413 payload_too_large`; `content_type` или `json` — `400 validation_failed`, `[{path: "", rule}]`.
+6. Схемы `body`, `params`, `query` (`z.strictObject`). Нет схемы `body` — тело должно отсутствовать. Нет схемы `query` — строка запроса не читается.
+7. `reply.code(def.status)`.
+8. Обработчик. Только `getHealth` меняет статус через `reply.code(503)`, все остальные отказы идут через `AppError`.
+9. `def.response.safeParse(результат)`: лишние поля отбрасываются, несовпадение — `500 internal`.
 
-## Изменения документов основ
+Все отказы шагов 2–6 приходят после лимита и считаются в него.
+
+Перевод ошибок (обработчик ошибок `platform`, `errorHandler`):
+- `AppError(code)` → статус API §5.2. Код без HTTP-статуса (только WS) → `500 internal`.
+- Ошибка zod → `400 validation_failed`, `details.issues: [{path: "a.b", rule}]`, без входных значений. `rule` по коду zod: `too_big` → `max`, `too_small` → `min`, `unrecognized_keys` → `unknown_key` (путь — сам ключ, по записи на ключ), `invalid_type` → `type`, `invalid_value` → `enum`, `invalid_format` → `format`, прочее → `invalid`.
+- Ошибки тела ставит `registerRoute`, шаг 5:
+  - тело > 16 КБ → `413 payload_too_large`. Проверка по `Content-Length` до чтения, затем по потоку;
+  - непустое тело не `application/json` → `400 validation_failed` (`rule: "content_type"`, `path: ""`);
+  - битый JSON, включая `__proto__`, → `400 validation_failed` (`rule: "json"`, `path: ""`).
+- Ошибки Fastify `FST_ERR_CTP_*` переводятся так же. Это запасной путь для маршрутов вне `registerRoute`.
+- Лимит → `429 rate_limited`, `details.retry_after_ms`.
+- Прочее → `500 internal` без подробностей, причина — в лог (`err`) с `request_id`. Хвост: сериализатор `err` — до E04.
+
+## Изменения документов основ (v0.1, внесены в apply 2026-11-06)
 
 Вносит architect в режиме apply после утверждения этого файла. Номера решений: A30, P34–P35, U41–U42 — следующие свободные. **Статус: п.1–8 внесены в apply 2026-11-06; п.9 не внесён — решение Ivan.**
 
@@ -320,6 +447,102 @@ tables.ts   — только типы строк своих таблиц: XTable
 ### Не меняется
 DESIGN §16 (решение Ivan); OPERATIONS (решение Ivan, п.9); `ROADMAP.md`; GLOSSARY; профиль (ссылку на Figma вписывает Ivan).
 
+## Изменения документов основ (v0.3, на утверждение Ivan)
+
+**Статус: не внесено.** Правки нужны по итогам реализации E01. После утверждения их вносит architect в режиме apply (п.16–18 — analyst). Формат каждого пункта: документ и место → текущий текст (коротко) → новый текст → причина. Номера решений не занимаются. Правки DESIGN (U31, токен знака 28 px, U39 и §17 об окружении `node`, `--duration-*` при reduced-motion) здесь не перечислены: это вопросы designer, он идёт следующим.
+
+### ADR
+
+**1. `docs/adr/0006-rate-limit-by-user.md`, «Решение» п.1, ключ гостя.**
+- Сейчас: «… иначе `ip:<request.ip>` (`trustProxy` — SECURITY §9).»
+- Новый текст: «… иначе `ip:<адрес>`, где адрес — `normalizeIP(request.ip)` из `@fastify/rate-limit`: IPv4 как есть, IPv4-mapped IPv6 (`::ffff:a.b.c.d`) — как IPv4, IPv6 — начало подсети /64. Иначе лимит обходится сменой адреса внутри /64 (`trustProxy` — SECURITY §9).»
+- Причина: `review.md` T-4, отступление 2 (принято); код `apps/server/src/platform/http.ts` `rateLimitKey`; тест `http.test.ts` «AC-25: IPv6 гостя — подсеть /64».
+
+**2. `docs/adr/0006-rate-limit-by-user.md`, «Решение» п.2, дописать в конец.**
+- Сейчас: о счётчике и часах ничего.
+- Новый текст: «Счётчики — одно хранилище `platform` на экземпляр `app` (`SharedRateLimitStore`): у ключа один счётчик на все `/api/*`, `/auth/*` и upgrade. Особый лимит (Feedback) — свой счётчик через `groupId` маршрута (`apiRateLimit({max, timeWindowMs, group})`). Окно считается по `TimeSource` (ARCHITECTURE A27), поэтому сброс окна проверяется в тестах `time.advance()`.»
+- Причина: `review.md` T-4, отступление 5 (принято): встроенный `LocalStore` давал бы 300/мин на каждый маршрут, а SECURITY §9 требует 300/мин на весь REST; код `rate-limit-store.ts`.
+
+### ARCHITECTURE
+
+**3. §3.4, строка A21, колонка «Решение».**
+- Сейчас: «… ключ — `keyGenerator` по `request.caller`: `user:<user_id>` или `ip:<ip>`; …»
+- Новый текст: «… ключ — `keyGenerator` по `request.caller`: `user:<user_id>` или `ip:<ip>` (IPv6 — подсеть /64, IPv4-mapped — как IPv4); у ключа один счётчик на весь REST и upgrade, особые лимиты — отдельные группы; окно — по `TimeSource` (ADR-0006 п.1–2); …»
+- Причина: та же, что у п.1–2; A21 повторяет ключ из ADR дословно.
+
+**4. §13.1, строка `src/platform/`.**
+- Сейчас: «config, db (Db, Trx, withTransaction, migrateToLatest), time, http (Caller, registerRoute), ws (типы), errors (AppError)».
+- Новый текст: «config, db (Db, Trx, createDb, forTables, withTransaction, migrateToLatest), time, http (Caller, installHttp, registerRoute, apiRateLimit), rate-limit-store (счётчики лимита, ADR-0006), log (pino, SECURITY §15), errors (AppError), health (`getHealth`), repo (`SELECT 1`), ws (типы)».
+- Причина: файлы `apps/server/src/platform/` по факту T-2 и T-4.
+
+### SECURITY
+
+**5. §9, первый абзац, последнее предложение.**
+- Сейчас: «… (`user:<user_id>` у Session, иначе `ip:<ip>`).»
+- Новый текст: «… (`user:<user_id>` у Session, иначе `ip:<ip>`; IPv6 — подсеть /64, IPv4-mapped — как IPv4). Счётчик ключа общий для всех строк «REST API» таблицы ниже; Feedback — свой счётчик.»
+- Причина: п.1–2.
+
+### TESTING
+
+**6. Шапка.**
+- Сейчас: «версия 0.4 от 2026-11-05». Apply E01 (п.7 v0.1) версию не поднял.
+- Новый текст: «версия 0.5 от <дата apply>: apply E01 (проект `web`), сверка E01 (п.7–12)».
+- Причина: правки п.7 v0.1 и эти внесены без отметки версии.
+
+**7. §3.1, V1, колонка «Решение».**
+- Сейчас: «… три проекта Vitest (раздел 6)».
+- Новый текст: «… четыре проекта Vitest — `unit`, `web` (jsdom), `int`, `contract` (раздел 6)».
+- Причина: проект `web` введён в apply E01 (п.7). Упоминание «три» осталось; `vitest.config.ts`.
+
+**8. §6, таблица команд, строка `npm run test:affected`.**
+- Сейчас: «… затронутое и потребители во всех трёх проектах».
+- Новый текст: «… затронутое и потребители во всех проектах (`unit`, `web`, `int`, `contract`)».
+- Причина: та же.
+
+**9. §6, пункт «Проекты Vitest».**
+- Сейчас: «… `web` — `apps/web/**/*.test.{ts,tsx}`, окружение jsdom (в `unit` их нет); …»
+- Новый текст: «… `web` — `apps/web/src/**/*.test.{ts,tsx}`, окружение jsdom (в `unit` их нет). Тест `apps/web`, которому нужен `node:fs` (чтение `tokens.css`, `favicon.svg`), — в проекте `web` с `// @vitest-environment node` в первой строке; …»
+- Причина: `vitest.config.ts` (`include` проекта `web`); `review.md` T-5, отступление 5 (принято).
+- Колонка §5 «Проект Vitest / инструмент» уже даёт «`unit`; `apps/web` — `web` (jsdom)» (apply E01 п.7.1). Правки нет.
+
+**10. §7.3, первые два пункта.**
+- Сейчас: «… (связано с ARCHITECTURE F2-Q12)»; «`startApp()` → `{ url, wsUrl, time, close() }`».
+- Новый текст: «… (ARCHITECTURE A30, ADR-0005)»; «`startApp({ config?, logDestination? })` → `{ url, wsUrl, time, database: { block(), unblock() }, close() }` на случайном порту. `database.block()` делает базу воркера недоступной без перезапуска `app` (health 503). Сигнатура — `design.md` E01, «Тестовая инфраструктура сервера».»
+- Причина: F2-Q12 закрыт в apply E01 (ARCHITECTURE §17 «Закрыты»); код `apps/server/test/support/app.ts`; `review.md` T-2 «Желательно» (`logDestination`).
+
+**11. §11, абзац «Пишет».**
+- Сейчас: «… (backend-разработчик зоны `platform`, вместе с F2-Q12, F4-Q5)».
+- Новый текст: «… (backend-разработчик зоны `platform`; сборка — ARCHITECTURE A30, ADR-0005; сигнатуры `platform` — `design.md` E01)».
+- Причина: F2-Q12 закрыт (ARCHITECTURE §17), F4-Q5 закрыт (API §17.1, apply E01 п.5.9).
+- Проверено: других ссылок на F2-Q12 и F4-Q5 в TESTING нет. §18.2 п.4 («связано с F2-Q12») — запись истории reopen 1R, не меняется.
+
+**12. §12, пункт «Пропуск e2e …» и §9 «Проекты».**
+- §12. Сейчас: «(`git diff --name-only origin/main...HEAD`)». Новый текст: «(`git diff --no-renames --name-only origin/main...HEAD`: при переносе файла из кода в `docs/**` выводятся оба пути, и e2e идёт)». Причина: `review.md` T-6, блокер итерации 1; `ci.yml:119`.
+- §9. Сейчас: «`webkit` (iPhone, 390×844)». Новый текст: «`webkit` (`devices["iPhone 13"]`, 390×844; Tab в WebKit не фокусирует ссылки — `tabsToLinks`, — поэтому достижимость по Tab проверяется в Chromium, а в webkit — только вид фокуса)». Причина: вердикт arbiter TEST по AC-39 (`log.md` #31); `tests/e2e/lobby.spec.ts`.
+
+### OPERATIONS
+
+**13. §8, пункт `gitleaks` — дописать.**
+- Сейчас: «`gitleaks` в `check`: `gitleaks git --log-opts="<base>..HEAD"`; находка → job красный (SECURITY S27).»
+- Новый текст — дописать: «Образ — `zricethezav/gitleaks@sha256:<digest>` с комментарием версии, в `env:` шага (`GITLEAKS_IMAGE`). Dependabot его не обновляет: `github-actions` смотрит только `uses:`, `docker` — только `/deploy`. Обновляет devops вручную задачей `[ci]`: новая версия → её digest со страницы релиза → правка `ci.yml` (diff по O36, коммитит Ivan). Сверять с релизами — перед этапами и по уведомлению безопасности.»
+- Причина: `review.md` T-6 «Желательно», итерации 1 и 2 (→ architect-apply).
+
+**14. §8, пункт `e2e` и пункт «В `check`».**
+- `e2e`. Сейчас: «первый шаг — `git diff --name-only origin/main...HEAD`». Новый текст: «первый шаг — `git diff --no-renames --name-only origin/main...HEAD`». Причина: как п.12.
+- «В `check`». Сейчас: «`scripts/check-workflows.sh` — …». Новый текст: «`scripts/check-workflows.sh` — шаг job `check` в `ci.yml` сразу после `npm run check`: в корневом `check` его нет (`package.json` не в зоне devops) — …». Причина: `design.md` T-6; `ci.yml:57-58`.
+
+**15. §16.1 п.6 (предложение) и п.2.**
+- п.6. Сейчас: «`dependabot.yml`: `npm` (`/`), `github-actions` (`/`), `docker` (`/deploy`)». Новый текст: «… `docker` (`/deploy`, Dockerfile — с E02), `docker-compose` (`/deploy`: образы в `compose.test.yml` и `compose*.yml` prod)». Причина: `review.md` T-6 «Желательно»: `postgres:18` в `deploy/compose.test.yml` экосистема `docker` не видит. Вносит devops в `.github/dependabot.yml` задачей `[ci]` E02 после apply. Поддержку `docker-compose` Dependabot devops сверяет по документации GitHub.
+- п.2. Сейчас: «`/.github/`, `/deploy/`, `/scripts/ops/`, `/LICENSE`, `/docs/SECURITY.md`, `/docs/OPERATIONS.md` → `@<owner>`». Новый текст: добавить `/.claude/`. Причина: так в `.github/CODEOWNERS`, положенном Ivan. Конвейер агентов (зоны, профиль) — те же пути, что требуют внимания владельца.
+
+### requirements.md (→ analyst)
+
+**16. AC-10.** Сейчас: «`startApp()` возвращает `{url, wsUrl, time, close()}` … (int разработчика в `test/support/`)». Новый текст: «`startApp()` возвращает `{url, wsUrl, time, database, close()}` … (int разработчика `apps/server/src/platform/skeleton.int.test.ts`; помощник — `apps/server/test/support/app.ts`)». Причина: `review.md` T-2 «Желательно»: из `test/support/` Vitest ничего не запускает; TESTING §5, §6.
+
+**17. AC-25.** Сейчас: «`caller.who = "guest"` → `ip:<ip>`». Новый текст: «… → `ip:<ip>` (IPv6 — подсеть /64, IPv4-mapped — как IPv4)». Причина: п.1.
+
+**18. AC-42 (по желанию analyst).** Сейчас: «литерал `"/game/`, `"/player/`, `"/challenge/` в `apps/web` вне `pages.ts`». Новый текст: «литерал, начинающийся с `/game/`, `/player/`, `/challenge/`, `/leaderboard/` (в `"`, `'` или `` ` ``), в `apps/web/src` и `apps/server/src/seo` вне `pages.ts` и тестов». Причина: `review.md` T-5 итерация 2 (расширение принято); `check-architecture.sh:118-119`. Та же строка — в API §16 «Адреса страниц — из `PAGES`»; правка API — вместе с этим пунктом, тем же текстом.
+
 ## Решения (ADR)
 
 | Решение | Альтернативы | Почему |
@@ -328,13 +551,23 @@ DESIGN §16 (решение Ivan); OPERATIONS (решение Ivan, п.9); `ROAD
 | `ErrorCode` полный в E01 | коды по эпикам через `PENDING_CATALOG` | перечисление дешёвое; `error.<code>` нужны целиком (DESIGN §11); меньше правок `ErrorCode` в каждом эпике |
 | `registerRoute` проверяется int-тестом разработчика на голом Fastify с `platform` и синтетическими `RouteDef` (POST с телом, «Кто» = И) и заглушкой `CallerResolver` | перенос в E04; тестовый маршрут в `buildApp` | правила API §5, §7, SECURITY §6 готовы к E04; в `buildApp` и prod тестового маршрута и «тестового входа» нет (SECURITY §1, TESTING §7.3). `buildApp` резолвер извне не принимает |
 | Проверки в `registerRoute` — внутри обёртки обработчика, после `preHandler` лимита; zod — не через схему Fastify | схемы Fastify (`preValidation`) | отказы `origin_forbidden`, `client_outdated`, `validation_failed` тоже считаются в лимит; одна библиотека схем (zod, API §1) |
+| v0.3. Отложенный разбор тела: парсер `*` не бросает ошибку, а ставит `request.bodyIssue`. 413, `content_type` и `json` — на шаге схем, после `Origin`, версии и «Кто», в счёт лимита | ошибки парсера Fastify (`FST_ERR_CTP_*`) до `preHandler` | ошибка парсера возникает до лимита: поток больших или битых тел не считался бы. `Origin` по-прежнему первый, CSRF не ослаблен. Чтение ограничено как у `bodyLimit` (`Content-Length`, затем поток). Цена: маршрут вне `registerRoute` сам проверяет `bodyIssue` (`review.md` T-4, отступление 1) |
+| v0.3. `reply.code(def.status)` до обработчика; другой статус ставит сам обработчик (`reply.code`) — только `getHealth` (503, P16) | второй тип ответа в `RouteDef` | `getHealth` — единственный ответ вне §5 со своим статусом. Остальные отказы — `AppError`, иначе статус ушёл бы из таблицы §5.2 (`review.md` T-4, отступление 4) |
+| v0.3. `AppDeps.onRoute?` — наблюдатель хука `onRoute` | обход `app.printRoutes()`; хук в самом тесте после `buildApp` | хук нужно повесить до регистрации маршрутов, а их регистрирует `buildApp`. Поведения prod не меняет, `main.ts` не передаёт (`review.md` T-4, отступление 3) |
+| v0.3. Ключ гостя — `normalizeIP`: IPv6 → /64, IPv4-mapped → IPv4 | `ip:<request.ip>` как есть | у клиента IPv6 обычно целая /64: смена адреса внутри неё обходила бы лимит. Поведение библиотеки по умолчанию (`review.md` T-4, отступление 2; правка ADR-0006 — «Изменения (v0.3)», п.1) |
 | Логирование (pino, `request_id`, путь без строки запроса, `redact`) — в T-2 | T-4; E03 | первый лог `app` появляется в T-2; маскировка `/challenge/<id>` — E03 (ROADMAP), до E03 таких маршрутов нет |
 | `/api/*` без маршрута — `404 not_found` в формате §5 с rate limit; SPA-фолбэк — в `setNotFoundHandler`, а не маршрут `/*` | маршрут-шаблон `GET /*` | маршрут-шаблон перехватил бы `/api/<нет>` и попал бы в `onRoute`; 404 не обходит лимит |
 | Раздача SPA — в `app.ts` (`@fastify/static`), не в модуле | `platform`; `seo` | `app.ts` — корень сборки и не модуль (ADR-0005 п.1); `platform` по 7.1 статикой не занимается; `seo` появится в E15 и дополнит `index.html` |
 | Недоступность БД в contract-тестах — `startApp().database.block()` (`ALTER DATABASE … ALLOW_CONNECTIONS false` + разрыв соединений) | неверный `DATABASE_URL` | `app` с неверной БД не стартует (миграции при старте); EC-9 требует подъёма без перезапуска. `platform/db.ts` ставит обработчик `pool.on("error")` — иначе обрыв простаивающего соединения роняет процесс |
-| Сброс окна лимита в E01 не проверяется (только 300/301 и `Retry-After`) | конфиг окна для тестов; часы плагина через `TimeSource` | `@fastify/rate-limit` считает время сам; переключатель окна ради теста — лишняя ручка конфига; сброс — поведение библиотеки |
+| Сброс окна лимита (v0.3, заменяет v0.1 «не проверяется»): своё хранилище `SharedRateLimitStore`, окно — по `TimeSource` (A27); у ключа **один общий счётчик на все `/api/*`** (позже — и `/auth/*`, upgrade); особые лимиты — отдельный счётчик через `group` (`apiRateLimit({max, timeWindowMs, group})` → `groupId`). Это и ответ на вопрос tester T-4: счётчик общий | встроенный `LocalStore` (время — `Date.now`, `child()` на маршрут → 300/мин на **каждый** маршрут); конфиг окна для тестов | SECURITY §9: 300/мин на весь REST, а не на маршрут; EC-12. Часы `TimeSource` делают сброс окна проверяемым через `time.advance()` без новой ручки конфига. Таймеров в хранилище нет, после `close()` ничего не держится (`review.md` T-4, отступление 5) |
 | TS: `erasableSyntaxOnly`, `verbatimModuleSyntax`, `module`/`moduleResolution` `nodenext`, относительные импорты с `.ts` (`rewriteRelativeImportExtensions`); пакеты экспортируют `src/*.ts` | сборка `tsc` в `dist` для Node | `node file.ts` (TESTING §6) работает для `main.ts`, `seed.ts`, `prepare-db.ts` без сборки; запрещённый синтаксис ловит `tsc -b`, а не падение сида в e2e |
 | Проект Vitest `web` (jsdom) отдельно от `unit` | комментарий `@vitest-environment jsdom` в каждом файле; `environmentMatchGlobs` | профиль требует проект с jsdom; комментарий легко забыть; `environmentMatchGlobs` устарел в Vitest 3 |
+| v0.3. `contrast.test.ts` и `favicon.test.ts` — в проекте `web` с `// @vitest-environment node` | перенос в `unit`; чтение файлов через `fetch` в jsdom | тесты относятся к `apps/web` и запускаются вместе с ним, а `node:fs` есть только в окружении node. Исключение — на файл, а не на проект (`review.md` T-5, отступление 5; DESIGN §17 и U39 уточняет designer) |
+| v0.3. Без `references` между workspace: в `apps/server/tsconfig.json` и `apps/web/tsconfig.json` нет ссылок на `packages/*`. Корневой `tsconfig.json` ссылается на все шесть проектов | `references` с `composite` и `emitDeclarationOnly` у пакетов | у всех проектов `composite: true` и `noEmit: true` (`tsconfig.base.json`), а ссылка на проект без вывода — ошибка TS6310. Вывод `.d.ts` ради ссылок — лишняя сборка при `node file.ts`. Пакеты проверяются в программе потребителя через workspace (исходники `.ts`), сами — своим проектом в `tsc -b`. Решение contracts в T-3, повторено в T-5 (`review.md` T-4, отступление 6; T-5, отступление 4) |
+| v0.3. Правило «адреса из `PAGES`» — по началу литерала в любом контексте, плюс `/leaderboard/` | контекст `href=`/`to=`/`navigate(` (первая версия T-5) | контекст пропускал `"/game/" + id`, `location.assign(…)`, `` fetch(`/challenge/…`) `` (`review.md` T-5, блокер 1). `/leaderboard/:category` — страница API §14. `href="/"` правило не ловит: `/` — префикс всех путей (хвост) |
+| v0.3. Пропуск e2e — `git diff --no-renames` | `--name-only` с переименованиями | переименование выводит только новый путь: перенос `apps/x → docs/x` пропускал бы e2e (EC-24; `review.md` T-6, блокер 1) |
+| v0.3. `check-workflows.sh` — шаг `ci.yml`, не корневой `check` | вызов из `npm run check` | корневой `package.json` не в зоне devops; локально скрипт запускается вручную (`bash scripts/check-workflows.sh`) |
+| v0.3. Образ gitleaks — `docker run` по digest Docker Hub, обновление вручную | `gitleaks-action`; `ghcr.io/gitleaks/gitleaks` | action требует лицензию у организаций и не нужен; digest закрепляет образ. Dependabot `run:`/`env:` не читает. Переход на `ghcr.io` (один внешний реестр) — по желанию в E02 |
 | `.gitattributes` (`* text=auto eol=lf`, `*.sh text eol=lf`, `*.png binary`) — в T-2 | `core.autocrlf=false` у каждого клона | EC-26: `\r` в `scripts/*.sh` ломает Git Bash и CI; правило в репозитории, а не на машине. Файла нет в зоне `backend` — «Открытые вопросы», п.1 |
 | Правило «адреса только из `PAGES`» в `check-architecture.sh` — в T-5 (`apps/web/src`, `apps/server/src/seo`; нет пути — пропуск) | T-2; T-3 | правило фронта и его проверка — у frontend (зона, TESTING §11); в T-2 нет `apps/web`, а `check-architecture.sh` не в зоне contracts |
 | Без `--layout-text-max`: ширину строки заглушки ограничивают поля `--space-4` | новый токен | design-spec п.5 допускает строку в одну линию на 1280; токен ради временной заглушки не нужен |
@@ -353,6 +586,8 @@ DESIGN §16 (решение Ivan); OPERATIONS (решение Ivan, п.9); `ROAD
 
 Шаг 3 «Проверки» каждой задачи — её «проверка» из профиля; `tester-untouched` — всегда. Шаг tester — только у T-4 и T-5.
 
+Статус (v0.3): T-1…T-7 сделаны и приняты ревью (`review.md`; Jira KAN-31 — T-6, KAN-32 — T-7). CI-часть AC-51 и firefox ждут push Ivan. Ниже — план с пометками «v0.3» там, где реализация отступила от плана. Отступления приняты ревьюером.
+
 ### T-1 [infra] Риск: high
 `deploy/compose.test.yml` — сервис `db-test` строго по OPERATIONS §6.4 и TESTING §7.1 (`postgres:18`, `127.0.0.1:54329:5432`, `chezz`/`chezz`, `tmpfs: /var/lib/postgresql`, `fsync=off`, `synchronous_commit=off`, `full_page_writes=off`, healthcheck `pg_isready`). Риск high — путь `deploy/` (diff O36).
 - Проверка: `docker compose -f deploy/compose.test.yml config -q && docker compose -f deploy/compose.test.yml up -d --wait`.
@@ -366,6 +601,11 @@ DESIGN §16 (решение Ivan); OPERATIONS (решение Ivan, п.9); `ROAD
 - Тесты разработчика: `ManualTimeSource` (EC-4), два `startApp` параллельно (EC-3), гость с cookie (EC-5), строка лога (AC-15, EC-7 «лог», EC-8 — запросом к несуществующему пути), сид (`--demo` и отказ на prod), `globalSetup` дважды.
 - Проверка: `npm run check`.
 - AC-3…AC-15 (AC-15 — здесь, решение п.7 requirements); EC-2, EC-3, EC-4, EC-5, EC-7 (лог), EC-8, EC-14, EC-15, EC-26 (при `.gitattributes`), EC-27. Доп. AC-7a: вызов `createUsersService(` в `apps/server/src/games/` → `check-architecture.sh` красный (самопроверка).
+- v0.3, по факту:
+  - int-тесты скелета — `apps/server/src/platform/skeleton.int.test.ts` (AC-10; правка AC — «Изменения (v0.3)», п.16).
+  - `startApp` принимает ещё `logDestination`.
+  - В `.dependency-cruiser.cjs` модули могут импортировать `platform/*`: `platform` — L0, у него нет `service.ts` (`review.md` T-2, блокер 1).
+  - Миграции применяются дважды: в `main.ts` и в `onReady`. Так требует план, Migrator идемпотентен; одно место выбрать — хвост.
 
 ### T-3 [contracts] Риск: low
 - `packages/protocol` (`@chezz/protocol`, `zod` 4): `version.ts` (`PROTOCOL_VERSION = 1`), `errors.ts` (`ErrorCode` — все коды обеих таблиц API §5.2), `common.ts` (`ErrorResponse`, `Category`), `rest/health.ts` (`GetHealthResponse`), `rest/routes.ts` (`RouteDef`, `Who`, `REST_ROUTES` = `getHealth`), `ws/client.ts`, `ws/server.ts` (пустые `ClientMessage`, `ServerMessage` — форма на выбор разработчика, `dump` даёт `[]`), `pending.ts` (`PENDING_CATALOG` — все операции §12, кроме `getHealth`; все `type` §9.1, §9.3, §13), `pages.ts` (`PAGES`), `mask.ts` (`maskChallengeIds`), `index.ts`, `snapshot/protocol.json`, скрипты `dump` и `snapshot` (перезапись снимка). Тесты рядом: `schemas.test.ts`, `snapshot.test.ts`, `pages.test.ts`, `mask.test.ts`.
@@ -373,6 +613,10 @@ DESIGN §16 (решение Ivan); OPERATIONS (решение Ivan, п.9); `ROAD
 - `scripts/check-api-doc.sh` по API §16 в редакции «Изменений документов основ» п.5.8 (JSON `dump` разбирает `node`, без `jq`).
 - Корень: ссылки `tsconfig.json` на `packages/protocol`, `packages/chess`; `check-api-doc.sh` в `check`; `package-lock.json`.
 - Проверка: `npm run check` (полный).
+- v0.3, по факту:
+  - Схема ответа `GetHealthResponse` — нестрогий `z.object`: строгие только входящие схемы (API §1, §7; `review.md` T-3, блокер).
+  - `ClientMessage` и `ServerMessage` — `z.never()`.
+  - Ссылок `tsconfig` из `apps/server` на `packages/protocol` нет (TS6310, ADR «Без `references` между workspace»).
 - AC-16…AC-23; EC-13, EC-16, EC-17. Уточнение AC-17: красный также при имени и в `REST_ROUTES`, и в `PENDING_CATALOG`, и при несовпадении метода или пути. AC-18: при нуле входящих схем тест проходит и проверяет `REST_ROUTES` и `ClientMessage` по мере появления.
 
 ### T-4 [backend:platform] Риск: high
@@ -382,6 +626,9 @@ DESIGN §16 (решение Ivan); OPERATIONS (решение Ivan, п.9); `ROAD
 - Шаг tester (режим 1): `apps/server/test/contract/platform/health.test.ts` (AC-24, EC-9, EC-10), `apps/server/test/contract/platform/rate-limit.test.ts` (AC-26, EC-6, EC-7, EC-12); импорт только `test/support/**` и `@chezz/protocol`.
 - Проверка: `npm run check`.
 - AC-24…AC-30; EC-6, EC-7, EC-9…EC-12.
+- v0.3, по факту:
+  - Сверх плана: `installHttp` в `platform/http.ts`; новые файлы `platform/rate-limit-store.ts` (общий счётчик, окно по `TimeSource`), `platform/repo.ts` (`SELECT 1`).
+  - Отложенный разбор тела, ключ IPv6 /64, `AppDeps.onRoute`, статус `getHealth` через `reply.code` — «Решения (ADR)» v0.3, «Сигнатуры скелета».
 
 ### T-5 [frontend] Риск: low
 Макет: `lobby / 360 / light / default` https://www.figma.com/design/z6VyHSdwqFzCQIdP7ScisI?node-id=5-266, `lobby / 1280 / light / default` …?node-id=5-276 (тёмные — 5-286, 5-296); знаки — `27:108` (`logo-knight.svg`), `27:217` (`favicon.svg`); указания — design-spec «Указания для T-5». Начинать после apply (токены U41, U42).
@@ -392,25 +639,67 @@ DESIGN §16 (решение Ivan); OPERATIONS (решение Ivan, п.9); `ROAD
 - Шаг tester (режим 1, до разработчика): `tests/e2e/playwright.config.ts` (проекты TESTING §9, `webServer` по «Публичным интерфейсам», EC-23), `tests/e2e/tsconfig.json`, `tests/e2e/support/open-screen.ts`, `tests/e2e/smoke.spec.ts` (`@smoke`, AC-44), `tests/e2e/lobby.spec.ts` (AC-35…AC-39), `tests/e2e/screens.spec.ts` (AC-45, PNG в `tests/e2e/screens/`). Готовность шага: `tester-lint` и `npx tsc -p tests/e2e/tsconfig.json --noEmit` (ссылку на `tests/e2e` в корень добавляет разработчик этой же задачи); прогон e2e — в T-7.
 - Проверка: `npm run check`; ручная — AC-41.
 - AC-31…AC-45; EC-18…EC-23, EC-28, EC-29.
+- v0.3, по факту:
+  - Правило 8 `check-architecture.sh` — по началу литерала, плюс `/leaderboard/` («Выжимка», «Клиент»).
+  - `contrast.test.ts` и `favicon.test.ts` идут в проекте `web` с `@vitest-environment node`.
+  - `apps/web/tsconfig.json` без `references` (TS6310).
+  - В `packages/i18n` экспортирован `createTFrom(messages, locale, options)`: тесты `{name}` и множественного числа.
+  - Знак `Logo` — CSS-маска `logo-knight.svg` (28×28, один `<path>`) с `background: var(--color-accent)`, размер `calc(var(--space-6) - var(--space-1))`. Это вопросы designer: U31, токен размера (`review.md` T-5, отступления 1–3).
+  - AC-39 в webkit — по вердикту arbiter («Клиент и e2e»).
 
 ### T-6 [ci] Риск: high
-- `.github/workflows/ci.yml` по TESTING §12, OPERATIONS §8: job `check` (`services: postgres:18` на 54329, `TEST_DATABASE_URL`; `npm ci` → `npm run check` → `gitleaks git --log-opts="<base>..HEAD"` (база: `pull_request.base.sha` / `before`; `fetch-depth: 0`) → `npm audit --omit=dev --audit-level=high` (`continue-on-error: true`) → `test:unit` → `test:int` → `test:contract`; `timeout-minutes: 15`); job `e2e` (первый шаг — `git diff --name-only origin/main...HEAD`, только `docs/**` → остальные шаги пропущены, job зелёный; `services:` как в `check`; `npm ci` → кэш и `npx playwright install --with-deps chromium` → `npm run build -w @chezz/web` → `bash scripts/check-bundle.sh` → `npm run test:e2e -- --project=desktop --project=mobile-360` → `actions/upload-artifact` `screens`, путь `tests/e2e/screens/**`, `if: always()`, без trace; `timeout-minutes: 20`). Actions — полный SHA с комментарием версии; `persist-credentials: false`; кэш npm (`setup-node` `cache: npm`, `node-version-file: .nvmrc`) и браузеров.
+- `.github/workflows/ci.yml` по TESTING §12, OPERATIONS §8: job `check` (`services: postgres:18` на 54329, `TEST_DATABASE_URL`; `npm ci` → `npm run check` → `gitleaks git --log-opts="<base>..HEAD"` (база: `pull_request.base.sha` / `before`; `fetch-depth: 0`) → `npm audit --omit=dev --audit-level=high` (`continue-on-error: true`) → `test:unit` → `test:int` → `test:contract`; `timeout-minutes: 15`); job `e2e` (первый шаг — `git diff --no-renames --name-only origin/main...HEAD` (v0.3), только `docs/**` → остальные шаги пропущены, job зелёный; `services:` как в `check`; `npm ci` → кэш и `npx playwright install --with-deps chromium` → `npm run build -w @chezz/web` → `bash scripts/check-bundle.sh` → `npm run test:e2e -- --project=desktop --project=mobile-360` → `actions/upload-artifact` `screens`, путь `tests/e2e/screens/**`, `if: always()`, без trace; `timeout-minutes: 20`). Actions — полный SHA с комментарием версии; `persist-credentials: false`; кэш npm (`setup-node` `cache: npm`, `node-version-file: .nvmrc`) и браузеров.
 - `.github/CODEOWNERS` агент **не пишет** — кладёт Ivan сам (решение 2026-11-06, «Открытые вопросы», п.2). Ни `check-workflows.sh`, ни `check-architecture.sh`, ни `ci.yml` не требуют этого файла и не читают его: до появления файла и после все проверки зелёные.
 - `.github/dependabot.yml` (`npm` `/`, `github-actions` `/`, `docker` `/deploy`, `weekly`), `scripts/check-workflows.sh` (OPERATIONS §8: триггеры `ci.yml`; `deploy.yml`/`load.yml` — только `workflow_dispatch`, если есть; нет `pull_request_target`, `workflow_run`; `permissions` не шире `contents: read` у `ci.yml`), вызов `check-workflows.sh` в `check` — через корневой `package.json` нельзя (не зона devops) → вызов из `ci.yml` шагом после `npm run check`.
 - Проверка: `npm run check`; `bash scripts/check-workflows.sh`.
+- v0.3, по факту:
+  - Пропуск e2e — `git diff --no-renames --name-only origin/main...HEAD` (`ci.yml:119`).
+  - `check-workflows.sh` — шаг `check-workflows` job `check` после `npm run check`.
+  - gitleaks — `docker run` образа `zricethezav/gitleaks@sha256:…` (v8.30.1) из `env:` шага, digest обновляется вручную. В `run:` нет `${{ }}`.
+  - `.github/CODEOWNERS` положил Ivan: пути AC-50 и `/.claude/`.
 - AC-46…AC-49; AC-50 — часть `dependabot.yml`; часть `CODEOWNERS` AC-50 закрывает Ivan своим файлом (ревью при коммите T-6, перечень путей — AC-50, OPERATIONS §16.1 п.2); EC-24, EC-25. Текст `.github/workflows/**` агент готовит, коммитит и пушит Ivan.
 
 ### T-7 [e2e] Риск: low
 Прогон: `npm run db:test:up` → `npx playwright install chromium` (один раз) → `npm run test:e2e -- --project=desktop --project=mobile-360`. Красный — разработчику T-5 с отчётом; спор — arbiter.
 - AC-51 (локальная часть; CI-часть — после push Ivan).
+- v0.3, по факту: desktop, mobile-360 и webkit — 17/17 каждый; `screens` — 6 PNG (RU/EN × 3 проекта). firefox локально не запускается (окружение машины), его проверит CI по требованию.
+
+## Хвосты
+
+Код E01 не правится. Хвост закрывает задача указанного эпика, её метка — в колонке «Зона». architect вносит пункт в `design.md` этого эпика (план задач или «Выжимка»).
+
+| # | Хвост | Источник | Эпик | Зона |
+|---|---|---|---|---|
+| 1 | Свой сериализатор `err` в pino (`type`, `message`, `stack`, `code`) вместо `pino.stdSerializers.err`: тот пишет все перечислимые поля, у ошибок `pg` это `detail` с e-mail (SECURITY §15 MUST NOT). Тест: ошибка с `detail` → в строке лога нет `detail` | `review.md` T-4 «Желательно»; `log.md` («хвост до E04»); `platform/log.ts:35` | **E03** (наблюдаемость, `platform`; крайний срок — до первой таблицы `users` в E04) | `[backend:platform]` |
+| 2 | 404 по `/auth/<нет>` в счёт лимита: сейчас `setNotFoundHandler` считает только `isApiPath`. Вместе с этим — проверка `request.bodyIssue` в маршрутах `/auth/*` вне `registerRoute` | `review.md` T-4 «Желательно»; `platform/http.ts:174-187` | **E04** (первые маршруты `/auth/*`) | `[backend:platform]`, `[backend:auth]` |
+| 3 | forced-colors у знака `Logo`: маска с `background` в `forced-colors: active` пропадает. Варианты — inline-SVG с `fill="currentColor"` (U31) или `@media (forced-colors: active)` для `.mark`. Выбор — designer (вопрос U31) | `review.md` T-5 «Желательно» | **E09** (лобби, шапка; если `Logo withName=false` появится раньше, в `shell` E04, — тогда в E04) | `[frontend]` |
+| 4 | `@media (prefers-reduced-motion: reduce) { :root { --duration-fast: 0ms; --duration-move: 0ms } }` в `tokens.css` (DESIGN §4) | `review.md` T-5 «Желательно»; `tokens.css:60-61` | **E04** (первые переходы у кнопок; крайний срок — E06, анимация хода) | `[frontend]` |
+| 5 | Проверка «блок `@media (prefers-color-scheme: dark) :root:not([data-theme])` = блок `[data-theme="dark"]`» в `tokenValues.ts` / `contrast.test.ts`: тёмную тему гостя дают значения медиа-блока, а их никто не сверяет | `review.md` T-5 «Желательно»; `tokens.css:125` | **E04** (первая задача `[frontend]`, которая трогает `tokens.css`) | `[frontend]` |
+| 6 | `connectionTimeoutMillis` (≈ 2000) в `createDb`: зависший `ping` health занимает место в пуле | `review.md` T-4 «Желательно» | **E02** (healthcheck контейнера) | `[backend:platform]` |
+| 7 | `assetsDir` в `app.ts` — `path.resolve(webDistDir, "assets") + path.sep`: путь из `loadConfig` абсолютный, но относительный путь в тестовом `AppConfig` даёт `no-cache` | `review.md` T-4 «Желательно»; `app.ts:70` | E02 | `[backend:platform]` |
+| 8 | Тест `player → 403 forbidden` в `register-route.int.test.ts`: маршрут `who: ["guest"]` | `review.md` T-4 «Желательно» | E04 | `[backend:platform]` |
+| 9 | Миграции в одном месте: `main.ts` или `onReady` | `review.md` T-2 «Желательно» | E02 | `[backend:platform]` |
+| 10 | `request_id: z.uuid()` в `ErrorResponse`; снимок схем сервера с `io: "output"` | `review.md` T-3 «Желательно» | E03 (до первых `default`/`transform` в ответах) | `[contracts]` |
+| 11 | `check-bundle.sh`: нет файла из `index.html` → код 2 с именем файла, а не пропуск | `review.md` T-5 «Желательно» | E04 | `[frontend]` |
+| 12 | Правило `--base-*`: убрать исключение `*.test.ts(x)` или записать его в DESIGN §17; в сообщениях правил 7–8 — ссылки DESIGN §17, API §16 | `review.md` T-5 «Желательно» | E04 | `[frontend]` |
+| 13 | `apps/web/tsconfig.json`: `types: ["node"]` открывает `node:fs` коду браузера. Тесты и `tokenValues.ts` — в отдельный `tsconfig` | `review.md` T-5 «Желательно» | E04 | `[frontend]` |
+| 14 | Правило 8: остальные страницы §14 (`/welcome`, `/settings`, `/terms`, `/privacy`, `/account/delete`) с `["'`/?#]` после имени. `href="/"` новое правило не ловит | `review.md` T-5, итерация 2 | E04 (появляются `/welcome`, `/terms`, `/privacy`) | `[frontend]` |
+| 15 | Тест сброса окна лимита: `time.advance(60_000)` → снова 200. Сейчас окно сбрасывается по `TimeSource`, но тест этого не проверяет | ADR «Сброс окна лимита» v0.3 | E04 (contract-тесты лимита по User, ADR-0006 п.4) | tester |
+| 16 | `allowed_perms` в `check-workflows.sh` — сверить с именами job `deploy.yml`/`load.yml`; `postgres:18` в `services:` без digest; двойная сборка web в e2e (`ci.yml` и `webServer`) | `review.md` T-6 «Желательно» | E02 | `[ci]` (сборка в `webServer` — tester) |
+| 17 | `dependabot.yml`: `docker-compose` для `/deploy`; `docker` в `/deploy` до Dockerfile E02 может давать ошибку обновления | `review.md` T-6 «Желательно»; «Изменения (v0.3)», п.15 | E02 (после apply) | `[ci]` |
 
 ## Риски и открытые вопросы
 
 Открытые вопросы к Ivan:
-1. **`.gitattributes` вне зон.** `zones.conf` не даёт его ни одной роли. Предложение: строка `backend allow .gitattributes` (зона `setup-pipeline`, правит Ivan) до T-2. Без неё T-2 идёт без файла, EC-26 не закрыт, и на клоне с `core.autocrlf=true` `scripts/*.sh` могут падать в Git Bash.
+1. ~~**`.gitattributes` вне зон.**~~ Закрыт: `zones.conf` даёт `backend allow .gitattributes`, файл сделан в T-2 (EC-26).
 2. ~~**CODEOWNERS и запрет логина (OPERATIONS §1).**~~ Закрыт решением Ivan 2026-11-06: `.github/CODEOWNERS` Ivan пишет сам при коммите T-6; исключение в OPERATIONS не вводится, OPERATIONS не меняется («Изменения документов основ», п.9 — не внесён). T-6 файл не создаёт, проверки от него не зависят.
-3. **Ссылка на Figma в профиле** (`file: —`) — вписать `https://www.figma.com/design/z6VyHSdwqFzCQIdP7ScisI` до T-5; старый файл `gnC4bJJ1JlSgRH3q0mNLFx` — удалить или пометить (design-spec п.13).
-4. **Отдельный проект Vitest `web`** меняет команду `test:unit` в TESTING §6 и DESIGN U39 («Изменения», п.7, п.8.4). Если Ivan против правки документов — вариант без правки: комментарий `@vitest-environment jsdom` в каждом тесте `apps/web` в проекте `unit`.
+3. ~~**Ссылка на Figma в профиле.**~~ Закрыт: в профиле `file: https://www.figma.com/design/z6VyHSdwqFzCQIdP7ScisI`. Судьба старого файла `gnC4bJJ1JlSgRH3q0mNLFx` — за Ivan (design-spec п.13).
+4. ~~**Отдельный проект Vitest `web`.**~~ Закрыт: внесён в apply E01. Остатки «три проекта» в TESTING — «Изменения (v0.3)», п.7–8.
+5. **Логин в `.github/CODEOWNERS` и OPERATIONS §1 (v0.3).** Ivan решил 2026-11-06 не вводить исключение (п.9 v0.1 не внесён). Но теперь в файле есть логин владельца, а OPERATIONS §1 запрещает это (MUST NOT для `.github/**`) и пишет, что запрет проверяет `check-architecture.sh`. На деле скрипт проверяет только `example.com`, логин он не ищет. Документ и репозиторий расходятся. Варианты:
+   - (а) ввести исключение для `.github/CODEOWNERS` в §1 текстом п.9.1 v0.1, без номера O46 или с ним;
+   - (б) оставить как есть и записать расхождение как известное.
+   Рекомендация: (а), одной строкой в §1. В «Изменения (v0.3)» пункт не включён, пока Ivan не решит.
+6. **Утверждение «Изменений документов основ (v0.3)»**: п.1–15 (architect-apply) и п.16–18 (analyst). Ничего не внесено.
 
 Отложено (E01 не блокирует):
 - Вопросы designer: п.4 (hover/active/disabled для `secondary`/`danger`/`ghost`, hover полей), п.6 (размеры `Avatar` 24/32/64), п.14 (`Button size=l` во всех состояниях) — E04 (первые кнопки, `shell`, аватар), правка DESIGN §7, §7.1 в design E04; п.15 (многострочное поле) — E18; п.10 (`GameSummary` в §7), п.11 (флаг страны) — E11; п.16 (тема «как в системе») — API F4-Q8, Ivan, до E16; п.9 (доменные компоненты — в эпиках экранов) — согласен.
@@ -419,7 +708,7 @@ DESIGN §16 (решение Ivan); OPERATIONS (решение Ivan, п.9); `ROAD
 - `trustProxy` с адресом `edge` и `HOST=0.0.0.0` в контейнере — E02; маскировка путей в логах и Sentry — E03.
 - ADR-0007, ADR-0008 — статус «предложено»; их строки в ARCHITECTURE §16 — в apply эпиков E04/E08.
 
-Риски:
+Риски (v0.3): риски v0.1 ниже сняты реализацией. T-2 прошла одной задачей. `node file.ts` с workspace работает: `main.ts`, `seed.ts` и `prepare-db.ts` запускаются в e2e. Шаг tester T-5 прошёл до кода, gitleaks — образ по digest. Остаются риски из «Хвостов», п.1 (ПДн в логе до E03) и п.2 (404 `/auth/*` вне лимита до E04).
 - **T-2 большая** (корень + сервер + тестовая инфраструктура). Если не укладывается в сессию — оркестратор делит на T-2a (корень, конфиги, проверки) и T-2b (`apps/server`, `test/support`) одной меткой подряд; состав профиля не меняется.
 - **`node file.ts` и workspace-пакеты.** Node не снимает типы в `node_modules`; работает, пока симлинки workspace разрешаются в реальные пути (`--preserve-symlinks` не включать). Если проверка в T-3 покажет иное — открытый вопрос к architect, не обход.
 - **Шаг tester T-5 без `apps/web`.** e2e-тесты пишутся до приложения и до ссылки `tests/e2e` в корневом `tsconfig`; их первый прогон — T-7. Падение `webServer` в T-5 — ожидаемо, не дефект шага tester.
