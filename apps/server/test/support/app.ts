@@ -2,6 +2,7 @@
 import { createServer } from "node:net";
 import type { FastifyInstance } from "fastify";
 import type { DestinationStream } from "pino";
+import type { AnalyticsService } from "../../src/analytics/service.ts";
 import { buildApp } from "../../src/app.ts";
 import type { Database } from "../../src/database.ts";
 import type { AppConfig } from "../../src/platform/config.ts";
@@ -20,6 +21,8 @@ export interface TestApp {
   time: ManualTimeSource;
   /** http://127.0.0.1:<порт метрик> */
   metricsUrl: string;
+  /** Экземпляр analytics, созданный buildApp. */
+  analytics: AnalyticsService;
   database: {
     /** База воркера недоступна для app: соединения рвутся, новые отклоняются. */
     block(): Promise<void>;
@@ -90,6 +93,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
     const db: Db<Database> = createDb<Database>(workerDatabaseUrl(), { onPoolError: () => undefined });
     let app: FastifyInstance | undefined;
     let metrics: MetricsService | undefined;
+    let analytics: AnalyticsService | undefined;
     try {
       app = await buildApp(config, {
         db,
@@ -98,6 +102,9 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
         reporter,
         onMetrics: (m) => {
           metrics = m;
+        },
+        onAnalytics: (a) => {
+          analytics = a;
         },
       });
       await app.listen({ host: "127.0.0.1", port });
@@ -116,6 +123,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       metricsUrl,
       wsUrl: `ws://127.0.0.1:${port}/ws`,
       time,
+      analytics: analytics as AnalyticsService,
       sentryEvents: async () => {
         if (memory === null) return [];
         await reporter.flush(2_000);
@@ -133,6 +141,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       },
       close: async () => {
         server.closeAllConnections();
+        await analytics?.drain();
         await metrics?.stop();
         await reporter.close(2_000);
         await new Promise<void>((resolve) => server.close(() => resolve()));

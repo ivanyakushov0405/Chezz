@@ -86,3 +86,21 @@
 - [apps/server/test/acceptance/platform/error-reporter.test.ts:60] После (а) — задача tester: в `afterEach` закрывать репортёры (`close(0)`), чтобы убрать `MaxListenersExceededWarning`. Developer этот файл не правит (TESTING §1).
 - [apps/server/src/app.ts:95-97] Если `metrics.stop()` бросит, `reporter.close()` не вызовется и буфер Sentry не отправится (EC-18). → Закрывать независимо: `await Promise.allSettled([metrics.stop(), reporter.close(…)])` или `try/finally`.
 - [apps/server/src/platform/sentry.ts:77-78] В фатальном пути таймер `flush` с `unref`. Если исключение случится, когда цикл событий уже пуст (сервер закрыт, транспорт ничего не держит), процесс может завершиться с кодом 0 раньше, чем вызовется `exit(1)`, потому что обработчик `uncaughtException` уже перехватил исключение. → В `createFatalErrorHandler` держать свой ref-таймер до `exit` или передавать в `withTimeout` флаг «не unref». Вероятность мала, поэтому не блокер.
+
+## T-4 — итерация 1
+Вердикт: APPROVE
+Проверено: `git diff` и новые файлы; тесты tester не тронуты (`git status --porcelain` по их путям пуст); `npm run check` зелёный (depcruise: 0 нарушений, check-architecture и check-api-doc — ok). Правила зоны backend (ARCHITECTURE §5, §7.1, §7.2, §7.4, §7.5, §8, §9.4; SECURITY §15, §18; TESTING §7.3) соблюдены. Миграция только добавляющая, FK и CHECK нет, индекс `(name, created_at)`. SQL к `analytics_events` есть только в `analytics/repo.ts`. `analytics` зависит только от `platform` и `database.ts`. Время — `wallNow`, синглтонов нет, `drain` вызывается в `onClose`. `record` без `trx`. В `props` — строгие схемы (`strictObject`), ПДн туда не попадают. В warn пишутся только имена ключей. На каждый из AC-23…AC-29 и EC-19…EC-25 есть контрактный тест (EC-24 по requirements проверяется в E04+). AC-30 и AC-31 закрыты check-скриптами. Новых зависимостей нет.
+
+Решения разработчика вне design:
+- `props.<key>` в `keys`: принимаю. Без него AC-25 не выполним: на верхнем уровне `email` не виден. Значений в логе нет.
+- `user_active` помечается до записи, и неудачная запись слот не освобождает: принимаю. Синхронная пометка нужна для параллельных вызовов. Потеря одной отметки за сутки при сбое БД допустима по ADR-0010 («как строка лога»). Улучшение — ниже.
+- `deps.onAnalytics`: принимаю. Это та же схема, что `onMetrics`, и иначе выполнить контракт `TestApp.analytics` из design нельзя.
+
+### Блокеры
+- нет
+
+### Желательно
+- [apps/server/src/analytics/service.ts:67] В `write` вызов `deps.log.error` не обёрнут, а в синхронной ветке (стр. 103) обёрнут. Если сериализатор или поток лога бросит, `task` реджектится, производный промис `void task.finally(...)` (стр. 100) остаётся необработанным, и `unhandledRejection` из T-3 завершит процесс с `exit(1)`. Это нарушило бы ARCHITECTURE §7.5 MUST «не ломает сценарий». → Обернуть `log.error` в `try/catch`, как на стр. 103, или писать `void task.finally(...).catch(() => undefined)`. Вероятность мала, поэтому не блокер.
+- [apps/server/src/analytics/service.ts:94] Если запись `user_active` упала, отметку можно снять: в `catch` у `write` удалять `activeDay` для `user_id`, если там всё ещё тот же `day`. Тогда при кратком сбое БД пользователь не выпадет из DAU за эти сутки. Нужен тест «сбой, затем восстановление → строка есть».
+- [apps/server/src/analytics/service.ts:69] При недоступной БД каждое событие уходит отдельным `captureException`, и бета может выбрать квоту Sentry. Design требует только `log.error` (design «analytics», «В логах»). → Ограничить отчёт: один раз на N секунд по `TimeSource`, или только первый после успешной записи. Другой путь — architect фиксирует, что каждый сбой отправляется в Sentry (→ architect-apply).
+- [apps/server/src/analytics/service.ts:45,83] Для будущего REST `trackEvent` (`analysis_opened` с клиента) стоит заранее ограничить число и длину ключей в `keys` и длину `name` в warn (например, 20 ключей по 64 символа), чтобы чужие имена ключей не раздували лог (SECURITY §15, §9). Сейчас вызывающие — только серверный код.

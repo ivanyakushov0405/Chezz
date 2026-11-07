@@ -6,6 +6,7 @@ import path from "node:path";
 import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyBaseLogger, type FastifyInstance, type RouteOptions } from "fastify";
 import type { DestinationStream } from "pino";
+import { createAnalyticsService, type AnalyticsService } from "./analytics/service.ts";
 import type { Database } from "./database.ts";
 import { injectClientConfig } from "./platform/client-config.ts";
 import type { AppConfig } from "./platform/config.ts";
@@ -26,6 +27,8 @@ export interface AppDeps {
   onRoute?: (route: RouteOptions) => void;
   /** Получает сервис метрик сразу после создания — тестовый startApp закрывает его без штатного app.close(). */
   onMetrics?: (metrics: MetricsService) => void;
+  /** Получает analytics сразу после создания (тестовый startApp отдаёт его как TestApp.analytics). */
+  onAnalytics?: (analytics: AnalyticsService) => void;
   /** Sentry сервера (main.ts — createErrorReporter из конфига; тесты — с транспортом в память). Нет — выключен. */
   reporter?: ErrorReporter;
 }
@@ -82,6 +85,8 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   });
 
   // Сервисы модулей: L0 platform, analytics → L1 users, feedback → … (ARCHITECTURE §7.1). В E01 — нет.
+  const analytics = createAnalyticsService({ db: deps.db, time: deps.time, log: app.log, reporter });
+  deps.onAnalytics?.(analytics);
   registerHealthRoute(app, { db: deps.db, time: deps.time });
 
   const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
@@ -93,6 +98,7 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
     await metrics.start();
   });
   app.addHook("onClose", async () => {
+    await analytics.drain();
     await metrics.stop();
     await reporter.close(SENTRY_FLUSH_TIMEOUT_MS);
   });
