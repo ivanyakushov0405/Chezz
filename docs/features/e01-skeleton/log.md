@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 44/50
+Вызовов: 45/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -80,3 +80,5 @@ UI: главная-заглушка; макеты — новый файл Figma 
 - Ivan 2026-11-07: утвердил все правки основ v0.3 (design.md п.1–18) и 3 правки DESIGN от designer (U31 маска, --layout-logo-mark 28px, §17/U39 node-окружение). Логин в CODEOWNERS vs OPERATIONS §1 — оставить расхождение как известное, OPERATIONS §1 не менять.
 | 43 | architect | opus | architect-apply | apply правок основ v0.3 | ADR-0006 п.1–2; ARCHITECTURE 0.7 (A21, §13.1); SECURITY 0.5 (§9); TESTING 0.5 (V1, §6, §7.3, §9, §11, §12); OPERATIONS 0.6 (§8, §16.1 п.2, п.6); DESIGN 0.6 (U31, §1 CanvasText, §4 --layout-logo-mark, §17/U39); API §16 (п.18) — вместе с analyst; зона OK |
 | 44 | analyst | sonnet | analyst | правка AC-10, AC-25, AC-42 (п.16–18) | AC-10: тест в src/platform/skeleton.int.test.ts, startApp возвращает database; AC-25: IPv6 /64, IPv4-mapped; AC-42: + /leaderboard/, apps/web/src и seo; зона OK |
+| 45 | architect | opus | architect-apply | API §16, правило PAGES (п.18) | API_CONVENTIONS 0.5 → 0.6: /leaderboard/, кавычки ' и `, apps/web/src и seo, без тестов; check (оркестратор): check-api-doc OK; зона OK |
+- Сверка документов E01 завершена: design v0.3, design-spec v0.4, основы v0.3 внесены, requirements AC-10/25/42. Хвосты — design.md «Хвосты».
