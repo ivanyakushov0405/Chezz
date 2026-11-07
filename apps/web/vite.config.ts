@@ -5,7 +5,7 @@ const BACKEND = "http://127.0.0.1:3000";
 
 export default defineConfig({
   plugins: [react()],
-  build: { assetsInlineLimit: 0 },
+  build: { assetsInlineLimit: 0, sourcemap: true },
   server: {
     proxy: {
       "/api": BACKEND,

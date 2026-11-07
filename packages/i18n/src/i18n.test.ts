@@ -52,3 +52,20 @@ describe("createT", () => {
     expect(plain("n", { count: 5 })).toBe("5 шт.");
   });
 });
+
+describe("i18n: onMissingKey", () => {
+  it("AC-21, EC-26: onMissing=key — колбэк с ключом, возвращается ключ; найденный ключ колбэк не вызывает", () => {
+    const seen: string[] = [];
+    const t = createTFrom({ a: "A" }, "en", { onMissing: "key", onMissingKey: (k) => seen.push(k) });
+    expect(t("a")).toBe("A");
+    expect(t("nope")).toBe("nope");
+    expect(seen).toEqual(["nope"]);
+  });
+
+  it("onMissing=throw — исключение, колбэк не вызывается", () => {
+    const seen: string[] = [];
+    const t = createTFrom({}, "en", { onMissing: "throw", onMissingKey: (k) => seen.push(k) });
+    expect(() => t("x")).toThrow();
+    expect(seen).toEqual([]);
+  });
+});
