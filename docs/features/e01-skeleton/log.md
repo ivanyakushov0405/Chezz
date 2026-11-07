@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 39/50
+Вызовов: 40/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -73,3 +73,5 @@ UI: главная-заглушка; макеты — новый файл Figma 
 - T-6 раунд 2 проверки (оркестратор): check OK; check-workflows OK; tester-untouched пусто.
 | 39 | reviewer | opus | review | T-6, итерация 2 | APPROVE; желательное (digest gitleaks вручную, docker/docker-compose в dependabot → architect-apply); зона OK |
 - T-6 [ci] готова, раундов: 2, вызовов: 39/50. ci.yml коммитит и пушит Ivan; CODEOWNERS — Ivan. Jira: KAN-31.
+| 40 | tester | sonnet | tests | T-7, режим 2 (прогон) | desktop 17/17, mobile-360 17/17, webkit 17/17; screens: 6 PNG (RU/EN × 3 проекта); firefox — CI; зона OK |
+- T-7 [e2e] готова: AC-51 локально закрыт; CI-часть — после push. Jira: KAN-32.
