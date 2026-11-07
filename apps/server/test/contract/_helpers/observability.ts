@@ -39,3 +39,37 @@ export function requestPaths(log: LogCapture): string[] {
     .filter((l) => l["msg"] === "request")
     .map((l) => (l["req"] as { path?: string } | undefined)?.path ?? "");
 }
+
+// --- T-3: Sentry сервера и <meta> клиента (design.md E03, «Тестовая инфраструктура», «HTTP») ---
+
+/** Событие Sentry после scrub, как его отдаёт TestApp.sentryEvents(). Поля — только читаемые тестами. */
+export interface CapturedSentryEvent {
+  event_id?: string;
+  level?: string;
+  environment?: string;
+  release?: string;
+  transaction?: string;
+  message?: string;
+  tags?: Record<string, unknown>;
+  user?: Record<string, unknown>;
+  request?: Record<string, unknown>;
+  exception?: { values?: Array<{ type?: string; value?: string }> };
+  [key: string]: unknown;
+}
+
+export type SentryTestApp = MetricsTestApp & {
+  /** flush + отправленные события (после scrub); без sentry: [] */
+  sentryEvents(): Promise<CapturedSentryEvent[]>;
+};
+
+export interface SentryAppOptions extends MetricsAppOptions {
+  /** true: DSN "https://public@o0.ingest.sentry.io/0" и транспорт в память. */
+  sentry?: boolean;
+}
+
+/** DSN, который startApp({ sentry: true }) ставит в конфиг (design.md E03, «Тестовая инфраструктура»). */
+export const TEST_SENTRY_DSN = "https://public@o0.ingest.sentry.io/0";
+
+export async function startSentryApp(options: SentryAppOptions = {}): Promise<SentryTestApp> {
+  return (await startApp(options as StartAppOptions)) as SentryTestApp;
+}
