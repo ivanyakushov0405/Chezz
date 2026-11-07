@@ -1,0 +1,24 @@
+# Ревью E03 — наблюдаемость
+
+## T-1 — итерация 1
+Вердикт: APPROVE
+
+Что проверено: diff `packages/protocol/src/{common,index,snapshot,schemas.test,snapshot.test}.ts`, `snapshot/protocol.json`, новые `scrub.ts`, `scrub.test.ts`. Тесты tester (`apps/server/test/acceptance/protocol/`) не изменены: `git diff` и `git status --porcelain` по путям tester пусты. `vitest run packages/protocol apps/server/test/acceptance/protocol`: 78/78. Правила зоны contracts из профиля (GLOSSARY §1, §6, §12; ARCHITECTURE §1, §10; SECURITY §1, §12, §15; API §1, §4.2, §6, §7, §9.1, §14, §15, §16; TESTING §1, §7.4, §11, §13) сверены по MUST/MUST NOT. Нарушений нет.
+
+- Требования: всё по плану T-1. `scrub.ts` с экспортом в `index.ts`, `request_id: z.uuid()`, `io: "output"` для `response`, `common.ErrorResponse` и `ws_server`, снимок перегенерирован. Лишнего нет, новых зависимостей нет, `@sentry/*` не импортируется.
+- SECURITY §15 S37: удаляются `request.cookies/headers/data/query_string/env`. У `user` остаётся только `id`. Строка запроса и фрагмент отрезаются до маскировки у `request.url` и `data.url/to/from`. Маскируются `transaction`, `message`, `logentry.message`, `exception.values[].value` и `breadcrumbs[]`. Маскировка только через `maskChallengeIds`, второй реализации нет. `/game/<id>` не трогается.
+- Покрытие: тесты tester есть на AC-12…AC-16, AC-32 и EC-3…EC-6, по тесту на каждое поле (SECURITY §15 MUST, TESTING §1). Свои тесты разработчика проверяют каждое поле `request` отдельно, нестроковые и чужие типы, бросающий геттер, замороженный объект и режимы `toJson` / `toOutputJson` в снимке.
+- API §7, совместимость снимка без смены `PROTOCOL_VERSION`. Возражений нет:
+  - `request_id` сужен только на выходе. Сервер генерирует его сам: `genReqId: randomUUID()` (v4, подходит под шаблон `z.uuid()`), входящий заголовок не принимается (`requestIdHeader: false`, `apps/server/src/app.ts:30-31`). Ни один ответ, который сервер уже шлёт, схему не нарушает.
+  - `additionalProperties: false` у ответов и `ErrorResponse` — это запись в JSON Schema того, что схемы zod на выходе отбрасывают лишние ключи. Форма ответа не меняется. Клиент по API §1 и так разбирает ответы нестрого.
+  - Входные схемы (`params`, `query`, `body`, `ws_client`) в снимке не изменились.
+  - В PR оркестратор MUST добавить строку «снимок изменён совместимо: `request_id` → uuid (выход, сервер шлёт `randomUUID`); `io: output` у ответов — `additionalProperties: false`, форма ответов не изменилась» (API §7, §16).
+
+### Блокеры
+нет
+
+### Желательно
+- [packages/protocol/src/scrub.ts:131-137] Один `try` на всю функцию. Если на каком-то поле бросит исключение, все следующие поля не очищаются, и событие уходит частично очищенным (fail-open). Пример: бросающий геттер `message` — тогда не маскируются `exception`, `breadcrumbs` и т.д. `request` и `user` идут первыми, это смягчает риск, но по сути главный фильтр ПДн (риск high) пропускает данные при сбое. → Обернуть в `try` каждый шаг `scrubEventFields` отдельно, чтобы сбой одного поля не мешал остальным. Либо при сбое ставить сырым текстовым полям заглушку. Сейчас не блокер: события Sentry — обычные объекты. (Чек-лист п.2 и п.4, SECURITY §15.)
+- [packages/protocol/src/scrub.ts:9-66] Структурные типы пока не сверены с настоящими типами `@sentry/node` / `@sentry/browser`: пакетов ещё нет в `node_modules`. → В T-3 и T-5 подставить `scrubSentryEvent` в `beforeSend` / `beforeSendTransaction` и `scrubSentryBreadcrumb` в `beforeBreadcrumb` без `as` и убедиться, что `tsc` проходит. Если не пройдёт — поправить типы `SentryEventLike` и `SentryBreadcrumbLike` отдельной задачей `[contracts]`, а не приведением типов в `apps/*`.
+- [packages/protocol/src/scrub.ts:105-123] Если трассировку когда-нибудь включат, у transaction-события останутся неочищенными `spans[].description`, `spans[].data["url"]` и `contexts.trace.data` с URL `/api/challenges/<id>/…`. SECURITY §15 перечисляет только поля, которые сейчас обрабатываются, а AC-16 допускает выключенную трассировку. → T-3 и T-5 должны явно не задавать `tracesSampleRate` (или ставить 0). Включение трассировки — только через правку SECURITY §15 с перечнем полей span'ов (→ architect-apply).
+- [packages/protocol/src/scrub.ts:79] `stripQuery` отрезает всё после первого `?` или `#`. Для `request.url` и `data.url/to/from` так и задумано, а `message` у крошки сохраняет строку запроса (`GET /challenge/:id?x=1`), это закреплено тестом разработчика (`scrub.test.ts`, «message маскируется, но строка запроса в message сохраняется»). SECURITY §15 требует удалять строку запроса только у URL-полей, так что это по правилам. Но у fetch-крошки в `message` может оказаться `/auth/google/callback?code=…`. → Проверить в T-5, что SDK браузера не кладёт URL со строкой запроса в `breadcrumb.message`. Если кладёт — поднять вопрос architect.

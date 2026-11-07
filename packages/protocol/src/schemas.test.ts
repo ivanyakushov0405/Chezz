@@ -101,6 +101,19 @@ describe("схемы протокола", () => {
     }
   });
 
+  it("AC-32: ErrorResponse.error.request_id — UUID", () => {
+    const body = (request_id: unknown) => ({ error: { code: "internal", message: "m", details: null, request_id } });
+    expect(protocol.ErrorResponse.safeParse(body("5b0c1d2e-3f4a-4b5c-8d6e-7f8091a2b3c4")).success).toBe(true);
+    for (const bad of ["", "x", "5b0c1d2e-3f4a-4b5c-8d6e-7f8091a2b3c40", 1, null]) {
+      expect(protocol.ErrorResponse.safeParse(body(bad)).success, String(bad)).toBe(false);
+    }
+  });
+
+  it("scrub: экспортируется из пакета", () => {
+    expect(typeof protocol.scrubSentryEvent).toBe("function");
+    expect(typeof protocol.scrubSentryBreadcrumb).toBe("function");
+  });
+
   it("PENDING_CATALOG не пересекается с реализованным", () => {
     for (const op of Object.keys(protocol.REST_ROUTES)) expect(protocol.PENDING_CATALOG.rest).not.toContain(op);
   });
