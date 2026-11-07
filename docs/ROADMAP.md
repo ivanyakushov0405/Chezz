@@ -8,7 +8,7 @@
 
 | Эпик | Название | ТЗ | Модули | Зависит от | Размер | UI | Риск | Статус |
 |---|---|---|---|---|---|---|---|---|
-| E01 | Скелет репозитория (7 задач профиля) | ТЗ §5 «Безопасность», «Загрузка страницы»; ТЗ §6 | deploy (`compose.test.yml`), platform, protocol, chess (только каркас), i18n, web, ci | — | L | да (главная-заглушка, `screens.spec.ts`) | low (задача `[ci]` — high) | не начат |
+| E01 | Скелет репозитория (7 задач профиля) | ТЗ §5 «Безопасность», «Загрузка страницы»; ТЗ §6 | deploy (`compose.test.yml`), platform, protocol, chess (только каркас), i18n, web, ci | — | L | да (главная-заглушка, `screens.spec.ts`) | low (задача `[ci]` — high) | в работе |
 | E02 | Выкатка: VPS, образ, `deploy.yml`, `load.yml` | ТЗ §5 «Доступность», «Резервные копии» (режим `local`), «Безопасность» (HTTPS); ТЗ §6 «CI/CD», «Хостинг» | deploy, ci | E01 | M | нет | high (deploy/ci) | не начат |
 | E03 | Наблюдаемость `app`: Sentry, `/metrics` с `app_info{version}`, маскирование `/challenge/<id>`, модуль `analytics` | ТЗ §5 «Мониторинг», «Аналитика»; OPERATIONS §9.4 п.8а, O19 | platform, analytics, web (Sentry клиента) | E01 | M | нет | low | не начат |
 | E04 | Вход через Google, Session, первый вход (ник, правила), выход | ТЗ §4.1 п.1–5; §3 (Гость/Игрок); §5 «Безопасность», «Персональные данные» | users, auth, platform, protocol, analytics (`user_registered`, `user_active`), web | E01, E02, E03; первая выкатка prod (Ivan) | L | да (`/welcome`, кнопка входа, меню выхода, `/terms`, `/privacy`) | high | не начат |
