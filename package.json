@@ -1,0 +1,38 @@
+{
+  "name": "chezz",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "db:test:up": "docker compose -f deploy/compose.test.yml up -d --wait",
+    "check": "tsc -b && eslint . && stylelint \"**/*.css\" && depcruise apps packages --config .dependency-cruiser.cjs && bash scripts/check-architecture.sh && bash scripts/check-api-doc.sh",
+    "test:unit": "vitest run --project unit --project web",
+    "test:int": "vitest run --project int",
+    "test:contract": "vitest run --project contract",
+    "test:affected": "vitest run --changed origin/main",
+    "test": "vitest run",
+    "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
+    "seed": "node apps/server/scripts/seed.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^24.19.2",
+    "@vitest/eslint-plugin": "^1.6.28",
+    "dependency-cruiser": "^18.7.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-playwright": "^2.12.2",
+    "eslint-plugin-react": "^7.37.5",
+    "stylelint": "^17.16.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.1.0"
+  }
+}

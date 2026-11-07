@@ -1,0 +1,168 @@
+/* Токены DESIGN §3–§7.1, U41. --base-* — только здесь (DESIGN §1, §17). */
+:root {
+  --base-gray-0: #ffffff;
+  --base-gray-50: #f6f7f8;
+  --base-gray-100: #eceef0;
+  --base-gray-200: #d9dde1;
+  --base-gray-300: #b8bfc6;
+  --base-gray-500: #6b7480;
+  --base-gray-600: #525a64;
+  --base-gray-700: #3a4048;
+  --base-gray-800: #262a30;
+  --base-gray-900: #17191d;
+  --base-gray-950: #0f1114;
+  --base-blue-300: #8cbaf5;
+  --base-blue-400: #5b9cf0;
+  --base-blue-600: #1f63c6;
+  --base-blue-700: #184f9e;
+  --base-red-400: #f17a7e;
+  --base-red-600: #c62828;
+  --base-green-400: #5cc35c;
+  --base-green-600: #2e7d32;
+  --base-amber-400: #f2b84b;
+  --base-amber-700: #8a5300;
+  --base-orange-300: #f0a35e;
+  --base-orange-700: #b85c00;
+  --base-space-unit: 4px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-full: 999px;
+  --font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", Menlo, monospace;
+  --font-size-s: 0.875rem;
+  --font-size-m: 1rem;
+  --font-size-l: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-clock: 2rem;
+  --font-weight-regular: 400;
+  --font-weight-strong: 600;
+  --font-line-height: 1.4;
+  --z-header: 10;
+  --z-dialog: 100;
+  --z-toast: 200;
+  --border-width: 1px;
+  --focus-width: 2px;
+  --layout-container-max: 1200px;
+  --layout-board-max: 640px;
+  --layout-side-panel: 320px;
+  --layout-header-height: 48px;
+  --layout-clock-height: 48px;
+  --layout-touch-target: 44px;
+  --duration-fast: 120ms;
+  --duration-move: 200ms;
+
+  --board-last-move: rgba(155, 199, 0, 0.41);
+  --board-check: radial-gradient(rgba(255, 0, 0, 1) 0%, rgba(231, 0, 0, 1) 25%, rgba(169, 0, 0, 0) 89%);
+  --board-dest: rgba(20, 85, 30, 0.5);
+  --board-selected: rgba(20, 85, 30, 0.5);
+  --board-light: #f0d9b5;
+  --board-dark: #b58863;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --font-size-clock: 2.5rem;
+  }
+}
+
+/* Светлая тема (по умолчанию) */
+:root,
+[data-theme="light"] {
+  --color-bg: var(--base-gray-50);
+  --color-surface: var(--base-gray-0);
+  --color-surface-raised: var(--base-gray-0);
+  --shadow-m: 0 1px 3px rgb(0 0 0 / 0.12), 0 4px 12px rgb(0 0 0 / 0.08);
+  --color-border: var(--base-gray-200);
+  --color-border-strong: var(--base-gray-500);
+  --color-text: var(--base-gray-900);
+  --color-text-muted: var(--base-gray-600);
+  --color-accent: var(--base-blue-600);
+  --color-accent-hover: var(--base-blue-700);
+  --color-accent-on: var(--base-gray-0);
+  --color-danger: var(--base-red-600);
+  --color-success: var(--base-green-600);
+  --color-warning: var(--base-amber-700);
+  --color-caution: var(--base-orange-700);
+  --color-focus: var(--base-blue-600);
+  --color-danger-bg: #fdecec;
+  --color-success-bg: #e8f5e9;
+  --color-warning-bg: #fff4e0;
+  --color-overlay: rgb(0 0 0 / 0.4);
+}
+
+[data-theme="dark"] {
+  --color-bg: var(--base-gray-950);
+  --color-surface: var(--base-gray-900);
+  --color-surface-raised: var(--base-gray-800);
+  --shadow-m: none;
+  --color-border: var(--base-gray-700);
+  --color-border-strong: var(--base-gray-500);
+  --color-text: var(--base-gray-100);
+  --color-text-muted: var(--base-gray-300);
+  --color-accent: var(--base-blue-400);
+  --color-accent-hover: var(--base-blue-300);
+  --color-accent-on: var(--base-gray-950);
+  --color-danger: var(--base-red-400);
+  --color-success: var(--base-green-400);
+  --color-warning: var(--base-amber-400);
+  --color-caution: var(--base-orange-300);
+  --color-focus: var(--base-blue-400);
+  --color-danger-bg: #3a1d1f;
+  --color-success-bg: #1a3320;
+  --color-warning-bg: #3a2e14;
+  --color-overlay: rgb(0 0 0 / 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg: var(--base-gray-950);
+    --color-surface: var(--base-gray-900);
+    --color-surface-raised: var(--base-gray-800);
+    --shadow-m: none;
+    --color-border: var(--base-gray-700);
+    --color-border-strong: var(--base-gray-500);
+    --color-text: var(--base-gray-100);
+    --color-text-muted: var(--base-gray-300);
+    --color-accent: var(--base-blue-400);
+    --color-accent-hover: var(--base-blue-300);
+    --color-accent-on: var(--base-gray-950);
+    --color-danger: var(--base-red-400);
+    --color-success: var(--base-green-400);
+    --color-warning: var(--base-amber-400);
+    --color-caution: var(--base-orange-300);
+    --color-focus: var(--base-blue-400);
+    --color-danger-bg: #3a1d1f;
+    --color-success-bg: #1a3320;
+    --color-warning-bg: #3a2e14;
+    --color-overlay: rgb(0 0 0 / 0.6);
+  }
+}
+
+/* Компонентные токены, DESIGN §7.1 */
+:root {
+  --button-primary-bg: var(--color-accent);
+  --button-primary-bg-hover: var(--color-accent-hover);
+  --button-primary-text: var(--color-accent-on);
+  --button-secondary-bg: var(--color-surface);
+  --button-secondary-border: var(--color-border-strong);
+  --button-secondary-text: var(--color-text);
+  --button-danger-bg: var(--color-danger);
+  --button-danger-text: var(--color-accent-on);
+  --button-ghost-text: var(--color-accent);
+  --clock-bg: var(--color-surface);
+  --clock-text: var(--color-text);
+  --clock-bg-active: var(--color-success-bg);
+  --clock-bg-low: var(--color-danger-bg);
+  --judgement-inaccuracy: var(--color-warning);
+  --judgement-mistake: var(--color-caution);
+  --judgement-blunder: var(--color-danger);
+}

@@ -126,3 +126,11 @@
 | 94 | profile-builder | opus | setup-pipeline | F8 respond r2 (новый вызов) | все приняты, В6 — Ivan; validate OK, агенты ≤1500 |
 | 95 | critic roster | opus | setup-critic | F8 r3 (последний) | 🔴1 🟠2 🟡2 — 3 раунда исчерпаны, решает Ivan |
 | 96 | profile-builder | opus | setup-pipeline | F8 правка по решениям Ivan (roster-21 а, 22 б, 25 а; В5, В6) | приняты; validate OK, агенты ≤1500 |
+
+## /roadmap (ветка docs/roadmap)
+
+| # | Агент | Модель | Зона | Шаг | Итог |
+|---|---|---|---|---|---|
+| 97 | analyst | opus | roadmap | roadmap черновик | 21 эпик, 7 тем ADR, 10 вопросов; зона OK |
+| 98 | architect | opus | architect | roadmap проверка + ADR | 10 замечаний, ADR-0005…0008, 4 вопроса; зона OK |
+| 99 | analyst | opus | roadmap | roadmap: замечания architect | v0.2, 22 эпика (E22 шлюз), 10 вопросов; зона OK |

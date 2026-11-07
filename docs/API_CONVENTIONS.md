@@ -1,9 +1,9 @@
 # F4. API-конвенции
 
-Статус: утверждён Ivan 2026-11-05, версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из DESIGN §18.2 п.6, 8 и TESTING §18.2 п.6 (решения P30–P32 в 2.5, ответ — `docs/setup/reviews/F4-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответ на ревью — `docs/setup/reviews/F4-response-r1.md`; ответы человека на F4-Q1..Q3 — P14, P15, P25, 12.2). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/adr/`.
+Статус: утверждён Ivan 2026-11-05, версия 0.6 от 2026-11-07 — сверка E01 с реализацией (E01 v0.3, утверждено Ivan 2026-11-07): раздел 16, строка «Адреса страниц — из `PAGES`» (добавлены `/leaderboard/` и кавычки `'` и `` ` ``, область — `apps/web/src` и `apps/server/src/seo`, исключены тесты); новых решений нет. Версия 0.5 от 2026-11-06 — apply E01: P34–P35, ADR-0005, ADR-0009; закрыты F4-Q5, F4-Q6 (design E01 утверждён Ivan 2026-11-06). Версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из DESIGN §18.2 п.6, 8 и TESTING §18.2 п.6 (решения P30–P32 в 2.5, ответ — `docs/setup/reviews/F4-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответ на ревью — `docs/setup/reviews/F4-response-r1.md`; ответы человека на F4-Q1..Q3 — P14, P15, P25, 12.2). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/adr/`.
 Утверждает: Ivan (BUSINESS D9).
 
-Как читать: агент открывает только нужный раздел. 1 — правила, 2 — решения (2.1 транспорт и ошибки, 2.2 пагинация, версии и каталог REST, 2.3 realtime, 2.4 решения ревью r1, 2.5 решения reopen 1R), 3 — транспорт и адреса, 4 — формат JSON и общие объекты (4.1 правила, 4.2 игроки и партии, 4.3 аккаунт и состояние партии), 5 — ошибки, 6 — пагинация, 7 — версии, 8 — WebSocket: подключение, конверт, подписки, 9 — WebSocket: партия, 10 — переподключение и закрытие, 11 — межмодульное взаимодействие, 12 — каталог REST (12.1–12.6), 13 — каталог WebSocket, 14 — маршруты SPA, 15 — как добавить маршрут или сообщение, 16 — проверки, 17 — открытые вопросы и правки для reopen. Номера: решения `P#`, вопросы `F4-Qn`; ссылки — `GLOSSARY G#`, `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`.
+Как читать: агент открывает только нужный раздел. 1 — правила, 2 — решения (2.1 транспорт и ошибки, 2.2 пагинация, версии и каталог REST, 2.3 realtime, 2.4 решения ревью r1, 2.5 решения reopen 1R, 2.6 решения фич), 3 — транспорт и адреса, 4 — формат JSON и общие объекты (4.1 правила, 4.2 игроки и партии, 4.3 аккаунт и состояние партии), 5 — ошибки, 6 — пагинация, 7 — версии, 8 — WebSocket: подключение, конверт, подписки, 9 — WebSocket: партия, 10 — переподключение и закрытие, 11 — межмодульное взаимодействие, 12 — каталог REST (12.1–12.6), 13 — каталог WebSocket, 14 — маршруты SPA, 15 — как добавить маршрут или сообщение, 16 — проверки, 17 — открытые вопросы и правки для reopen. Номера: решения `P#`, вопросы `F4-Qn`; ссылки — `GLOSSARY G#`, `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`.
 
 - Где F3 уточняет F2 (список SECURITY F3-Q3), этот документ следует F3.
 - Источник правды для чисел и форм — разделы 3–16; в таблице решений они повторены справочно. Расхождение — ошибка документа, верен раздел.
@@ -88,6 +88,13 @@
 | P32 | Проверка «Маршруты = `REST_ROUTES`» — интеграционный тест `apps/server/src/platform/routes.int.test.ts` (developer); «Нет CORS» — отдельный `apps/server/src/platform/cors.int.test.ts` (16) | ревью (reopen: TESTING §18.2 п.6; TESTING §11) | contract-тест — в F6 «contract» уровень tester, а проверка нужна в задаче скелета |
 | P33 | Отказ `createGame` при принятии вызова отображается на существующие коды: `player_busy`, `opponent_busy`, `challenge_cancelled` (создатель удалил аккаунт), `unauthenticated` (принимающий удалил аккаунт, в том числе если удалили оба); нового кода нет (12.3; ARCHITECTURE A28, §9.1 п.1) | ревью (reopen r1: agentability-1, -2, consistency-4; r2: agentability-8); по умолчанию | Новый код `opponent_unavailable` (409) — ещё строка каталога и перевод `error.*` ради гонки, где вызов уже `cancelled`, и `getChallenge` покажет тот же статус |
 
+### 2.6. Решения фич
+
+| № | Решение | Источник | Альтернатива и почему не она |
+|---|---|---|---|
+| P34 | Каталог в коде растёт по эпикам: схемы и `REST_ROUTES` — только реализованные операции; остальные операции и `type` каталога — имена в `PENDING_CATALOG` (`pending.ts`); `ErrorCode` полный всегда. `check-api-doc.sh` сверяет «документ = реализовано ⊔ запланировано» (16) | E01 design (requirements E01, вопрос 2); ADR-0009 | Весь каталог в `REST_ROUTES` сразу — `routes.int` красный до последнего эпика, схемы партии пишутся до её проектирования; сверять только реализованное — документ и код расходятся незаметно |
+| P35 | Ошибки разбора тела: > 16 КБ — `413 payload_too_large`; не `application/json` (кроме Feedback) — `400 validation_failed` с `rule: "content_type"`; битый JSON — `400 validation_failed` с `rule: "json"`; `details.issues[].rule` — `max`, `min`, `unknown_key`, `type`, `enum`, `format`, `invalid` (3, 5.1) | E01 design (requirements E01, вопрос 3) | `415` для любого типа тела — второй смысл кода, который сейчас значит только «скриншот не того формата» |
+
 ## 3. Транспорт и адреса
 
 | Что | Адрес | Формат |
@@ -101,6 +108,7 @@
 - Домен — `example.com` до ARCHITECTURE F2-Q5.
 - MUST: `X-Protocol-Version` на каждом запросе SPA к `/api` (раздел 7).
 - MUST: POST без тела допустим (`accept`, `cancel`, `logout`); с телом — только `application/json`, кроме Feedback. `Origin` — на всех POST/PATCH (SECURITY §6).
+- Тело > 16 КБ — `413 payload_too_large`; тело не `application/json` (кроме Feedback) — `400 validation_failed`, `details.issues: [{"path": "", "rule": "content_type"}]`; битый JSON — то же с `rule: "json"` (P35).
 - MUST NOT (sec-1): CORS. SPA и API — один origin; локально — прокси Vite (`server.proxy` для `/api`, `/auth`, `/ws`) на `app`. Ответ на запрос с чужим `Origin` не содержит `Access-Control-Allow-Origin` (тест, раздел 16).
 - Ответы `/api` — `Cache-Control: no-store`.
 - `X-Request-Id`: id генерирует только сервер (`crypto.randomUUID()`, Fastify `genReqId`, `requestIdHeader: false`); входящий заголовок игнорируется. То же значение — в теле ошибки и в логе (SECURITY §15).
@@ -159,7 +167,7 @@ REST: `{"error": {"code": "challenge_expired", "message": "Challenge expired", "
 WebSocket: `{"type": "error", "ref": "m42", "code": "not_your_turn", "game_id": "9a1c…", "details": null}` (`ref`, `game_id` — `null`, если нет).
 
 - Интерфейс показывает перевод `error.<code>` (GLOSSARY §12), не `message`. `message` — короткий английский текст без данных пользователя.
-- `details` — у `validation_failed`: `{"issues": [{"path": "time_increment", "rule": "max"}]}` без входных значений (SECURITY §15); у `rate_limited` — `{"retry_after_ms": 4000}`; у остальных — `null`.
+- `details` — у `validation_failed`: `{"issues": [{"path": "time_increment", "rule": "max"}]}` без входных значений (SECURITY §15); у `rate_limited` — `{"retry_after_ms": 4000}`; у остальных — `null`. Значения `rule`: `max`, `min`, `unknown_key` (путь — сам лишний ключ), `type`, `enum`, `format`, `content_type`, `json`, `invalid` (прочее) (P35).
 - `internal` — без подробностей; причина — в лог и Sentry с тем же `request_id`.
 - Сервис бросает `AppError(code)` из `platform`; `api.ts` / `realtime` ставит статус по 5.2. Неизвестное исключение → `internal`.
 - Общие коды любого маршрута: `validation_failed`, `unauthenticated`, `onboarding_required`, `origin_forbidden`, `client_outdated`, `rate_limited`, `internal`. Особые коды маршрута — колонка «Ошибки» каталога 12.
@@ -505,20 +513,21 @@ WebSocket: `{"type": "error", "ref": "m42", "code": "not_your_turn", "game_id": 
 | `errors.ts` | `ErrorCode` — `z.enum` всех кодов 5.2 |
 | `rest/<область>.ts` | схемы операций: `me`, `profiles`, `challenges`, `games`, `leaderboard`, `feedback`, `analytics`, `health` |
 | `rest/routes.ts` | `REST_ROUTES`: операция → `{method, path, who, params?, query?, body?, response, status, errors}` |
+| `pending.ts` | `PENDING_CATALOG` — операции раздела 12 и `type` разделов 9.1, 9.3, 13, которые есть в документе, но ещё не реализованы (P34, ADR-0009) |
 | `ws/client.ts`, `ws/server.ts` | `ClientMessage`, `ServerMessage` — `discriminatedUnion` сообщений раздела 13 |
 | `pages.ts` | `PAGES` — функции адресов раздела 14 (`PAGES.game(id)` → `/game/<id>`) |
 | `snapshot/protocol.json` | JSON Schema всех схем (`z.toJSONSchema`), раздел 16 |
 
-Имена: схема и тип называются одинаково (`export const Game = z.object(…)`; `export type Game = z.infer<typeof Game>`). REST — `<Операция в PascalCase><Часть>`: `CreateChallengeBody`, `CreateChallengeResponse`, `ListProfileGamesQuery`, `GetProfileParams`. WebSocket — `type` в PascalCase + `Message`: `game.move` → `GameMoveMessage`, `game.moved` → `GameMovedMessage`. `Game` в протоколе — проекция API; строка БД — `GamesTable` (тип Kysely); доменный объект — по ARCHITECTURE F2-Q12.
+Имена: схема и тип называются одинаково (`export const Game = z.object(…)`; `export type Game = z.infer<typeof Game>`). REST — `<Операция в PascalCase><Часть>`: `CreateChallengeBody`, `CreateChallengeResponse`, `ListProfileGamesQuery`, `GetProfileParams`. WebSocket — `type` в PascalCase + `Message`: `game.move` → `GameMoveMessage`, `game.moved` → `GameMovedMessage`. `Game` в протоколе — проекция API; строка БД — `GamesTable` (тип Kysely); доменный объект — по роли (ARCHITECTURE A30, ADR-0005 п.6).
 
 Добавить REST-маршрут (в одной задаче):
 1. Строка в каталог раздела 12 этого документа (операция, путь, кто, вход, ответ, ошибки).
 2. Схемы в `rest/<область>.ts`; общие объекты — только из `common.ts`.
-3. Запись в `REST_ROUTES`; новый код — в `errors.ts` и 5.2.
-4. Обработчик — в `apps/server/src/<модуль>/api.ts` через `registerRoute(app, REST_ROUTES.<операция>, handler)` из `platform`: он проверяет «Кто», `Origin`, схемы, переводит `AppError` в статус. Клиент — `api.call("<операция>", …)` из `apps/web/src/shared/api`.
+3. Запись в `REST_ROUTES` и удаление операции из `PENDING_CATALOG`; новый код — в `errors.ts` и 5.2.
+4. Обработчик — в `apps/server/src/<модуль>/api.ts`, функция `registerXApi(app, svc)`, через `registerRoute(app, REST_ROUTES.<операция>, handler, opts?)` из `platform`: он проверяет `Origin`, версию, «Кто», схемы и переводит `AppError` в статус; `opts` — особый лимит (Feedback), `checkProtocolVersion: false`. `registerXApi` вызывает `app.ts`. Клиент — `api.call("<операция>", …)` из `apps/web/src/shared/api`.
 5. Тесты: обработчик (права из «Кто», особые ошибки); проверки раздела 16 зелёные; `snapshot/protocol.json` обновлён, при несовместимом изменении — `PROTOCOL_VERSION` + 1 (раздел 7).
 
-Добавить сообщение WebSocket: строка в раздел 13 (и 9.1/9.3 для партии) → схема в `ws/client.ts` или `ws/server.ts` → обработчик команды в `api.ts` модуля в объекте `wsHandlers` (регистрирует `realtime`) → шаг 5.
+Добавить сообщение WebSocket: строка в раздел 13 (и 9.1/9.3 для партии) → схема в `ws/client.ts` или `ws/server.ts`, удаление `type` из `PENDING_CATALOG` → обработчик команды в `xWsHandlers(svc): WsHandlers` в `api.ts` модуля; `app.ts` передаёт его в `realtime.registerHandlers` (ADR-0005 п.8) → шаг 5.
 
 ## 16. Проверки
 
@@ -527,12 +536,12 @@ WebSocket: `{"type": "error", "ref": "m42", "code": "not_your_turn", "game_id": 
 | Правило | Проверка |
 |---|---|
 | Маршруты Fastify = `REST_ROUTES`; нет `DELETE`, нет `/api/v1` | интеграционный тест `apps/server/src/platform/routes.int.test.ts` (developer, TESTING §11): список маршрутов из хука `onRoute` равен записям `REST_ROUTES` (кроме `/auth/*`, страниц, статики) (P32) |
-| Каталог 12, коды 5.2, типы 13 = код | `scripts/check-api-doc.sh`: выписывает из разделов 5.2, 12, 13 этого файла коды, операции и `type` и сравнивает с `npm run -w packages/protocol dump` (`ErrorCode`, `REST_ROUTES`, `ClientMessage`, `ServerMessage`) |
+| Каталог 12, коды 5.2, типы 9.1, 9.3, 13 = код | `scripts/check-api-doc.sh`: выписывает из разделов 5.2, 9.1, 9.3, 12, 13 коды, операции (с методом и путём) и `type` и сравнивает с `npm run -w packages/protocol dump`: коды = `ErrorCode`; операции и `type` документа = реализованные (`REST_ROUTES`, `ClientMessage`, `ServerMessage`) ⊔ `PENDING_CATALOG` — каждое имя ровно в одном месте, лишних нет; у реализованных совпадают метод и путь. Строки 13 со ссылкой на 9.1/9.3 (`game.*`) раскрываются по этим разделам (P34) |
 | Входящие схемы строгие; ключи `snake_case`; нет `user_id`, `creator_id`, `white_id`, `black_id` во входящих | тест `packages/protocol`: обход всех входящих схем — объект с лишним полем отклоняется, ключи по `^[a-z][a-z0-9_]*$`, запрещённых ключей нет |
 | Нет `fen`, `pgn` в `Game` | тот же тест по `Game` |
 | Смена протокола заметна | тест сравнивает `z.toJSONSchema` с `snapshot/protocol.json`; изменение снимка — в diff PR, ревью сверяет с разделом 7 |
 | Нет CORS | интеграционный тест `apps/server/src/platform/cors.int.test.ts` (TESTING §11, P32): ответ на запрос с `Origin: https://evil.example` без `Access-Control-Allow-Origin`; `@fastify/cors` нет в зависимостях |
-| Адреса страниц — из `PAGES` | тест `pages.ts` на каждую строку раздела 14; в `apps/web` и `seo` нет строковых литералов `"/game/`, `"/player/`, `"/challenge/` вне `pages.ts` (`scripts/check-architecture.sh`) |
+| Адреса страниц — из `PAGES` | тест `pages.ts` на каждую строку раздела 14; в `apps/web/src` и `apps/server/src/seo` вне `pages.ts` и тестов (`*.test.ts`, `*.test.tsx`) нет литерала, начинающегося с `/game/`, `/player/`, `/challenge/`, `/leaderboard/` (в `"`, `'` или `` ` ``) (`scripts/check-architecture.sh`) |
 | ПДн не в событиях | ревью PR по 11; поля нагрузки событий — только `*_id`, перечисления, числа |
 
 ## 17. Открытые вопросы
@@ -542,12 +551,11 @@ WebSocket: `{"type": "error", "ref": "m42", "code": "not_your_turn", "game_id": 
 | № | Вопрос | Владелец |
 |---|---|---|
 | F4-Q8 | Тема по умолчанию для нового User (предложение DESIGN §18.2 п.7): (1) `light`, как сейчас — проще, но новый игрок с тёмной системой после входа получает светлую тему, хотя гостем видел тёмную (U8); (2) добавить значение `system` в `theme` (`"light" | "dark" | "system"`) и сделать его значением по умолчанию — тема следует системе до явного выбора. До решения — `light` (4.3) | Ivan, до первой фичи `settings` |
-| F4-Q5 | Ревью r2, agentability-10: инструменты §15–§16 (`registerRoute`, `api.call`, `wsHandlers`, `scripts/check-api-doc.sh`, `npm run -w packages/protocol dump`, тест `onRoute`, `snapshot/protocol.json`) пока не существуют. Создать их задачей скелета и указать сигнатуры; до этого шаги 4–5 §15 выполняются вручную по описанию | разработчик (первая фича области: скелет репозитория, вместе с ARCHITECTURE F2-Q12) |
-| F4-Q6 | Ревью r2, consistency-10: `registerRoute` в `platform` проверяет «Кто», а Session знает только `auth` (ARCHITECTURE §7.1, F2-Q9). `realtime`, регистрируя `wsHandlers` из чужих `api.ts`, нарушает правило импортов (F2-Q10). Решить подключение: например, резолвер Session передаётся параметром из `main.ts`, обработчики регистрируются через `realtime.registerHandlers(…)` из `main.ts`. Итог — правка ARCHITECTURE при reopen | разработчик (первая фича области: скелет репозитория / `auth`, вместе с F2-Q9, F2-Q10, F2-Q12) |
 | F4-Q7 | Ревью r2, consistency-11: повторная отмена вызова в `cancelChallenge` — ошибка `challenge_cancelled` или идемпотентный `200 Challenge`. Решение записать в 12.3 | разработчик (первая фича области `challenges`) |
 
 Закрыты решением человека (Ivan, утверждение F4, 2026-11-04): F4-Q1 → P14, P25 (`time_base` ≥ 30 с, `rating_range` 50–300); F4-Q2 → P15, 12.4 (отменённые показываются; фильтр «все / победы / поражения»); F4-Q3 → 12.2 (404 с `noindex`, ссылок нет).
 Закрыт в reopen 1R (2026-11-05): F4-Q4 → P30 (значения F5 U9, U10).
+Закрыты в apply E01: F4-Q5 → сигнатуры скелета (`design.md` E01, «Сигнатуры скелета»; код `apps/server/src/platform/`), 15; F4-Q6 → ADR-0005 п.7–8 (`Caller`, `CallerResolver`, `realtime.registerHandlers` из `app.ts`).
 
 ### 17.2. Правки утверждённых документов (для reopen)
 

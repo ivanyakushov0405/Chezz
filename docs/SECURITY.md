@@ -1,6 +1,6 @@
 # F3. Безопасность и данные
 
-Статус: утверждён Ivan 2026-11-05, версия 0.4 от 2026-11-05. v0.3 утверждена ранее; v0.4 — правки из утверждённых F4–F7 (раздел 3.6, ответы — `docs/setup/reviews/F3-reopen-response-r1.md`, `docs/setup/reviews/reopen-response-r3.md`). Ответы ревью — `docs/setup/reviews/F3-response-r1.md`, `docs/setup/reviews/F3-response-r2.md`. Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/adr/`.
+Статус: утверждён Ivan 2026-11-05, версия 0.5 от 2026-11-07. v0.5 — сверка E01 с реализацией (E01 v0.3, утверждено Ivan 2026-11-07): раздел 9, ключ гостя (IPv6 — подсеть /64) и общий счётчик ключа; новых решений нет. v0.3 утверждена ранее; v0.4 — правки из утверждённых F4–F7 (раздел 3.6, ответы — `docs/setup/reviews/F3-reopen-response-r1.md`, `docs/setup/reviews/reopen-response-r3.md`). Ответы ревью — `docs/setup/reviews/F3-response-r1.md`, `docs/setup/reviews/F3-response-r2.md`. Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/adr/`.
 Утверждает: Ivan (BUSINESS.md, допущение D9).
 
 Как читать: агент открывает только нужный раздел. 1 — правила, 2 — угрозы, 3 — решения (3.1–3.6), 4 — вход через Google (4.1 — подтверждение удаления аккаунта), 5 — Session и cookie, 6 — CSRF и заголовки, 7 — права, 8 — целостность партии, 9 — лимиты, 10 — вывод данных пользователя (XSS), 11 — Feedback и скриншоты, 12 — персональные данные, 13 — удаление аккаунта, 14 — сроки хранения, 15 — логи, Sentry, аналитика, 16 — доступ человека к проду, 17 — секреты, 18 — зависимости, 19 — чего не делаем, 20 — открытые вопросы. Номера: решения `S#`, вопросы `F3-Qn`; ссылки на F2 — `ARCHITECTURE A#` / `§N`, на F1 — `GLOSSARY G#` / `Qn`.
@@ -221,7 +221,7 @@ CSRF (S7, T5):
 
 ## 9. Лимиты и размеры
 
-Значения по умолчанию, основаны на допущении BUSINESS D2 (≤ 100 сообщений WebSocket/с и ≤ 20 REST/с на весь сервис). Счётчики — в памяти `app` (S11, ARCHITECTURE A8, A21). Кто регистрирует лимит по User — ARCHITECTURE F2-Q9.
+Значения по умолчанию, основаны на допущении BUSINESS D2 (≤ 100 сообщений WebSocket/с и ≤ 20 REST/с на весь сервис). Счётчики — в памяти `app` (S11, ARCHITECTURE A8, A21). Кто регистрирует лимит и как считается ключ — ADR-0006: `platform`, `keyGenerator` по `request.caller` (`user:<user_id>` у Session, иначе `ip:<ip>`; IPv6 — подсеть /64, IPv4-mapped — как IPv4). Счётчик ключа общий для всех строк «REST API» таблицы ниже; Feedback — свой счётчик.
 
 Базовый набор (S11, ревью r1 prop-5):
 

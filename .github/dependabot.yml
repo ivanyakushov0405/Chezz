@@ -1,0 +1,17 @@
+# Dependabot (OPERATIONS §16.1 п.6, §8): обновления npm, actions (SHA) и базовых образов раз в неделю.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /deploy
+    schedule:
+      interval: weekly

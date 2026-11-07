@@ -1,0 +1,169 @@
+# CI: TESTING §12, OPERATIONS §8. Секретов нет (OPERATIONS §1). Файл коммитит и пушит Ivan (SECURITY S24, OPERATIONS §16.2).
+# Фильтров paths/paths-ignore нет: обязательные проверки check и e2e всегда получают статус (TESTING V19).
+# Сторонние actions — по полному SHA с версией в комментарии; обновляет Dependabot (OPERATIONS §8).
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Тестовая БД — services: postgres:18 на 54329 (TESTING §7.1); пароль не секрет.
+  TEST_DATABASE_URL: postgres://chezz:chezz@127.0.0.1:54329/postgres
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: chezz
+          POSTGRES_PASSWORD: chezz
+        ports:
+          - 127.0.0.1:54329:5432
+        options: >-
+          --health-cmd "pg_isready -U chezz -d postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # gitleaks по диапазону base..HEAD
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run check
+
+      - name: check-workflows
+        run: bash scripts/check-workflows.sh
+
+      # SECURITY S27: находка — job красный. База: PR — base.sha, push — before (OPERATIONS §8).
+      # Образ закреплён digest (Docker Hub, v8.30.1); репозиторий монтируется только для чтения.
+      - name: gitleaks
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITLEAKS_IMAGE: zricethezav/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f # v8.30.1
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then base="$PR_BASE_SHA"; else base="$PUSH_BEFORE_SHA"; fi
+          if ! printf '%s' "$base" | grep -qE '^[0-9a-f]{40}$' || [ "$base" = "0000000000000000000000000000000000000000" ] \
+            || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            echo "gitleaks: base not available, scanning full history"
+            range="HEAD"
+          else
+            range="${base}..HEAD"
+          fi
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo:ro" "$GITLEAKS_IMAGE" \
+            git /repo --log-opts="$range" --redact --no-banner --exit-code 1
+
+      - name: npm audit (warning only)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - run: npm run test:unit
+
+      - run: npm run test:int
+
+      - run: npm run test:contract
+
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: chezz
+          POSTGRES_PASSWORD: chezz
+        ports:
+          - 127.0.0.1:54329:5432
+        options: >-
+          --health-cmd "pg_isready -U chezz -d postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # нужен origin/main для проверки путей
+          persist-credentials: false
+
+      # TESTING §12, V19: все изменённые пути в docs/** → остальные шаги пропущены, job зелёный.
+      # Пустой список (push в main) → e2e идёт.
+      - name: changed paths
+        id: paths
+        run: |
+          changed="$(git diff --no-renames --name-only origin/main...HEAD)"
+          printf '%s\n' "$changed"
+          if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qvE '^docs/'; then
+            echo "only docs/** changed: e2e skipped"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.paths.outputs.run == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - if: steps.paths.outputs.run == 'true'
+        run: npm ci
+
+      - name: playwright version
+        id: pw
+        if: steps.paths.outputs.run == 'true'
+        run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: cache playwright browsers
+        if: steps.paths.outputs.run == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}-chromium
+
+      # Firefox и webkit — по требованию, не в обязательном e2e (TESTING §12).
+      - if: steps.paths.outputs.run == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - if: steps.paths.outputs.run == 'true'
+        run: npm run build -w @chezz/web
+
+      - if: steps.paths.outputs.run == 'true'
+        run: bash scripts/check-bundle.sh
+
+      - if: steps.paths.outputs.run == 'true'
+        run: npm run test:e2e -- --project=desktop --project=mobile-360
+
+      # Только скриншоты экранов; trace, video, screenshot при падении выключены (TESTING §9).
+      - if: always() && steps.paths.outputs.run == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: screens
+          path: tests/e2e/screens/**
+          if-no-files-found: warn
+          retention-days: 14

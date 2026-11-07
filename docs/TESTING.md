@@ -1,6 +1,6 @@
 # F6. Стратегия тестирования и Definition of Done
 
-Статус: утверждён Ivan 2026-11-05, версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из OPERATIONS §23 п.10–11 и сверка 18.2 п.8 с OPERATIONS (решения V20–V22 в 3.3, ответ — `docs/setup/reviews/F6-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответы на ревью и решения человека — `docs/setup/reviews/F6-response-r1.md`, `docs/setup/reviews/F6-response-r2.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/OPERATIONS.md` v0.5 (утверждён 2026-11-05).
+Статус: утверждён Ivan 2026-11-05, версия 0.5 от 2026-11-07: apply E01 (проект `web`), сверка E01 с реализацией — V1, разделы 6, 7.3, 9, 11, 12 (E01 v0.3, утверждено Ivan 2026-11-07); новых решений нет. Версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из OPERATIONS §23 п.10–11 и сверка 18.2 п.8 с OPERATIONS (решения V20–V22 в 3.3, ответ — `docs/setup/reviews/F6-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответы на ревью и решения человека — `docs/setup/reviews/F6-response-r1.md`, `docs/setup/reviews/F6-response-r2.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/OPERATIONS.md` v0.5 (утверждён 2026-11-05).
 Утверждает: Ivan (BUSINESS D9).
 
 Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры, 3 — решения (3.1 раннеры, владельцы, инфраструктура; 3.2 e2e, нагрузка, CI, приёмка; 3.3 решения reopen 1R), 4 — кто какие тесты пишет, 5 — уровни и места, 6 — команды, 7 — тестовая инфраструктура (7.1 PostgreSQL, 7.2 управляемое время, 7.3 запуск `app` и вход, 7.4 фикстуры шахмат, 7.5 векторы Glicko-2, 7.6 сид), 8 — критерии приёмки ТЗ §7 → тесты, 9 — e2e, 10 — нагрузочный тест, 11 — сводка проверок F2–F5, 12 — что в задаче и что в CI, 13 — DoD задачи, 14 — DoD фичи, 15 — падения и нестабильные тесты, 16 — чего не делаем, 17 — план роста, 18 — открытые вопросы и правки для reopen. Номера: решения `V#`, вопросы `F6-Qn`; ссылки — `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`, `DESIGN U#` / `§N`, `GLOSSARY G#`.
@@ -46,7 +46,7 @@
 
 | № | Решение | Источник | Альтернатива и почему не она |
 |---|---|---|---|
-| V1 | Один раннер — Vitest — для unit, интеграционных и contract-тестов во всех `apps/*` и `packages/*`; три проекта Vitest (раздел 6) | по умолчанию | `node:test` — без зависимостей, но нет jsdom для React, проектов и `--changed`. Jest — медленнее и сложнее с ESM + TS |
+| V1 | Один раннер — Vitest — для unit, интеграционных и contract-тестов во всех `apps/*` и `packages/*`; четыре проекта Vitest — `unit`, `web` (jsdom), `int`, `contract` (раздел 6) | по умолчанию | `node:test` — без зависимостей, но нет jsdom для React, проектов и `--changed`. Jest — медленнее и сложнее с ESM + TS |
 | V2 | Владельцы: tester — contract, acceptance, фикстуры, e2e, нагрузка; developer — unit и интеграционные своего модуля (раздел 4) | по умолчанию (роли конвейера `/feature`) | Все тесты пишет developer — проще, но тесты проверяют то, что написано, а не то, что требовалось |
 | V3 | Интеграционные и contract — реальная PostgreSQL в Docker: один контейнер, отдельная база на воркер Vitest из шаблона с миграциями (7.1) | по умолчанию; ARCHITECTURE A7, A18 | pg-mem / SQLite — нет `FOR UPDATE`, частичных индексов, jsonb, на которых держатся A25 и §9.2. Testcontainers — ещё зависимость и минуты на старт контейнера в каждом прогоне |
 | V4 | Contract-тесты поднимают `app` в процессе теста (`buildApp`, случайный порт) и ходят настоящими HTTP и WebSocket (7.3) | по умолчанию | Тест против собранного образа — медленнее и не даёт подменить время |
@@ -107,7 +107,7 @@
 
 | Уровень | Что проверяет | Где | Файлы | Владелец | Проект Vitest / инструмент |
 |---|---|---|---|---|---|
-| unit | чистая логика и компоненты без БД и сети: `domain/` (часы, окно подбора, Glicko-2), `packages/chess`, `packages/protocol`, `packages/i18n`, функции и компоненты `apps/web` (jsdom) | рядом с кодом | `*.test.ts`, `*.test.tsx` | developer | `unit` |
+| unit | чистая логика и компоненты без БД и сети: `domain/` (часы, окно подбора, Glicko-2), `packages/chess`, `packages/protocol`, `packages/i18n`, функции и компоненты `apps/web` (jsdom) | рядом с кодом | `*.test.ts`, `*.test.tsx` | developer | `unit`; `apps/web` — `web` (jsdom) |
 | интеграционный | `service` + `repo` модуля с реальной PostgreSQL: транзакции, блокировки, индексы, SQL лидеров | рядом с кодом в `apps/server/src/<модуль>/` | `*.int.test.ts` | developer | `int` |
 | contract | поведение `app` снаружи: REST (API §12), WebSocket (API §8–10, §13), права (SECURITY §7), ошибки (API §5.2), восстановление (8) | `apps/server/test/contract/<область>/` | `*.test.ts` | tester | `contract` |
 | acceptance | публичные функции из `design.md` против эталона ТЗ: векторы Glicko-2 | `apps/server/test/acceptance/` | `*.test.ts` | tester | `unit` |
@@ -130,11 +130,11 @@
 |---|---|---|
 | `npm run db:test:up` | `docker compose -f deploy/compose.test.yml up -d --wait` — PostgreSQL для тестов (7.1) | Docker запущен |
 | `npm run check` | `tsc -b` + ESLint + Stylelint + `dependency-cruiser` + `scripts/check-architecture.sh` + `scripts/check-api-doc.sh` | — |
-| `npm run test:unit` | `vitest run --project unit` | — |
+| `npm run test:unit` | `vitest run --project unit --project web` | — |
 | `npm run test:int` | `vitest run --project int` | `db:test:up` |
 | `npm run test:contract` | `vitest run --project contract` | `db:test:up` |
-| `npm run test:affected` | `vitest run --changed origin/main` — затронутое и потребители во всех трёх проектах | `db:test:up`; `git fetch origin main` |
-| `npm test` | все три проекта | `db:test:up` |
+| `npm run test:affected` | `vitest run --changed origin/main` — затронутое и потребители во всех проектах (`unit`, `web`, `int`, `contract`) | `db:test:up`; `git fetch origin main` |
+| `npm test` | все проекты (`unit`, `web`, `int`, `contract`) | `db:test:up` |
 | `npm run test:e2e` | `playwright test -c tests/e2e/playwright.config.ts`; `webServer` сам собирает `app`, применяет миграции и сид `--demo` к базе `chezz_e2e` | `db:test:up` |
 | `npm run seed -- --demo` | `node apps/server/scripts/seed.ts --demo` (7.6) в базу из `DATABASE_URL` | `db:test:up` или staging |
 | `npm run seed -- --load 150 --tokens <файл>` | Игроки и Session для нагрузки, токены — в `<файл>` (7.6) | staging |
@@ -145,7 +145,7 @@
 - `npx vitest run --project contract -t "AC-3"` — все тесты с `AC-3` в имени проекта.
 - `npx playwright test -c tests/e2e/playwright.config.ts tests/e2e/challenge-link.spec.ts --project=desktop`
 
-- Проекты Vitest — в корневом `vitest.config.ts` (`test.projects`): `unit` — `**/src/**/*.test.{ts,tsx}` без `*.int.test.ts`, `packages/*/test/**`, `apps/server/test/acceptance/**`; `int` — `apps/server/src/**/*.int.test.ts`; `contract` — `apps/server/test/contract/**`. Для `int` и `contract` — `globalSetup` из 7.1, `pool: "forks"`, не больше 2 воркеров.
+- Проекты Vitest — в корневом `vitest.config.ts` (`test.projects`): `unit` — `**/src/**/*.test.{ts,tsx}` без `*.int.test.ts`, `packages/*/test/**`, `apps/server/test/acceptance/**`; `web` — `apps/web/src/**/*.test.{ts,tsx}`, окружение jsdom (в `unit` их нет). Тест `apps/web`, которому нужен `node:fs` (чтение `tokens.css`, `favicon.svg`), — в проекте `web` с `// @vitest-environment node` в первой строке; `int` — `apps/server/src/**/*.int.test.ts`; `contract` — `apps/server/test/contract/**`. Для `int` и `contract` — `globalSetup` из 7.1, `pool: "forks"`, не больше 2 воркеров.
 - Node.js 24 LTS (раздел 2): `node file.ts` работает без сборки; версия закреплена в `.nvmrc` и `engines` корневого `package.json`.
 - Ivan работает в Windows: команды выполняются из Git Bash (там же `scripts/*.sh`), Docker — Docker Desktop. CI — `ubuntu-latest`.
 - Соответствие для профиля F8 (шаблон tester): команда прогона затронутого — `npm run test:affected`; инфраструктура — `npm run db:test:up`; пример имени теста — из раздела 1.
@@ -171,8 +171,8 @@
 
 ### 7.3. Запуск `app` в тестах и вход без Google
 
-- `apps/server/src/app.ts` экспортирует `buildApp(config, deps)`; `main.ts` только собирает зависимости и вызывает `listen`. В `deps` тест передаёт `ManualTimeSource` и базу воркера (связано с ARCHITECTURE F2-Q12).
-- `apps/server/test/support/app.ts`: `startApp()` → `{ url, wsUrl, time, close() }` на случайном порту; `close()` — без штатного завершения партий (имитация падения процесса для V16).
+- `apps/server/src/app.ts` экспортирует `buildApp(config, deps)`; `main.ts` только собирает зависимости и вызывает `listen`. В `deps` тест передаёт `ManualTimeSource` и базу воркера (ARCHITECTURE A30, ADR-0005).
+- `apps/server/test/support/app.ts`: `startApp({ config?, logDestination? })` → `{ url, wsUrl, time, database: { block(), unblock() }, close() }` на случайном порту. `database.block()` делает базу воркера недоступной без перезапуска `app` (health 503). Сигнатура — `design.md` E01, «Тестовая инфраструктура сервера». `close()` — без штатного завершения партий (имитация падения процесса для V16).
 - Вход: фабрика `createPlayer({ nickname, ratings })` вставляет User и Session и возвращает cookie `__Host-sid=<токен>` (в БД — SHA-256, SECURITY S3). Клиенты `rest(cookie)` и `ws(cookie)` ставят cookie и `Origin` своего `app`.
 - Google OIDC в тестах не вызывается. Проверки ID-токена (SECURITY §4 п.4: `iss`, `aud`, `exp`, `iat`, `nonce`) — unit-тест функции проверки утверждений токена с подготовленными утверждениями; подпись проверяет `openid-client`. `safeLocalPath` — unit-тест со всеми строками SECURITY §4. Настоящий вход — V17.
 - MUST NOT: адрес издателя OIDC, «пропустить проверку» и подобное в конфиге `app` ради тестов.
@@ -277,7 +277,7 @@
 ## 9. E2E
 
 - Playwright, конфиг `tests/e2e/playwright.config.ts` (команда — раздел 6, `-c`). PostgreSQL поднимает не Playwright: локально — `npm run db:test:up`, в CI — `services:` job `e2e` (7.1). `webServer` создаёт базу `chezz_e2e` на этом сервере, применяет миграции, выполняет сид `--demo`, собирает и запускает `app`; вход — cookie `__Host-sid` сид-игрока (на `localhost` Chromium принимает `Secure`-cookie).
-- Проекты: `desktop` (Chromium, 1280×800), `mobile-360` (Chromium, 360×740, касание). В CI — оба. `webkit` (iPhone, 390×844) и `firefox` — вручную перед этапами 5 и 6: `npm run test:e2e -- --project=webkit` (ТЗ §5 «Браузеры»). Для приёмки достаточно ручного прогона (человек, утверждение F6).
+- Проекты: `desktop` (Chromium, 1280×800), `mobile-360` (Chromium, 360×740, касание). В CI — оба. `webkit` (`devices["iPhone 13"]`, 390×844; Tab в WebKit не фокусирует ссылки — `tabsToLinks`, — поэтому достижимость по Tab проверяется в Chromium, а в webkit — только вид фокуса) и `firefox` — вручную перед этапами 5 и 6: `npm run test:e2e -- --project=webkit` (ТЗ §5 «Браузеры»). Для приёмки достаточно ручного прогона (человек, утверждение F6).
 - Два игрока — два `browser.newContext()` в одном тесте.
 - Помощник `openScreen(page, path, id)` в `tests/e2e/support/open-screen.ts` (DESIGN §17): ждёт `[data-screen="<id>"]`, проверяет непустой `data-state` и `document.documentElement.scrollWidth ≤ ширина окна`.
 - `screens.spec.ts`: экраны `lobby`, `game-live`, `game-review`, `profile`, `history`, `leaderboard`, `settings` × оба проекта × `ru` и `en`. На каждом: нет горизонтальной прокрутки; нет видимого текста вида ключа перевода (`^[a-z_]+(\.[a-z_]+)+$`); `<html lang>` = язык.
@@ -309,7 +309,7 @@
 
 Здесь — где, когда и кто пишет. Правило и детали — в источнике. Каждая строка API §16 и DESIGN §17 есть здесь своей строкой. «PR» — блокирует мерж; «ревью» — пункт чек-листа reviewer.
 
-«Пишет»: **скелет** — задача скелета репозитория (backend-разработчик зоны `platform`, вместе с F2-Q12, F4-Q5); **backend** — backend-разработчик модуля; **frontend** — frontend-разработчик; **tester**. Дальше проверку правит тот, кто меняет её правило, в той же задаче.
+«Пишет»: **скелет** — задача скелета репозитория (backend-разработчик зоны `platform`; сборка — ARCHITECTURE A30, ADR-0005; сигнатуры `platform` — `design.md` E01); **backend** — backend-разработчик модуля; **frontend** — frontend-разработчик; **tester**. Дальше проверку правит тот, кто меняет её правило, в той же задаче.
 
 | Проверка | Источник | Как запускается | Пишет | Блокирует |
 |---|---|---|---|---|
@@ -360,7 +360,7 @@
 | По требованию (workflow, запускает Ivan) | нагрузка (раздел 10); e2e `webkit`, `firefox`; smoke staging `@smoke` (F7) | — |
 
 - Обязательные статус-проверки для мержа в `main` — `check` и `e2e` (V19; решение F6, включение — F7, 18.2 п.8). SECURITY S24 требует только защиту `main` через PR и CODEOWNERS.
-- Пропуск e2e для PR, где изменены только `docs/**` (V19): workflow запускается всегда, первый шаг job `e2e` определяет изменённые пути (`git diff --name-only origin/main...HEAD`); если все в `docs/**`, остальные шаги идут с `if: false`, и job завершается **успехом**. Фильтр `paths` / `paths-ignore` на уровне workflow MUST NOT: обязательная проверка зависнет «ожидается».
+- Пропуск e2e для PR, где изменены только `docs/**` (V19): workflow запускается всегда, первый шаг job `e2e` определяет изменённые пути (`git diff --no-renames --name-only origin/main...HEAD`: при переносе файла из кода в `docs/**` выводятся оба пути, и e2e идёт); если все в `docs/**`, остальные шаги идут с `if: false`, и job завершается **успехом**. Фильтр `paths` / `paths-ignore` на уровне workflow MUST NOT: обязательная проверка зависнет «ожидается».
 - Кэш CI: npm (`actions/setup-node` `cache: npm`) и браузеры Playwright.
 - Минуты не ограничены (V18): job не урезаются ради экономии; таймауты нужны, чтобы зависший прогон не держал PR.
 - Файлы `.github/workflows/**` пишет и меняет только Ivan (SECURITY S24, §17): агент devops готовит текст, Ivan коммитит.
