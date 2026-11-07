@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 35/50
+Вызовов: 39/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -66,3 +66,10 @@ UI: главная-заглушка; макеты — новый файл Figma 
 - T-5 раунд 2 проверки (оркестратор): check OK; tester-untouched пусто; test:affected 118/118; e2e desktop+mobile-360+webkit 51/51.
 | 35 | reviewer | opus | review | T-5, итерация 2 | APPROVE; зона OK |
 - T-5 [frontend] готова, раундов: 2 (+ арбитр TEST по AC-39 webkit), вызовов: 35/50.
+| 36 | devops | opus | devops | T-6 [ci] | ci.yml (check + e2e, postgres:18 services, gitleaks по digest, actions по SHA), dependabot.yml, scripts/check-workflows.sh (EC-25: 13 нарушений → код 1); CI не запускался до push; зона: вне зоны только .claude/profile.md — правка Ivan, не devops |
+- T-6 проверки (оркестратор): check OK; check-workflows OK; tester-untouched пусто.
+| 37 | reviewer | opus | review | T-6, итерация 1 | CHANGES_REQUESTED: git diff без --no-renames (перенос apps/→docs/ пропустит e2e, EC-24); желательно: strip_comments в check-workflows.sh обходит запрет secrets.* через « #» в кавычках; digest gitleaks вручную; зона OK |
+| 38 | devops | opus | devops | T-6, раунд 2 | ci.yml:119 git diff --no-renames (проверено на деревьях, перенос apps/→docs/ даёт оба пути); check-workflows.sh: secrets.* по исходному файлу, с комментариями; мутации 15/15; зона OK |
+- T-6 раунд 2 проверки (оркестратор): check OK; check-workflows OK; tester-untouched пусто.
+| 39 | reviewer | opus | review | T-6, итерация 2 | APPROVE; желательное (digest gitleaks вручную, docker/docker-compose в dependabot → architect-apply); зона OK |
+- T-6 [ci] готова, раундов: 2, вызовов: 39/50. ci.yml коммитит и пушит Ivan; CODEOWNERS — Ivan. Jira: KAN-31.
