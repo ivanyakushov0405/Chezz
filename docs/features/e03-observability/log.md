@@ -52,3 +52,4 @@
 | 27 | tester | sonnet | T-6 + приёмка, режим 2 | affected 320/320; e2e observability и @smoke — desktop/mobile-360/webkit зелёные; firefox — окружение; падений по делу нет; зона OK |
 - AC без номера в имени теста (по tester): AC-7 — есть («AC-7/EC-15» в metrics.test.ts, grep не поймал «/»); AC-17 — правило check-architecture + его тест; AC-30, AC-31 — check-скрипты (границы, check-api-doc/PENDING_CATALOG).
 - T-6 [e2e] готова, вызовов: 27/35.
+- 2026-11-08: Ivan — «Сразу PR»: отложенные решения 1–6 не вносятся в этой фиче, перечислены в PR как «позже».
