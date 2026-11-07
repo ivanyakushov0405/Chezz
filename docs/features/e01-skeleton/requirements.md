@@ -1,5 +1,7 @@
 # E01: Скелет репозитория
 
+История: E01 v0.3, утверждено Ivan 2026-11-07 — правки AC-10, AC-25, AC-42 по `design.md`, «Изменения документов основ (v0.3)», п.16–18.
+
 Версия 0.2 · 2026-11-05 · analyst (режим feature). Основа: ROADMAP v0.2 (строка E01, «Пояснения к нарезке»), профиль `.claude/profile.md` («Скелет репозитория (первый эпик) — 7 задач»), ADR-0005, ADR-0006, TESTING §5–§7, §9, §11–§14, API §3, §5, §7, §12.6, §14–§16, ARCHITECTURE §7, §12, §13, SECURITY §6, §9, §15, §17, §18, DESIGN §5, §8–§10, §15–§17, OPERATIONS §6.4, §8, §16.1, §17.
 
 Изменения 0.2 (ответы Ivan): ADR-0005 и ADR-0006 приняты — п.1 «Открытых вопросов» закрыт; главная-заглушка — экран `lobby` с `data-state="default"` без правки DESIGN, экрана `not-found` в E01 нет — п.4 закрыт, AC-35, AC-44, AC-45 и связанные места приведены к решению.
@@ -160,7 +162,7 @@
 - [ ] AC-7: `scripts/check-architecture.sh`: `selectFrom`/`insertInto`/`updateTable`/`deleteFrom`/`` sql` `` в `apps/server/src/` вне `repo.ts`; `Date.now`/`performance.now`/`new Date()` в `domain/`; `dropTable`/`dropColumn`/`renameColumn`/`renameTo`/`setDataType` в `migrations/`; `example.com` в `.github`, `deploy`, `scripts` → код ≠ 0. Фабрики `test/support/` и `scripts/seed.ts` под правило SQL не попадают; EC-14 выполняется. (самопроверка)
 - [ ] AC-8: Vitest: проекты `unit`, `int`, `contract` с файлами по TESTING §6; у `int` и `contract` — `globalSetup`, `pool: "forks"`, ≤ 2 воркеров; `retries` нет; EC-2 выполняется. (ревью конфига + прогон)
 - [ ] AC-9: `globalSetup` создаёт `chezz_template`, применяет миграции (их ноль — без ошибки), каждый воркер получает `chezz_test_<n>` из шаблона; повторный прогон не падает на существующих базах. (прогон `npm run test:int` дважды)
-- [ ] AC-10: `startApp()` возвращает `{url, wsUrl, time, close()}` на случайном порту; два `startApp()` параллельно — разные порты, `close()` одного не влияет на другой (EC-3). (int разработчика в `test/support/`)
+- [ ] AC-10: `startApp()` возвращает `{url, wsUrl, time, database, close()}` на случайном порту; два `startApp()` параллельно — разные порты, `close()` одного не влияет на другой (EC-3). (int разработчика `apps/server/src/platform/skeleton.int.test.ts`; помощник — `apps/server/test/support/app.ts`)
 - [ ] AC-11: `ManualTimeSource` ведёт себя по EC-4. (unit разработчика)
 - [ ] AC-12: пока резолвер `auth` не подключён, любой запрос, в том числе с cookie, получает `caller = {who: "guest"}` (EC-5). (int разработчика)
 - [ ] AC-13: `npm run seed -- --demo` на пустой схеме — код 0; при `APP_ENV=prod` — код ≠ 0, без записей (EC-15). (int или скрипт-тест разработчика)
@@ -179,7 +181,7 @@
 
 ### T-4 `[backend:platform]`
 - [ ] AC-24: `GET /api/health` при живой БД → `200`, тело ровно `{"status":"ok"}`, заголовок `Cache-Control: no-store`; при недоступной БД → `503 {"status":"unavailable"}`; EC-9, EC-10 выполняются. (contract, tester)
-- [ ] AC-25: функция ключа лимита: `caller.who = "guest"` → `ip:<ip>`; `"onboarding"` и `"player"` → `user:<user_id>`; два разных `user_id` с одного IP — разные ключи. (unit разработчика, ADR-0006 п.1)
+- [ ] AC-25: функция ключа лимита: `caller.who = "guest"` → `ip:<ip>` (IPv6 — подсеть /64, IPv4-mapped — как IPv4); `"onboarding"` и `"player"` → `user:<user_id>`; два разных `user_id` с одного IP — разные ключи. (unit разработчика, ADR-0006 п.1, SECURITY §9)
 - [ ] AC-26: 300 запросов гостя к `/api/health` с одного IP за минуту — все `200`; 301-й → `429`, тело `{"error":{"code":"rate_limited","message":…,"details":{"retry_after_ms":<int > 0>},"request_id":<UUID>}}`, заголовок `Retry-After`; EC-6, EC-7 выполняются. (contract, tester)
 - [ ] AC-27: у каждого маршрута `/api/*` есть настройка лимита (обход списка маршрутов). (int разработчика, ADR-0006 п.4)
 - [ ] AC-28: `routes.int.test.ts`: множество маршрутов из `onRoute` (кроме `/auth/*`, страниц, статики) равно записям `REST_ROUTES`; нет `DELETE`; нет пути с `/api/v1`. (int разработчика, API §16; «Открытые вопросы», п.2)
@@ -198,7 +200,7 @@
 - [ ] AC-39: интерактивные элементы главной (если есть, например ссылка `Logo`) достижимы клавишей Tab, фокус виден (`--focus-width`, `--color-focus`). (e2e, tester; DESIGN §14)
 - [ ] AC-40: `scripts/check-bundle.sh` после сборки: gzip чанков главной ≤ 300 КБ → код 0; искусственный чанк сверх порога → код ≠ 0. (самопроверка; ТЗ §5)
 - [ ] AC-41: в режиме разработки Vite проксирует `/api`, `/auth`, `/ws` на `app`: `GET <vite>/api/health` → ответ `app`. (ручная проверка разработчика, API §3)
-- [ ] AC-42: правило «адреса только из `PAGES`»: строковый литерал `"/game/`, `"/player/`, `"/challenge/` в `apps/web` вне `pages.ts` → `check` красный. (самопроверка; задача правила — «Открытые вопросы», п.5)
+- [ ] AC-42: правило «адреса только из `PAGES`»: литерал, начинающийся с `/game/`, `/player/`, `/challenge/`, `/leaderboard/` (в `"`, `'` или `` ` ``), в `apps/web/src` и `apps/server/src/seo` вне `pages.ts` и тестов → `check` красный. (самопроверка; задача правила — «Открытые вопросы», п.5)
 - [ ] AC-43 (шаг tester): `playwright.config.ts` — проекты `desktop` (Chromium 1280×800), `mobile-360` (Chromium 360×740, касание), `webkit` (390×844), `firefox`; `webServer` создаёт `chezz_e2e`, применяет миграции, выполняет сид `--demo`, собирает и запускает `app`; `retries: 1` только при `CI=true`; EC-23. (ревью конфига + прогон)
 - [ ] AC-44 (шаг tester): `openScreen(page, path, id)` ждёт `[data-screen="<id>"]`, проверяет непустой `data-state` и `scrollWidth ≤ ширина окна`; `@smoke`-тест вызывает `openScreen(page, "/", "lobby")` и проверяет `[data-state~="default"]`. (e2e)
 - [ ] AC-45 (шаг tester): `screens.spec.ts`: экран `lobby` (`/`, состояние `default`) × `desktop`, `mobile-360` × `ru`, `en` — открывается через `openScreen(page, "/", "lobby")`, нет горизонтальной прокрутки, нет видимого текста по `^[a-z_]+(\.[a-z_]+)+$`, `<html lang>` = язык; скриншоты без cookie сохраняются в `tests/e2e/screens/`. Других экранов (в том числе `not-found`) в E01 нет. (e2e)
