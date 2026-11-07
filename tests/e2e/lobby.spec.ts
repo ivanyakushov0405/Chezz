@@ -68,10 +68,17 @@ test.describe("главная, RU по умолчанию", () => {
     expect(foreign).toEqual([]);
   });
 
-  test("AC-39: ссылка Logo достижима по Tab, фокус виден (--focus-width, --color-focus)", async ({ page }) => {
+  test("AC-39: ссылка Logo достижима по Tab, фокус виден (--focus-width, --color-focus)", async ({ page, browserName }) => {
     const screen = await openScreen(page, "/", "lobby");
-    await page.keyboard.press("Tab");
     const link = screen.getByRole("link", { name: "Chezz" });
+    if (browserName === "webkit") {
+      // WebKit/Safari не фокусирует ссылки по Tab (tabsToLinks), Option+Tab в Playwright WebKit на Windows не воспроизводится.
+      test.info().annotations.push({ type: "note", description: "webkit: tabsToLinks / Option+Tab; достижимость по Tab не проверяется, только стиль фокуса" });
+      await page.keyboard.press("Shift");
+      await link.focus();
+    } else {
+      await page.keyboard.press("Tab");
+    }
     await expect(link).toBeFocused();
     const outline = await link.evaluate((el) => {
       const cs = getComputedStyle(el);
