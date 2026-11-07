@@ -3,7 +3,10 @@ import { createRoot } from "react-dom/client";
 import { LobbyPage } from "./pages/lobby/LobbyPage.tsx";
 import { I18nProvider } from "./shared/i18n/I18nContext.tsx";
 import { currentLocale } from "./shared/i18n/locale.ts";
+import { initSentry } from "./shared/observability/sentry.ts";
 import "./shared/ui/global.css";
+
+initSentry();
 
 const locale = currentLocale();
 document.documentElement.lang = locale;

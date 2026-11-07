@@ -13,6 +13,12 @@ export interface AppConfig {
   /** Каталог собранного SPA; null — SPA не раздаётся. */
   webDistDir: string | null;
   logLevel: string;
+  /** Версия сборки: `release` Sentry и метка `app_info` (OPERATIONS §12.4). */
+  appVersion: string;
+  /** DSN Sentry (не секрет); null — Sentry выключен. */
+  sentryDsn: string | null;
+  /** Порт метрик (отдельный от основного); null — сервер метрик не поднимается. */
+  metrics: { host: string; port: number } | null;
 }
 
 /** То, что дополнительно нужно main.ts. */
@@ -34,6 +40,10 @@ const envSchema = z.object({
   RATE_LIMIT_IP_PER_MIN: z.coerce.number().int().positive().default(300),
   WEB_DIST_DIR: z.string().min(1).optional(),
   LOG_LEVEL: z.enum(LOG_LEVELS).default("info"),
+  APP_VERSION: z.string().regex(/^[A-Za-z0-9._-]{1,64}$/).default("dev"),
+  SENTRY_DSN: z.url({ protocol: /^https$/ }).optional(),
+  METRICS_HOST: z.string().min(1).default("127.0.0.1"),
+  METRICS_PORT: z.coerce.number().int().min(0).max(65535).default(9464),
 });
 
 /** Ошибка конфига: в тексте только имена переменных, не значения (в них может быть пароль БД). */
@@ -57,6 +67,9 @@ export function loadConfig(env: NodeJS.ProcessEnv): ProcessConfig {
   if (e.APP_ENV !== "dev" && e.APP_ORIGIN === undefined) {
     throw new ConfigError(`APP_ORIGIN is required when APP_ENV=${e.APP_ENV}`);
   }
+  if (e.APP_ENV !== "dev" && cleaned["APP_VERSION"] === undefined) {
+    throw new ConfigError(`APP_VERSION is required when APP_ENV=${e.APP_ENV}`);
+  }
   const webDistDir = path.resolve(REPO_ROOT, e.WEB_DIST_DIR ?? DEFAULT_WEB_DIST_DIR);
   return {
     appEnv: e.APP_ENV,
@@ -64,6 +77,9 @@ export function loadConfig(env: NodeJS.ProcessEnv): ProcessConfig {
     rateLimitIpPerMin: e.RATE_LIMIT_IP_PER_MIN,
     webDistDir: existsSync(webDistDir) ? webDistDir : null,
     logLevel: e.LOG_LEVEL,
+    appVersion: e.APP_VERSION,
+    sentryDsn: e.SENTRY_DSN ?? null,
+    metrics: { host: e.METRICS_HOST, port: e.METRICS_PORT },
     host: e.HOST,
     port: e.PORT,
     databaseUrl: e.DATABASE_URL,

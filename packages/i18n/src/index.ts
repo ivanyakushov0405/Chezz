@@ -13,6 +13,8 @@ export type T = (key: string, params?: TParams) => string;
 export interface CreateTOptions {
   /** `throw` — нет ключа → исключение (dev, тесты); `key` — вернуть ключ (prod). DESIGN §15. */
   onMissing: "throw" | "key";
+  /** Вызывается при `onMissing: "key"`, когда ключа нет (клиент сообщает в Sentry). */
+  onMissingKey?: (key: string) => void;
 }
 
 /** Строка по ключу; `{name}` подставляется; при `params.count` — суффикс `_one/_few/_many/_other` по Intl.PluralRules. */
@@ -30,6 +32,7 @@ export function createTFrom(messages: Messages, locale: Locale, options: CreateT
     text ??= messages[key];
     if (text === undefined) {
       if (options.onMissing === "throw") throw new Error(`i18n: missing key "${key}" (${locale})`);
+      options.onMissingKey?.(key);
       return key;
     }
     if (!params) return text;

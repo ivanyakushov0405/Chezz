@@ -1,4 +1,5 @@
 // Проверки скелета app и тестовой инфраструктуры (E01 T-2): startApp, «Кто», лог запроса, базы тестов.
+import { readdirSync } from "node:fs";
 import { Writable } from "node:stream";
 import pg from "pg";
 import { afterEach, describe, expect, it } from "vitest";
@@ -15,7 +16,7 @@ import { ManualTimeSource } from "../../test/support/time.ts";
 import { buildApp } from "../app.ts";
 import type { Database } from "../database.ts";
 import type { AppConfig } from "./config.ts";
-import { createDb } from "./db.ts";
+import { createDb, MIGRATIONS_DIR } from "./db.ts";
 import type { Caller } from "./http.ts";
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
@@ -88,6 +89,9 @@ describe("Кто (Caller)", () => {
       rateLimitIpPerMin: 300,
       webDistDir: null,
       logLevel: "silent",
+      appVersion: "test",
+      sentryDsn: null,
+      metrics: null,
     };
     const db = createDb<Database>(workerDatabaseUrl());
     const app = await buildApp(config, { db, time: new ManualTimeSource() });
@@ -156,7 +160,7 @@ describe("тестовые базы", () => {
     await client.connect();
     try {
       const { rows } = await client.query<{ n: string }>("SELECT count(*) AS n FROM kysely_migration");
-      expect(Number(rows[0]?.n)).toBe(0);
+      expect(Number(rows[0]?.n)).toBe(readdirSync(MIGRATIONS_DIR).filter((n) => n.endsWith(".ts")).length);
     } finally {
       await client.end();
     }

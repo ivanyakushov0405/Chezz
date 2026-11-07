@@ -14,6 +14,7 @@
   "dependencies": {
     "@chezz/i18n": "*",
     "@chezz/protocol": "*",
+    "@sentry/browser": "~10.78.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

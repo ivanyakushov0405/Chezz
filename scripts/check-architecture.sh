@@ -118,6 +118,12 @@ fi
 mapfile -t page_files < <({ ts_files "$WEB_SRC"; ts_files "apps/server/src/seo"; } | grep -vE '(/pages\.ts|\.test\.tsx?)$')
 report "адреса страниц — только PAGES из @chezz/protocol (API §14, §16): литерал \"/game/, /player/, /challenge/, /leaderboard/"   "$(grep_files "[\"'\`]/(game|player|challenge|leaderboard)/" "${page_files[@]}")"
 
+# --- 9. Маскировка id вызова — только maskChallengeIds из @chezz/protocol (SECURITY §15, AC-17) ---
+# Вторая реализация = регулярное выражение с экранированным слэшем перед challenge / api/challenges.
+mapfile -t mask_files < <({ ts_files "apps/server/src"; ts_files "apps/web/src"; } | grep -vE '\.test\.tsx?$')
+report "вторая маскировка id вызова: экранированный слэш перед challenge в регулярном выражении (SECURITY §15; используйте maskChallengeIds)" \
+  "$(grep_files '\\/challenge|\\/api\\/challenges' "${mask_files[@]}")"
+
 if [ "$failed" -ne 0 ]; then
   echo "check-architecture: FAILED (rules: ARCHITECTURE §5, §7.2, §7.4; ADR-0005; OPERATIONS §1)" >&2
   exit 1

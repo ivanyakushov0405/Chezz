@@ -11,7 +11,7 @@ export const ErrorResponse = z.object({
     code: ErrorCode,
     message: z.string(),
     details: z.unknown(),
-    request_id: z.string(),
+    request_id: z.uuid(),
   }),
 });
 export type ErrorResponse = z.infer<typeof ErrorResponse>;

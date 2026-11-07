@@ -9,8 +9,12 @@ import { SERVER_MESSAGE_SCHEMAS } from "./ws/server.ts";
 
 type Json = Record<string, unknown>;
 
-/** JSON Schema схемы как её видит вызывающий (вход). */
+/** JSON Schema входящей схемы — как её видит вызывающий (`params`, `query`, `body`, `ws_client`). */
 export const toJson = (schema: z.ZodType): Json => z.toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as Json;
+
+/** JSON Schema исходящей схемы — как её видит получатель (`response`, `ErrorResponse`, `ws_server`). */
+export const toOutputJson = (schema: z.ZodType): Json =>
+  z.toJSONSchema(schema, { io: "output", unrepresentable: "any" }) as Json;
 
 /** JSON Schema всех схем протокола (API §16): сравнивается с `snapshot/protocol.json`. */
 export function buildSnapshot(): Json {
@@ -21,16 +25,16 @@ export function buildSnapshot(): Json {
       const schema = def[part];
       if (schema) entry[part] = toJson(schema);
     }
-    entry["response"] = toJson(def.response);
+    entry["response"] = toOutputJson(def.response);
     rest[operation] = entry;
   }
-  const byType = (schemas: readonly z.ZodObject[]): Record<string, Json> =>
-    Object.fromEntries(schemas.map((s) => [messageType(s), toJson(s)] as const));
+  const byType = (schemas: readonly z.ZodObject[], json: (schema: z.ZodType) => Json): Record<string, Json> =>
+    Object.fromEntries(schemas.map((s) => [messageType(s), json(s)] as const));
   return {
     protocol_version: PROTOCOL_VERSION,
-    common: { ErrorCode: toJson(ErrorCode), ErrorResponse: toJson(ErrorResponse), Category: toJson(Category) },
+    common: { ErrorCode: toJson(ErrorCode), ErrorResponse: toOutputJson(ErrorResponse), Category: toJson(Category) },
     rest,
-    ws_client: byType(CLIENT_MESSAGE_SCHEMAS),
-    ws_server: byType(SERVER_MESSAGE_SCHEMAS),
+    ws_client: byType(CLIENT_MESSAGE_SCHEMAS, toJson),
+    ws_server: byType(SERVER_MESSAGE_SCHEMAS, toOutputJson),
   };
 }

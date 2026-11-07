@@ -1,5 +1,6 @@
 // Логирование app (pino, SECURITY §15): путь без строки запроса, без заголовков и тел,
-// redact cookie / authorization / set-cookie. Маскировка id вызова (maskChallengeIds) — E03.
+// redact cookie / authorization / set-cookie. id вызова в пути, message и stack маскируется maskChallengeIds (E03).
+import { maskChallengeIds } from "@chezz/protocol";
 import { LogController, type FastifyReply, type FastifyRequest } from "fastify";
 import { pino, type DestinationStream, type Logger, type LoggerOptions } from "pino";
 
@@ -23,16 +24,31 @@ type SerializableReply = { statusCode?: number };
 
 export const logSerializers = {
   // Любой объект запроса в логе — только метод и путь (без заголовков, тела, строки запроса).
-  req: (req: SerializableRequest) => ({ method: req.method, path: pathOnly(req.url ?? "") }),
+  req: (req: SerializableRequest) => ({ method: req.method, path: maskChallengeIds(pathOnly(req.url ?? "")) }),
   res: (res: SerializableReply) => ({ status: res.statusCode }),
 };
+
+/**
+ * Ошибка в логе — только type, message, stack, code (SECURITY §15): без `detail` и прочих полей pg,
+ * без cause. message и stack проходят maskChallengeIds (защита от ошибки разработчика).
+ */
+export function serializeError(err: unknown): Record<string, unknown> {
+  if (!(err instanceof Error)) return { type: typeof err, message: maskChallengeIds(String(err)) };
+  const code = (err as { code?: unknown }).code;
+  return {
+    type: err.name,
+    message: maskChallengeIds(err.message),
+    ...(typeof err.stack === "string" ? { stack: maskChallengeIds(err.stack) } : {}),
+    ...(typeof code === "string" || typeof code === "number" ? { code } : {}),
+  };
+}
 
 export function createLogger(level: string, destination?: DestinationStream): Logger {
   const options: LoggerOptions = {
     level,
     base: null,
     redact: { paths: REDACT_PATHS, censor: "[redacted]" },
-    serializers: { ...logSerializers, err: pino.stdSerializers.err },
+    serializers: { ...logSerializers, err: serializeError },
   };
   return destination ? pino(options, destination) : pino(options);
 }

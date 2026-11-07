@@ -1,0 +1,122 @@
+# CMD1: git fetch origin main && npm run test:affected
+From https://github.com/ivanyakushov0405/Chezz
+ * branch            main       -> FETCH_HEAD
+
+> test:affected
+> vitest run --changed origin/main
+
+
+ RUN  v5.1.0 C:/Users/shemp/Documents/Visual Studio Code/chezz
+
+(node:7300) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 beforeExit listeners added to [process]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  37 passed (37)
+      Tests  320 passed (320)
+   Start at  00:20:59
+   Duration  23.45s (import 43%, tests 38%, setup 10%, environment 8%, transform 1%, worker 1%)
+
+
+# CMD2: npm run test:e2e -- tests/e2e/observability.spec.ts
+
+> test:e2e
+> playwright test -c tests/e2e/playwright.config.ts tests/e2e/observability.spec.ts
+
+
+Running 16 tests using 1 worker
+
+  ok  1 [desktop] › tests\e2e\observability.spec.ts:18:3 › AC-20: главная без DSN — запросов к хостам Sentry нет (643ms)
+  ok  2 [desktop] › tests\e2e\observability.spec.ts:25:3 › AC-20: главная — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn (137ms)
+  ok  3 [desktop] › tests\e2e\observability.spec.ts:18:3 › AC-20: страница вызова без DSN — запросов к хостам Sentry нет (608ms)
+  ok  4 [desktop] › tests\e2e\observability.spec.ts:25:3 › AC-20: страница вызова — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn (120ms)
+  ok  5 [mobile-360] › tests\e2e\observability.spec.ts:18:3 › AC-20: главная без DSN — запросов к хостам Sentry нет (645ms)
+  ok  6 [mobile-360] › tests\e2e\observability.spec.ts:25:3 › AC-20: главная — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn (126ms)
+  ok  7 [mobile-360] › tests\e2e\observability.spec.ts:18:3 › AC-20: страница вызова без DSN — запросов к хостам Sentry нет (610ms)
+  ok  8 [mobile-360] › tests\e2e\observability.spec.ts:25:3 › AC-20: страница вызова — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn (122ms)
+  ok  9 [webkit] › tests\e2e\observability.spec.ts:18:3 › AC-20: главная без DSN — запросов к хостам Sentry нет (731ms)
+  ok 10 [webkit] › tests\e2e\observability.spec.ts:25:3 › AC-20: главная — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn (211ms)
+  ok 11 [webkit] › tests\e2e\observability.spec.ts:18:3 › AC-20: страница вызова без DSN — запросов к хостам Sentry нет (705ms)
+  ok 12 [webkit] › tests\e2e\observability.spec.ts:25:3 › AC-20: страница вызова — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn (193ms)
+  x  13 [firefox] › tests\e2e\observability.spec.ts:18:3 › AC-20: главная без DSN — запросов к хостам Sentry нет (2ms)
+  x  14 [firefox] › tests\e2e\observability.spec.ts:25:3 › AC-20: главная — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn (2ms)
+  x  15 [firefox] › tests\e2e\observability.spec.ts:18:3 › AC-20: страница вызова без DSN — запросов к хостам Sentry нет (2ms)
+  x  16 [firefox] › tests\e2e\observability.spec.ts:25:3 › AC-20: страница вызова — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn (2ms)
+
+
+  1) [firefox] › tests\e2e\observability.spec.ts:18:3 › AC-20: главная без DSN — запросов к хостам Sentry нет 
+
+    Error: browserType.launch: spawn UNKNOWN
+    Call log:
+      - <launching> C:\Users\shemp\AppData\Local\ms-playwright\firefox-1572\firefox\firefox.exe -no-remote -headless -profile C:\Users\shemp\AppData\Local\Temp\playwright_firefoxdev_profile-6o9AYH -juggler-pipe -silent
+
+
+    Error Context: test-results\observability-AC-20-главна-9242d-апросов-к-хостам-Sentry-нет-firefox\error-context.md
+
+  2) [firefox] › tests\e2e\observability.spec.ts:25:3 › AC-20: главная — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn 
+
+    Error: browserType.launch: spawn UNKNOWN
+    Call log:
+      - <launching> C:\Users\shemp\AppData\Local\ms-playwright\firefox-1572\firefox\firefox.exe -no-remote -headless -profile C:\Users\shemp\AppData\Local\Temp\playwright_firefoxdev_profile-0UGyPW -juggler-pipe -silent
+
+
+    Error Context: test-results\observability-AC-20-главна-dd549-onment-нет-chezz-sentry-dsn-firefox\error-context.md
+
+  3) [firefox] › tests\e2e\observability.spec.ts:18:3 › AC-20: страница вызова без DSN — запросов к хостам Sentry нет 
+
+    Error: browserType.launch: spawn UNKNOWN
+    Call log:
+      - <launching> C:\Users\shemp\AppData\Local\ms-playwright\firefox-1572\firefox\firefox.exe -no-remote -headless -profile C:\Users\shemp\AppData\Local\Temp\playwright_firefoxdev_profile-mni4tN -juggler-pipe -silent
+
+
+    Error Context: test-results\observability-AC-20-страни-30465-апросов-к-хостам-Sentry-нет-firefox\error-context.md
+
+  4) [firefox] › tests\e2e\observability.spec.ts:25:3 › AC-20: страница вызова — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn 
+
+    Error: browserType.launch: spawn UNKNOWN
+    Call log:
+      - <launching> C:\Users\shemp\AppData\Local\ms-playwright\firefox-1572\firefox\firefox.exe -no-remote -headless -profile C:\Users\shemp\AppData\Local\Temp\playwright_firefoxdev_profile-4KIIu7 -juggler-pipe -silent
+
+
+    Error Context: test-results\observability-AC-20-страни-17baf-onment-нет-chezz-sentry-dsn-firefox\error-context.md
+
+  4 failed
+    [firefox] › tests\e2e\observability.spec.ts:18:3 › AC-20: главная без DSN — запросов к хостам Sentry нет 
+    [firefox] › tests\e2e\observability.spec.ts:25:3 › AC-20: главная — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn 
+    [firefox] › tests\e2e\observability.spec.ts:18:3 › AC-20: страница вызова без DSN — запросов к хостам Sentry нет 
+    [firefox] › tests\e2e\observability.spec.ts:25:3 › AC-20: страница вызова — в HTML есть chezz-release и chezz-environment, нет chezz-sentry-dsn 
+  12 passed (13.6s)
+
+# CMD3: npm run test:e2e -- --grep @smoke
+
+> test:e2e
+> playwright test -c tests/e2e/playwright.config.ts --grep @smoke
+
+
+Running 4 tests using 1 worker
+
+  ok 1 [desktop] › tests\e2e\smoke.spec.ts:4:1 › AC-44: @smoke главная открывается как lobby в состоянии default (161ms)
+  ok 2 [mobile-360] › tests\e2e\smoke.spec.ts:4:1 › AC-44: @smoke главная открывается как lobby в состоянии default (157ms)
+  ok 3 [webkit] › tests\e2e\smoke.spec.ts:4:1 › AC-44: @smoke главная открывается как lobby в состоянии default (224ms)
+  x  4 [firefox] › tests\e2e\smoke.spec.ts:4:1 › AC-44: @smoke главная открывается как lobby в состоянии default (2ms)
+
+
+  1) [firefox] › tests\e2e\smoke.spec.ts:4:1 › AC-44: @smoke главная открывается как lobby в состоянии default 
+
+    Error: browserType.launch: spawn UNKNOWN
+
+
+
+  1 failed
+    [firefox] › tests\e2e\smoke.spec.ts:4:1 › AC-44: @smoke главная открывается как lobby в состоянии default 
+  3 passed (7.4s)
+
+# ИТОГИ
+1. test:affected: 37 файлов / 320 тестов прошло, 0 упало.
+2. observability.spec.ts: desktop 4/4, mobile-360 4/4, webkit 4/4 прошло; firefox 4 упали - browserType.launch: spawn UNKNOWN (окружение машины, не по делу; проверяет CI).
+3. @smoke: desktop, mobile-360, webkit 3/3 прошло; firefox 1 упал - spawn UNKNOWN (окружение).
+Падений по делу: нет.
+
+# ПОКРЫТИЕ AC (по номерам в именах it/test в файлах фичи e03; номера AC в репо пересекаются с другими фичами, поэтому сверка по файлам коммитов фичи)
+Есть тест с номером: AC-1..6, 8..16, 18..29, 32.
+Без теста с номером в имени: AC-7 (GET /api/health без версии), AC-17 (проверка в check-architecture: только в комментарии, не в имени теста), AC-30 (в имени - только register-route.int.test.ts, это другая фича; для e03 нет), AC-31 (PENDING_CATALOG / нет POST /api/analytics/events).
+Примечание: AC-7, 17, 30, 31 по требованиям закрываются int/check (routes.int.test.ts, check-architecture.sh, check-api-doc.sh), а не отдельными тестами с номером. Возможно, покрыты без номера в имени.

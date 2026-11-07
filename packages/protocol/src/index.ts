@@ -9,3 +9,5 @@ export { SERVER_MESSAGE_SCHEMAS, ServerMessage } from "./ws/server.ts";
 export { PENDING_CATALOG } from "./pending.ts";
 export { PAGES } from "./pages.ts";
 export { maskChallengeIds } from "./mask.ts";
+export { scrubSentryBreadcrumb, scrubSentryEvent } from "./scrub.ts";
+export type { SentryBreadcrumbLike, SentryEventLike } from "./scrub.ts";
