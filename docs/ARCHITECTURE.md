@@ -407,6 +407,7 @@ apps/server/test/contract/   contract-тесты (F6)
 apps/server/test/acceptance/ приёмочные, в т.ч. векторы Glicko-2 (F6 §7.5)
 tests/e2e/                   Playwright, playwright.config.ts (F6 V10)
 tests/load/                  генератор нагрузки (F6 §10, V11)
+tests/deploy/                тесты выкатки (F6 V24, ADR-0011)
 .dependency-cruiser.cjs      правила 7.4
 scripts/check-architecture.sh  правила 7.4
 scripts/check-api-doc.sh     сверка кода с F4 (F4 §16)
@@ -423,8 +424,8 @@ deploy/                      зона devops, содержимое — F7 §6, �
   compose.test.yml           PostgreSQL для локальных тестов (F6 §7.1)
   Caddyfile                  edge (F7 §6.3)
   bootstrap.sh, systemd/     первичная настройка VPS (F7 §5)
-  remote/                    скрипты на VPS: entry.sh, watch.sh, backup.sh … (F7 §9.3)
-  env.allowlist, backup.age.pub
+  remote/                    скрипты на VPS: entry.sh, deploy.sh, backup.sh, staging-ttl.sh; watch.sh — этап 4 (F7 §9.3)
+  env.allowlist; backup.age.pub — с E20 (F7 §14.1)
 scripts/ops/                 скрипты Ivan для прода; агенты не запускают (F7 §15, F3 §16)
 .github/workflows/           ci.yml, deploy.yml, load.yml (F7 §8, §9, §11)
 .github/CODEOWNERS           (F7 §16.1)
@@ -475,6 +476,7 @@ scripts/ops/                 скрипты Ivan для прода; агенты
 | ADR-0006 | Rate limit по User без зависимости `platform` от `auth` | `docs/adr/0006-rate-limit-by-user.md` |
 | ADR-0009 | Каталог API и код: реализованное и `PENDING_CATALOG` | `docs/adr/0009-api-catalog-pending.md` |
 | ADR-0010 | Наблюдаемость `app`: Sentry без автоинструментации, конфиг клиента в `<meta>`, запись аналитики после коммита | `docs/adr/0010-observability-wiring.md` |
+| ADR-0011 | Контракт скриптов VPS: блокировка, коды 8/9, проверки до изменений, тесты выкатки | `docs/adr/0011-vps-scripts-contract.md` |
 
 - MUST: новое крупное решение (процесс, хранилище, внешний сервис, смена стека) — новый ADR и строка в разделе 3.
 
