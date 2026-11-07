@@ -7,7 +7,7 @@ UI: главная-заглушка; макеты — новый файл Figma 
 Зависимости: нет. `infra-up` в этапе 0 не проходит до задачи 2 (профиль, В4) — пропущено.
 Трекер: files.
 
-Вызовов: 41/50
+Вызовов: 42/50
 
 | # | Агент | Модель | Зона | Шаг | Итог |
 |---|---|---|---|---|---|
@@ -76,3 +76,4 @@ UI: главная-заглушка; макеты — новый файл Figma 
 | 40 | tester | sonnet | tests | T-7, режим 2 (прогон) | desktop 17/17, mobile-360 17/17, webkit 17/17; screens: 6 PNG (RU/EN × 3 проекта); firefox — CI; зона OK |
 - T-7 [e2e] готова: AC-51 локально закрыт; CI-часть — после push. Jira: KAN-32.
 | 41 | architect | opus | architect | сверка design.md с кодом (v0.3) | сигнатуры, порядок registerRoute, лимит (TimeSource, общий счётчик, IPv6 /64), ответы tester, «Хвосты» (17), «Изменения документов основ v0.3» — 18 пунктов на утверждение Ivan; вопрос: логин в CODEOWNERS vs OPERATIONS §1; зона OK |
+| 42 | designer | sonnet | designer | сверка design-spec с кодом (v0.4) | logo-knight 28×28, CSS-маска, forced-colors к E09; правки DESIGN на утверждение: U31 (маска), --layout-logo-mark 28px, §17/U39 node-окружение; хвосты: убрать исключение *.test.ts в check-architecture.sh, reduced-motion (E04); зона OK |

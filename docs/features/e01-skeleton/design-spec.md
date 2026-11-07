@@ -1,6 +1,8 @@
 # Design spec: E01 «Скелет репозитория»
 
-Версия 0.3 · 2026-11-05 · designer. Основа: `requirements.md` v0.2 (Ограничения, «Временный состав заглушки», С-4, EC-20–EC-22, EC-29, AC-35–AC-39, AC-45), DESIGN_SYSTEM §3–§10, §14–§16 (U4, U8, U23, U31, U34).
+Версия 0.4 · 2026-11-07 · designer. Основа: `requirements.md` v0.2 (Ограничения, «Временный состав заглушки», С-4, EC-20–EC-22, EC-29, AC-35–AC-39, AC-45), DESIGN_SYSTEM §3–§10, §14–§16 (U4, U8, U23, U31, U34).
+
+Изменения 0.4 (2026-11-07, сверка после T-5, review.md T-5 п.1–3, «Правки design.md / design-spec.md / DESIGN»): «Указания для T-5» приведены к коду. `logo-knight.svg` — `viewBox 0 0 28 28`, один `<path>` с двумя подконтурами (C и конь); знак рисует CSS-маска с фоном `--color-accent`, а не `fill="currentColor"`. Размер знака — 28 px. Макеты и знаки (`Logo` `4:10`, `favicon` `27:217`) не менялись. Правки DESIGN_SYSTEM (U31, токен размера знака, §17, U39) вынесены на утверждение Ivan, в сам документ не вносились.
 
 Изменения 0.3: новый файл Figma в Education-плане команды «adamarysshykeria9257's team». Ограничения Starter-плана здесь не действуют: есть 4 страницы, есть коллекция `color` с двумя режимами, а лимит вызовов MCP ни разу не сработал. Основа ДС пересобрана по DESIGN §16 без обходных решений. Нарисованы варианты знака а / б / в и 32 фрейма концептов вне E01. Вопросы 1, 2 и 8 закрыты. Старый файл `gnC4bJJ1JlSgRH3q0mNLFx` устарел, см. «Открытые вопросы», п.13.
 
@@ -204,8 +206,11 @@
 
 ### Указания для T-5 (frontend)
 - **`logo-knight.svg`** — по `Logo` / знак н: экспорт вектора `27:108` (или фрейма `mark` варианта `4:7`).
-  - `viewBox="0 0 64 64"` — исходная сетка знака, в `Logo` он масштабирован до 28 px.
-  - Один `<path>` с `fill="currentColor"`, без `stroke` и градиентов. Цвет задаёт CSS: `color: var(--color-accent)`.
+  - `viewBox="0 0 28 28"`, `width="28" height="28"` — сетка экспорта Figma. Размер знака в `Logo` — 28 px (на `withName=true` и `withName=false`).
+  - Один `<path>` с двумя подконтурами: дуга C и конь. Без `stroke` и градиентов.
+  - Знак рисуется CSS-маской, а не inline-SVG: `.mark { background: var(--color-accent); mask: url("logo-knight.svg") center / contain no-repeat; }`. Цвет файла в маске не используется (в экспорте `fill="currentColor"` остаётся, он ни на что не влияет), цвет и тема приходят из `--color-accent`. `assetsInlineLimit: 0`: маска грузится файлом, `data:` нет (CSP `self`).
+  - Размер задаёт токен `--layout-logo-mark` (28 px), если Ivan утвердит его в DESIGN §4; до утверждения реализация держит `calc(var(--space-6) - var(--space-1))`.
+  - `forced-colors: active`: фон заменяется системным цветом, и маска пропадает. Для E09 в `.mark` нужен блок `@media (forced-colors: active)` с системным цветом (`CanvasText`) в `background`. Без него `Logo withName=false` невидим.
   - В разметке `aria-hidden="true"` (см. `lobby`, «Доступные имена»).
 - **`favicon.svg`** — по `favicon` (`27:217`) / знак о, `viewBox` 32 × 32, один `<path>`.
   - `currentColor` во вкладке браузера не наследуется. Поэтому цвет в файле задаётся значениями токена: `--color-accent` light (`base/blue/600`) и dark (`base/blue/400`) через `@media (prefers-color-scheme: dark)` внутри SVG.
