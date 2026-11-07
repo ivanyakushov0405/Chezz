@@ -141,6 +141,7 @@ file: https://www.figma.com/design/z6VyHSdwqFzCQIdP7ScisI          # DESIGN §16
 
 ## Трекер
 type: files            # files | jira; BUSINESS D10 — GitHub Issues, набор его не поддерживает (вопрос Ivan)
+files: статус эпика — колонка «Статус» в docs/ROADMAP.md; ведёт оркестратор (этап 0 — «в работе», после мержа PR — «сделан»)
 jira.project: —
 jira.epic: Epic
 jira.task: Task
