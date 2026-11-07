@@ -73,3 +73,31 @@ export const TEST_SENTRY_DSN = "https://public@o0.ingest.sentry.io/0";
 export async function startSentryApp(options: SentryAppOptions = {}): Promise<SentryTestApp> {
   return (await startApp(options as StartAppOptions)) as SentryTestApp;
 }
+
+// --- T-4: analytics (design.md E03, «analytics», «Тестовая инфраструктура») ---
+
+/** Структурная копия AnalyticsEvent: контрактные тесты не импортируют src/. */
+export type AnalyticsEventInput =
+  | { name: "user_registered" | "user_active" | "seek_started"; user_id: string }
+  | { name: "seek_matched" | "seek_cancelled"; user_id: string; props: { wait_ms: number } }
+  | { name: "game_started"; user_id: string; game_id: string }
+  | { name: "game_finished"; user_id: string; game_id: string; props: { termination: string; after_restart: boolean } }
+  | { name: "analysis_opened"; user_id: string | null; game_id: string };
+
+export type AnalyticsTestApp = MetricsTestApp & {
+  analytics: { record(event: AnalyticsEventInput): void; drain(): Promise<void> };
+};
+
+export async function startAnalyticsApp(options: SentryAppOptions = {}): Promise<AnalyticsTestApp> {
+  return (await startApp(options as StartAppOptions)) as AnalyticsTestApp;
+}
+
+/** Строка analytics_events, как её читает listAnalyticsEvents (test/support/analytics.ts). */
+export interface AnalyticsRow {
+  id: string;
+  name: string;
+  user_id: string | null;
+  game_id: string | null;
+  props: Record<string, unknown>;
+  created_at: Date;
+}
