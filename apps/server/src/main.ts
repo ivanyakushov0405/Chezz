@@ -1,9 +1,10 @@
 // Точка входа процесса app: конфиг → пул БД → миграции → buildApp → listen (ADR-0005 п.1).
 // Запуск: node apps/server/src/main.ts (Node.js 24, без сборки).
-import { buildApp } from "./app.ts";
+import { buildApp, SENTRY_FLUSH_TIMEOUT_MS } from "./app.ts";
 import type { Database } from "./database.ts";
 import { loadConfig } from "./platform/config.ts";
 import { createDb, migrateToLatest } from "./platform/db.ts";
+import { createErrorReporter, createFatalErrorHandler } from "./platform/sentry.ts";
 import { createSystemTimeSource } from "./platform/time.ts";
 
 async function main(): Promise<void> {
@@ -16,8 +17,24 @@ async function main(): Promise<void> {
   const db = createDb<Database>(databaseUrl, { onPoolError: (err) => onPoolError(err) });
 
   await migrateToLatest(db);
-  const app = await buildApp(appConfig, { db, time: createSystemTimeSource() });
+  const reporter = createErrorReporter({
+    dsn: appConfig.sentryDsn,
+    environment: appConfig.appEnv,
+    release: appConfig.appVersion,
+    origin: appConfig.appOrigin,
+  });
+  const app = await buildApp(appConfig, { db, time: createSystemTimeSource(), reporter });
   onPoolError = (err) => app.log.error({ err }, "database pool error");
+
+  // EC-9: необработанное исключение процесса — лог fatal, событие Sentry (≤ 2 с на отправку), выход с кодом 1.
+  const onFatal = createFatalErrorHandler({
+    log: app.log,
+    reporter,
+    exit: (code) => process.exit(code),
+    flushTimeoutMs: SENTRY_FLUSH_TIMEOUT_MS,
+  });
+  process.on("uncaughtException", (err) => void onFatal(err, "uncaughtException"));
+  process.on("unhandledRejection", (reason) => void onFatal(reason, "unhandledRejection"));
 
   let closing = false;
   const shutdown = (signal: NodeJS.Signals): void => {

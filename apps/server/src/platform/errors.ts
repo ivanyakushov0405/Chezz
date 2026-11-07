@@ -2,6 +2,8 @@
 import type { ErrorCode, ErrorResponse } from "@chezz/protocol";
 import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
+import { pathOnly } from "./log.ts";
+import type { ErrorContext, ErrorReporter } from "./sentry.ts";
 
 /** HTTP-статус кода (API §5.2). null — код только WebSocket: в REST его не бросают (иначе 500). */
 export const HTTP_STATUS: Readonly<Record<ErrorCode, number | null>> = {
@@ -130,13 +132,35 @@ function classify(error: unknown): AppError {
   return new AppError("internal");
 }
 
-/** Обработчик ошибок Fastify (setErrorHandler): формат §5.1, request_id = X-Request-Id. */
-export function errorHandler(error: unknown, request: FastifyRequest, reply: FastifyReply): FastifyReply {
-  const appError = classify(error);
-  const status = HTTP_STATUS[appError.code] ?? 500;
-  if (status >= 500) {
-    // Причина — в лог с request_id (метка child-логгера запроса); наружу — без подробностей (API §5.1).
-    request.log.error({ err: error }, "internal error");
-  }
-  return reply.code(status).send(errorBody(appError.code, appError.code === "internal" ? null : appError.details, request.id));
+/** Контекст события Sentry из запроса: путь без строки запроса, шаблон маршрута, пользователь — только id. */
+export function errorContextOf(request: FastifyRequest): ErrorContext {
+  const caller = request.caller as FastifyRequest["caller"] | undefined;
+  const route = request.routeOptions.url;
+  return {
+    request_id: request.id,
+    method: request.method,
+    ...(route !== undefined ? { route } : {}),
+    path: pathOnly(request.url),
+    ...(caller && caller.who !== "guest" ? { user_id: caller.user_id } : {}),
+  };
 }
+
+/**
+ * Обработчик ошибок Fastify (setErrorHandler): формат §5.1, request_id = X-Request-Id.
+ * ≥ 500 — в лог и ровно одно событие Sentry с тем же request_id (API §5.1); 4xx в Sentry не идут (AC-11).
+ */
+export function createErrorHandler(reporter?: ErrorReporter) {
+  return function errorHandler(error: unknown, request: FastifyRequest, reply: FastifyReply): FastifyReply {
+    const appError = classify(error);
+    const status = HTTP_STATUS[appError.code] ?? 500;
+    if (status >= 500) {
+      // Причина — в лог с request_id (метка child-логгера запроса); наружу — без подробностей (API §5.1).
+      request.log.error({ err: error }, "internal error");
+      reporter?.captureException(error, errorContextOf(request));
+    }
+    return reply.code(status).send(errorBody(appError.code, appError.code === "internal" ? null : appError.details, request.id));
+  };
+}
+
+/** Обработчик без Sentry (голый Fastify в тестах шлюза). */
+export const errorHandler = createErrorHandler();

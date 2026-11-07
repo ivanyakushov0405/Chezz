@@ -4,8 +4,9 @@ import { PROTOCOL_VERSION, type RouteDef, type Who } from "@chezz/protocol";
 import rateLimit, { normalizeIP, type RateLimitOptions } from "@fastify/rate-limit";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { AppError, errorBody, errorHandler, validationError, zodIssues } from "./errors.ts";
+import { AppError, createErrorHandler, errorBody, validationError, zodIssues } from "./errors.ts";
 import { SharedRateLimitStore } from "./rate-limit-store.ts";
+import type { ErrorReporter } from "./sentry.ts";
 import type { TimeSource } from "./time.ts";
 
 /** Значения «Кто» — столбец API §12: Г (guest), П1 (onboarding), И (player). */
@@ -67,6 +68,8 @@ export interface HttpOptions {
   time: TimeSource;
   /** GET/HEAD пути вне /api, /auth, /ws без маршрута — например, index.html SPA; нет — 404 not_found. */
   notFoundFallback?: (request: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
+  /** Sentry: 5xx errorHandler — одно событие на ошибку; нет — только лог. */
+  reporter?: ErrorReporter;
 }
 
 /** Настройки шлюза на экземпляре (декоратор): registerRoute читает appOrigin. */
@@ -167,7 +170,7 @@ export async function installHttp(app: FastifyInstance, options: HttpOptions): P
     errorResponseBuilder: (_request, context) => new AppError("rate_limited", { retry_after_ms: Math.max(1, Math.ceil(context.ttl)) }),
   });
 
-  app.setErrorHandler(errorHandler);
+  app.setErrorHandler(createErrorHandler(options.reporter));
 
   // /api/<нет такого> — 404 в формате §5, со счётчиком лимита (design.md E01, ADR «SPA-фолбэк»).
   const apiLimiter = app.rateLimit(apiRateLimit());

@@ -6,8 +6,10 @@ import { buildApp } from "../../src/app.ts";
 import type { Database } from "../../src/database.ts";
 import type { AppConfig } from "../../src/platform/config.ts";
 import type { MetricsService } from "../../src/platform/metrics.ts";
+import { createErrorReporter, type ErrorReporter } from "../../src/platform/sentry.ts";
 import { createDb, type Db } from "../../src/platform/db.ts";
 import { setDatabaseAllowConnections, workerDatabaseName, workerDatabaseUrl } from "./db.ts";
+import { memorySentryTransport, TEST_SENTRY_DSN, type SentryEvent } from "./sentry.ts";
 import { ManualTimeSource } from "./time.ts";
 
 export interface TestApp {
@@ -24,6 +26,8 @@ export interface TestApp {
     /** Снова доступна; app восстанавливается без перезапуска. */
     unblock(): Promise<void>;
   };
+  /** flush Sentry + отправленные события (после scrub); без sentry: true — []. */
+  sentryEvents(): Promise<SentryEvent[]>;
   /** Без штатного завершения (TESTING §7.3): сервер и пул закрываются, onClose сервисов не вызывается. */
   close(): Promise<void>;
 }
@@ -34,6 +38,8 @@ export interface StartAppOptions {
   logDestination?: DestinationStream;
   /** Старт ManualTimeSource (EC-25). */
   time?: { wall?: Date };
+  /** true: DSN TEST_SENTRY_DSN и транспорт в память (design.md E03). */
+  sentry?: boolean;
 }
 
 const silent: DestinationStream = { write: () => undefined };
@@ -67,8 +73,18 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       appVersion: "test",
       sentryDsn: null,
       metrics: { host: "127.0.0.1", port: metricsPort },
+      ...(options.sentry ? { sentryDsn: TEST_SENTRY_DSN } : {}),
       ...options.config,
     };
+    // Без sentry: true транспорт не подменён — DSN из options.config в тестах не допускается (сети нет).
+    const memory = options.sentry ? memorySentryTransport() : null;
+    const reporter: ErrorReporter = createErrorReporter({
+      dsn: memory === null ? null : config.sentryDsn,
+      environment: config.appEnv,
+      release: config.appVersion,
+      origin: config.appOrigin,
+      ...(memory === null ? {} : { transport: memory.transport }),
+    });
     const time = new ManualTimeSource(options.time?.wall ? { wall: options.time.wall } : undefined);
     // Обрыв соединений при block() — ожидаемая ошибка пула; без обработчика pg роняет процесс.
     const db: Db<Database> = createDb<Database>(workerDatabaseUrl(), { onPoolError: () => undefined });
@@ -79,6 +95,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
         db,
         time,
         logDestination: options.logDestination ?? silent,
+        reporter,
         onMetrics: (m) => {
           metrics = m;
         },
@@ -87,6 +104,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
     } catch (err) {
       await app?.close().catch(() => undefined);
       await metrics?.stop();
+      await reporter.close(0);
       await db.destroy();
       if ((err as NodeJS.ErrnoException).code === "EADDRINUSE" && attempt < 5 && options.config?.metrics === undefined) continue;
       throw err;
@@ -98,6 +116,11 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       metricsUrl,
       wsUrl: `ws://127.0.0.1:${port}/ws`,
       time,
+      sentryEvents: async () => {
+        if (memory === null) return [];
+        await reporter.flush(2_000);
+        return memory.events();
+      },
       database: {
         block: async () => {
           blocked = true;
@@ -111,6 +134,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       close: async () => {
         server.closeAllConnections();
         await metrics?.stop();
+        await reporter.close(2_000);
         await new Promise<void>((resolve) => server.close(() => resolve()));
         await db.destroy().catch(() => undefined);
         if (blocked) await setDatabaseAllowConnections(dbName, true);

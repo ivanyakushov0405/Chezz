@@ -5,8 +5,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { startApp, type TestApp } from "../../test/support/app.ts";
+import { injectClientConfig } from "./client-config.ts";
 
-const INDEX = "<!doctype html><title>Chezz</title><div id=root></div>";
+const INDEX = "<!doctype html><head><title>Chezz</title></head><div id=root></div>";
+// Отдаётся с <meta> конфига клиента (E03, ADR-0010 п.3); startApp: APP_ENV dev, APP_VERSION test, без DSN.
+const SERVED = injectClientConfig(INDEX, { environment: "dev", release: "test", sentryDsn: null });
 let distDir = "";
 let app: TestApp;
 
@@ -35,7 +38,7 @@ describe("SPA", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toMatch(/^text\/html/);
     expect(res.headers.get("cache-control")).toBe("no-cache");
-    expect(text).toBe(INDEX);
+    expect(text).toBe(SERVED);
   });
 
   it("/assets/* → public, max-age=31536000, immutable", async () => {
@@ -49,7 +52,7 @@ describe("SPA", () => {
       const { res, text } = await get(url);
       expect(res.status, url).toBe(200);
       expect(res.headers.get("cache-control"), url).toBe("no-cache");
-      expect(text, url).toBe(INDEX);
+      expect(text, url).toBe(SERVED);
     }
     for (const url of ["/auth/nothing", "/ws"]) {
       const { res, text } = await get(url);
