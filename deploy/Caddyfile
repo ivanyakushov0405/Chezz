@@ -1,0 +1,27 @@
+# edge: HTTPS (Let's Encrypt) и заголовки (OPERATIONS §6.3; значения — SECURITY §6).
+# APP_DOMAIN, ACME_EMAIL, SENTRY_INGEST — из окружения edge (compose.prod.env, OPERATIONS §6.1).
+# Журнал запросов не ведётся (O17); порт метрик не проксируется (SECURITY S32).
+{
+	email {$ACME_EMAIL}
+}
+
+(headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://lh3.googleusercontent.com; connect-src 'self' wss://{host} https://{$SENTRY_INGEST}; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+{$APP_DOMAIN} {
+	import headers
+	reverse_proxy app:3000
+}
+
+staging.{$APP_DOMAIN} {
+	import headers
+	reverse_proxy app-staging:3000
+}

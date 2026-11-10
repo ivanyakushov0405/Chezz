@@ -7,7 +7,7 @@
 - Ограничения: срок — не задан; лимит вызовов — 35 (профиль, M); макеты — не нужны
 - Этап 0: документы на месте; E01 (PR #3) и E03 (PR #9) смержены; infra-up — зелёный
 
-## Вызовы агентов (11/35)
+## Вызовы агентов (14/35)
 | # | Агент | Модель | Этап | Итог |
 |---|---|---|---|---|
 | 1 | analyst | opus | требования | 64 AC, 42 EC, 10 рисков; 5 вопросов Ivan, 10 — architect (A1–A10); блокеров нет; зона OK |
@@ -29,3 +29,11 @@
 | 10 | backend-dev | sonnet | T-1 раунд 4 | no-disabled-tests вернул, MemberExpression + it.concurrent.*; 6 случаев по заданию; check зелёный; зона OK |
 | 11 | reviewer | opus | T-1 ревью, итерация 3 | APPROVE; желательно — сообщение правила, отложенное из итерации 1 (groupOrder 3 в TESTING §6, test:affected и deploy-image); зона OK |
 - T-1 [backend:platform] готова, раундов: 4 (лимит, выбор Ivan — +2), вызовов: 11/35
+| 12 | tester | opus | T-2 режим 1 | 65 тестов (deploy 51: image.static 9, compose 24, caddy 9, allowlist 7; deploy-image 14), все красные по делу; EC-35 таймеры — T-4; lint/tsc OK; зона OK |
+| 13 | devops | opus | T-2 код, раунд 1 | Dockerfile (app, tools; node:24-bookworm-slim), .dockerignore, compose.yml, Caddyfile, env.allowlist; deploy 51/51, deploy-image 14/14, оба docker build, check зелёный; отступление: образ по умолчанию `chezz.invalid/unset/...` в compose; прерван лимитом API и выключением Docker Desktop, продолжен; зона OK |
+- Предложение tester (позже): таймауты у docker port/inspect/run в AC-5 image.image.test.ts — зависание 900 с при недоступном демоне.
+- T-2 прогон (оркестратор): deploy 51/51, deploy-image 14/14, check зелёный, tester-untouched пусто.
+| 14 | reviewer | opus | T-2 ревью, итерация 1 | APPROVE; оба отступления приняты; желательно 6 (заглушка chezz.invalid в OPERATIONS §6.1 → architect-apply; db получает весь prod.env; O36 diff deploy/ до push); зона: review.md OK; `.claude/profile.md` — правка Ivan («Модели»), не агента |
+- Отложено (а): OPERATIONS §6.1 — заглушка образа `chezz.invalid` (architect-apply); (б) `db` — только нужные ключи вместо всего `prod.env`.
+- 2026-11-10: Ivan подтвердил — правка «Модели» в `.claude/profile.md` его; с T-3 модели по новому правилу (reviewer/devops opus только при Риск: high). Файл не входит в коммиты задач.
+- T-2 [infra] готова, раундов: 1, вызовов: 14/35
