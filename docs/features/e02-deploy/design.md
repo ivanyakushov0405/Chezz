@@ -113,6 +113,7 @@ ssh root@<ip> 'bash -s -- \
 
 - Владелец образов: `git -C "$CHEZZ_ROOT/repo" config --get remote.origin.url` → `github.com[:/]<owner>/` → `ghcr.io/<owner в нижнем регистре>`. Тест задаёт `remote.origin.url=https://github.com/Test-Owner/chezz.git`; fetch можно перенаправить на локальный bare-репозиторий через `url.<путь>.insteadOf`.
 - Внешние команды через `PATH`: `docker`, `curl`, `git`, `setsid`, `flock`, `sleep`, `df`. Остальные — встроенные `bash` и coreutils. Вызовы тест распознаёт по ключевым словам ниже; другие флаги допустимы.
+- Принятое отклонение (T-3, 3294254): `ensure_compose_env_files` создаёт отсутствующие пустые файлы compose-окружения с правами 640 (OPERATIONS §5); её вызывают `deploy`, `rollback`, `load`, `down` и `backup.sh`, а `status` — нет.
 
 | Вызов | Ключевые слова в argv | Ответ подмены |
 |---|---|---|
@@ -179,6 +180,10 @@ ssh root@<ip> 'bash -s -- \
 - staging `up`: аргументы (2) → нет `state/prod.image` (7) → секреты (2) → pull обоих (8) → запись `staging.env`, `compose.staging.env` → `rm -sfv` → `up … app-staging db-staging` → сид `--demo` → `staging.started`; сбой после pull → 1.
 - staging `load`: `app-staging` не запущен → 2; `games_active` prod > 2 → 3; иначе `run … tools-staging` (команда OPERATIONS §11 п.2), отчёт между `report_begin`/`report_end`; код ≠ 0 генератора → 1.
 - `down`: `rm -sfv` → 0 (и при уже погашенном). `deploy/remote/staging-ttl.sh`: `staging.started` старше 12 ч → `down` и удаление файла; иначе 0.
+- Принятое отклонение (T-3, 3294254): в `deploy` ключи секретов сверяются с `env.allowlist` целевого коммита (`git show <sha>:deploy/env.allowlist`), то есть после `fetch`; шаг 1 проверяет только форму — поэтому неверные секреты при занятом prod дают код 3, а не 2.
+- Принятое отклонение (T-3): при провале выкатки `restore_prev` возвращает `prod.image.prev` к прежнему значению; клон возвращается, только если его переключил шаг 7 (флаг `CLONE_SWITCHED`).
+- Принятое отклонение (T-3): `down` удаляет `state/staging.started`; если `rm` упал, а `staging.env` нет, `down` считается успешным.
+- Принятое отклонение (T-3): если `deploy.sh` не вывел `result=`, `entry.sh` и trap EXIT дописывают `result=broken` (код 4) для prod и `up_failed` (код 1) для staging; журнал обнуляется и пишется только под `flock`; при `bad_command` и `locked` строки дописываются в журнал без обнуления.
 
 ### П7. `deploy/remote/backup.sh --reason daily|pre-deploy`
 - Читает `env/ops.env`; переменная окружения `BACKUP_REQUIRE_OFFSITE` перекрывает файл (её передаёт `deploy.sh` из новых секретов).
@@ -368,4 +373,5 @@ Workflow выкатки и нагрузки, Dependabot.
 - R-c: `bootstrap.sh` отключает вход root — ошибка в `sshd_config` или ключе `ops` закрывает доступ. Смягчение: `sshd -t` до перезапуска, проверка формата ключей, консоль провайдера.
 - R-d: Let's Encrypt — лимит неудачных проверок при неготовом DNS (R8 `requirements.md`).
 - Отступление: `systemd-analyze verify` (AC-49) заменён статическим разбором юнитов (A1).
+- R-e: compose без `env/prod.env` падает с «env file not found» — `bootstrap.sh` (T-4) должен создать env-файлы до первого вызова compose.
 - Хвост для apply на приёмке: OPERATIONS §6.1 — дописать одной строкой заглушку `image:` по умолчанию `chezz.invalid/unset/<пакет>` (П9).
