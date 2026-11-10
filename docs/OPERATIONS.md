@@ -202,6 +202,7 @@
 
 - Профиль `staging` — у трёх staging-сервисов.
 - `env_file` — `${CHEZZ_ROOT:-/srv/chezz}/env/<файл>`. Том `screenshots` монтируется в `/data/screenshots` (в образе — `node:node`, 700); у `app-staging` там `tmpfs` с `uid=1000,gid=1000,mode=0700`.
+- Образы в `compose.yml` имеют значение по умолчанию `chezz.invalid/unset/<пакет>` (`${PROD_APP_IMAGE:-…}`, так же у двух staging): с пустыми `compose.*.env` работают `ps` и `rm`, а `pull` и `up` падают — из зоны `.invalid` образ не скачать.
 - БД: `POSTGRES_USER=app`, `POSTGRES_DB=chezz` — константы в compose; `POSTGRES_PASSWORD` и `DATABASE_URL` — в одном файле `prod.env` / `staging.env`.
 - Сети `prod` и `staging` — `internal: true`; `edge-*` дают выход к Google и Sentry. У staging-сервисов нет сетей prod.
 - O33 для `app`, `app-staging`, `tools-staging`: `user: "1000:1000"`, `cap_drop: [ALL]`, `security_opt: [no-new-privileges:true]`, `read_only: true`, `tmpfs: /tmp`. Всё, что пишут эти контейнеры, — в `/tmp` или в томе (например, отчёт нагрузки — `/tmp/report.json`, раздел 11).
