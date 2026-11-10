@@ -1,0 +1,171 @@
+# Prod и профиль staging на одном VPS (OPERATIONS §6.1; design E02 П9). Запускают только deploy/remote/*.sh:
+#   docker compose -p chezz -f deploy/compose.yml \
+#     --env-file /srv/chezz/env/compose.staging.env --env-file /srv/chezz/env/compose.prod.env …
+# compose.prod.env — последним: при совпадении ключа побеждает prod (EC-38).
+# Порты наружу — только у edge; остальные — 127.0.0.1 (Docker обходит ufw). Секретов в этом файле нет:
+# пароли БД и прочие секреты — только в env_file (prod.env / staging.env), их пишет выкатка (OPERATIONS §7).
+# Образы без значения (пустые compose.*.env после bootstrap.sh) — заглушка в зоне .invalid: `ps`, `rm`, `stop`
+# работают, а `up`/`pull` с ней падают и ничего не запускают.
+name: chezz
+
+x-logging: &logging
+  driver: journald
+  options:
+    tag: "{{.Name}}"
+
+# Ужесточение O33 для контейнеров с кодом приложения.
+x-hardened: &hardened
+  user: "1000:1000"
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  read_only: true
+
+x-app-healthcheck: &app-healthcheck
+  test:
+    - CMD
+    - node
+    - -e
+    - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+  interval: 10s
+  timeout: 5s
+  retries: 3
+  start_period: 60s
+
+x-db-healthcheck: &db-healthcheck
+  test: ["CMD", "pg_isready", "-U", "app", "-d", "chezz"]
+  interval: 5s
+  timeout: 5s
+  retries: 12
+  start_period: 30s
+
+services:
+  edge:
+    image: caddy:2
+    restart: unless-stopped
+    logging: *logging
+    security_opt: ["no-new-privileges:true"]
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+      - "443:443/udp"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+      SENTRY_INGEST: ${SENTRY_INGEST:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - edge-prod
+      - edge-staging
+
+  app:
+    image: ${PROD_APP_IMAGE:-chezz.invalid/unset/chezz-app}
+    <<: *hardened
+    restart: unless-stopped
+    logging: *logging
+    env_file: ${CHEZZ_ROOT:-/srv/chezz}/env/prod.env
+    tmpfs:
+      - /tmp
+    volumes:
+      - screenshots:/data/screenshots
+    ports:
+      - "127.0.0.1:9464:9464"
+    networks:
+      - edge-prod
+      - prod
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck: *app-healthcheck
+    mem_limit: 400m
+    cpus: 1.5
+    pids_limit: 512
+
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    logging: *logging
+    env_file: ${CHEZZ_ROOT:-/srv/chezz}/env/prod.env
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_DB: chezz
+    command: ["postgres", "-c", "shared_buffers=128MB", "-c", "max_connections=50"]
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks:
+      - prod
+    healthcheck: *db-healthcheck
+    mem_limit: 768m
+
+  app-staging:
+    image: ${STAGING_APP_IMAGE:-chezz.invalid/unset/chezz-app-staging}
+    profiles: [staging]
+    <<: *hardened
+    restart: unless-stopped
+    logging: *logging
+    env_file: ${CHEZZ_ROOT:-/srv/chezz}/env/staging.env
+    tmpfs:
+      - /tmp
+      - /data/screenshots:uid=1000,gid=1000,mode=0700,size=256m
+    ports:
+      - "127.0.0.1:9465:9464"
+    networks:
+      - edge-staging
+      - staging
+    depends_on:
+      db-staging:
+        condition: service_healthy
+    healthcheck: *app-healthcheck
+    mem_limit: 400m
+    cpus: 1.0
+    pids_limit: 256
+
+  db-staging:
+    image: postgres:18
+    profiles: [staging]
+    restart: unless-stopped
+    logging: *logging
+    env_file: ${CHEZZ_ROOT:-/srv/chezz}/env/staging.env
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_DB: chezz
+    tmpfs:
+      - /var/lib/postgresql:size=256m
+    networks:
+      - staging
+    healthcheck: *db-healthcheck
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 256
+
+  # Только `docker compose run --rm tools-staging …` (сид, нагрузка); без restart.
+  tools-staging:
+    image: ${STAGING_TOOLS_IMAGE:-chezz.invalid/unset/chezz-tools-staging}
+    profiles: [staging]
+    <<: *hardened
+    logging: *logging
+    env_file: ${CHEZZ_ROOT:-/srv/chezz}/env/staging.env
+    tmpfs:
+      - /tmp
+    networks:
+      - staging
+      - edge-staging
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+
+networks:
+  edge-prod: {}
+  edge-staging: {}
+  prod:
+    internal: true
+  staging:
+    internal: true
+
+volumes:
+  pgdata: {}
+  screenshots: {}
+  caddy_data: {}
+  caddy_config: {}

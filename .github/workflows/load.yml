@@ -1,0 +1,148 @@
+# Нагрузочный тест на staging (OPERATIONS §11; design E02 П11). Только workflow_dispatch, без входов.
+# Job load — только SSH-шаги, кода ветки на runner нет. До E21 шаг ssh-load падает (EC-24), down выполняется всегда.
+name: load
+
+on:
+  workflow_dispatch:
+
+run-name: staging load
+
+concurrency:
+  group: deploy-staging
+
+permissions: {}
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - id: validate
+        run: echo "staging load — проверок сочетаний нет"
+
+  build:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      app_digest: ${{ steps.build.outputs.app_digest }}
+      tools_digest: ${{ steps.build.outputs.tools_digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: build
+        env:
+          APP_VERSION: ${{ github.sha }}
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          OWNER="$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          image() { # <target> <пакет> <выход>
+            local meta="$RUNNER_TEMP/$1.json"
+            docker buildx build --push --metadata-file "$meta" \
+              -f deploy/Dockerfile --target "$1" \
+              --build-arg "APP_VERSION=$APP_VERSION" \
+              --label "org.opencontainers.image.revision=$APP_VERSION" \
+              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              -t "ghcr.io/$OWNER/$2:sha-$APP_VERSION" .
+            local digest
+            digest="$(jq -r '."containerimage.digest"' "$meta")"
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "::error::нет digest у $2"; exit 1; }
+            echo "$3=$digest" >> "$GITHUB_OUTPUT"
+            echo "$2: $digest" >> "$GITHUB_STEP_SUMMARY"
+          }
+          image app chezz-app-staging app_digest
+          image tools chezz-tools-staging tools_digest
+          docker logout ghcr.io
+
+  load:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment: staging
+    permissions:
+      contents: read
+    steps:
+      - id: ssh-up
+        env:
+          APP_DIGEST: ${{ needs.build.outputs.app_digest }}
+          TOOLS_DIGEST: ${{ needs.build.outputs.tools_digest }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_HOST_KEY: ${{ vars.VPS_HOST_KEY }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          APP_ENV: staging
+          APP_ORIGIN: ${{ vars.APP_ORIGIN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SEED_TOKEN_SECRET: ${{ secrets.SEED_TOKEN_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+          RATE_LIMIT_IP_PER_MIN: ${{ vars.RATE_LIMIT_IP_PER_MIN }}
+        run: |
+          umask 077
+          KEY="$RUNNER_TEMP/deploy_key"
+          KH="$RUNNER_TEMP/known_hosts"
+          trap 'rm -f "$KEY" "$KH"' EXIT
+          printf '%s\n' "$SSH_DEPLOY_KEY" > "$KEY"
+          printf '%s\n' "$VPS_HOST_KEY" > "$KH"
+          echo '### VPS: staging up' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          rc=0
+          for k in APP_ENV APP_ORIGIN DATABASE_URL POSTGRES_PASSWORD SEED_TOKEN_SECRET GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET \
+            COOKIE_SECRET SENTRY_DSN RATE_LIMIT_IP_PER_MIN; do
+            printf '%s=%s\n' "$k" "${!k-}"
+          done | ssh -i "$KEY" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$KH" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 \
+            deploy@"$VPS_HOST" "up $APP_DIGEST $TOOLS_DIGEST" | tee -a "$GITHUB_STEP_SUMMARY" || rc=$?
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
+
+      - id: ssh-load
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_HOST_KEY: ${{ vars.VPS_HOST_KEY }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        run: |
+          umask 077
+          KEY="$RUNNER_TEMP/deploy_key"
+          KH="$RUNNER_TEMP/known_hosts"
+          OUT="$RUNNER_TEMP/load.out"
+          trap 'rm -f "$KEY" "$KH" "$OUT"' EXIT
+          printf '%s\n' "$SSH_DEPLOY_KEY" > "$KEY"
+          printf '%s\n' "$VPS_HOST_KEY" > "$KH"
+          rc=0
+          ssh -i "$KEY" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$KH" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 \
+            deploy@"$VPS_HOST" load < /dev/null > "$OUT" || rc=$?
+          sed -n '/^report_begin$/,/^report_end$/!p' "$OUT"
+          {
+            echo '### Нагрузочный тест'
+            echo '```json'
+            sed -n '/^report_begin$/,/^report_end$/{/^report_begin$/d;/^report_end$/d;p}' "$OUT"
+            echo '```'
+            grep -E '^(result|exit)=' "$OUT" || true
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
+
+      - id: ssh-down
+        if: always()
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_HOST_KEY: ${{ vars.VPS_HOST_KEY }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        run: |
+          umask 077
+          KEY="$RUNNER_TEMP/deploy_key"
+          KH="$RUNNER_TEMP/known_hosts"
+          trap 'rm -f "$KEY" "$KH"' EXIT
+          printf '%s\n' "$SSH_DEPLOY_KEY" > "$KEY"
+          printf '%s\n' "$VPS_HOST_KEY" > "$KH"
+          ssh -i "$KEY" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$KH" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 \
+            deploy@"$VPS_HOST" down < /dev/null | tee -a "$GITHUB_STEP_SUMMARY"

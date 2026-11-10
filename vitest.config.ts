@@ -55,6 +55,26 @@ export default defineConfig({
           ...serverDb,
         },
       },
+      {
+        test: {
+          name: "deploy",
+          sequence: { groupOrder: 0 },
+          environment: "node",
+          include: ["tests/deploy/**/*.test.ts"],
+          exclude: ["**/node_modules/**", "**/*.image.test.ts"],
+          testTimeout: 30_000,
+        },
+      },
+      {
+        test: {
+          name: "deploy-image",
+          sequence: { groupOrder: 3 },
+          environment: "node",
+          include: ["tests/deploy/**/*.image.test.ts"],
+          testTimeout: 900_000,
+          maxWorkers: 1,
+        },
+      },
     ],
   },
 });

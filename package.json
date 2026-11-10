@@ -13,7 +13,8 @@
   "scripts": {
     "db:test:up": "docker compose -f deploy/compose.test.yml up -d --wait",
     "check": "tsc -b && eslint . && stylelint \"**/*.css\" && depcruise apps packages --config .dependency-cruiser.cjs && bash scripts/check-architecture.sh && bash scripts/check-api-doc.sh",
-    "test:unit": "vitest run --project unit --project web",
+    "test:unit": "vitest run --project unit --project web --project deploy",
+    "test:deploy-image": "vitest run --project deploy-image",
     "test:int": "vitest run --project int",
     "test:contract": "vitest run --project contract",
     "test:affected": "vitest run --changed origin/main",
@@ -33,6 +34,7 @@
     "stylelint": "^17.16.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.1",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "yaml": "^2.9.1"
   }
 }

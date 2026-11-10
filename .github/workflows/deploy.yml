@@ -1,0 +1,380 @@
+# Выкатка prod и staging (OPERATIONS §9.2, §9.2а, §9.6; design E02 П11).
+# Только workflow_dispatch. В блоках run: нет выражений ${{ }} — входы, секреты и vars приходят через env: шага.
+# Скриптов репозитория на runner не запускает: команды на VPS — через SSH в deploy/remote/entry.sh (9.3).
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Среда"
+        type: choice
+        options: [staging, prod]
+        required: true
+      action:
+        description: "Действие"
+        type: choice
+        options: [deploy, rollback, down]
+        default: deploy
+      image:
+        description: "rollback: digest sha256:… (пусто — предыдущий образ)"
+        type: string
+        default: ""
+      force:
+        description: "prod deploy: выкатить, даже если идут партии (O38)"
+        type: boolean
+        default: false
+      bootstrap:
+        description: "prod deploy: первая выкатка или новый VPS, база не проверяется (O44)"
+        type: boolean
+        default: false
+
+run-name: ${{ inputs.env }} ${{ inputs.action }}
+
+concurrency:
+  group: deploy-${{ inputs.env }}
+
+permissions: {}
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      base: ${{ steps.base.outputs.base }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - id: validate
+        env:
+          IN_ENV: ${{ inputs.env }}
+          IN_ACTION: ${{ inputs.action }}
+          IN_IMAGE: ${{ inputs.image }}
+          IN_FORCE: ${{ inputs.force }}
+          IN_BOOTSTRAP: ${{ inputs.bootstrap }}
+          GIT_REF: ${{ github.ref }}
+        run: |
+          err() { echo "::error::$1"; exit 1; }
+          case "$IN_ENV" in prod|staging) ;; *) err "env: ожидается prod или staging" ;; esac
+          case "$IN_ACTION" in deploy|rollback|down) ;; *) err "action: ожидается deploy, rollback или down" ;; esac
+          [ "$IN_ENV:$IN_ACTION" != "prod:down" ] || err "prod + down: гасить можно только staging"
+          [ "$IN_ENV:$IN_ACTION" != "staging:rollback" ] || err "staging + rollback: откат есть только у prod"
+          if [ "$IN_ENV" = prod ] && [ "$GIT_REF" != refs/heads/main ]; then
+            err "prod выкатывается только с main (сейчас $GIT_REF)"
+          fi
+          if [ "$IN_FORCE" = true ] && { [ "$IN_ENV" != prod ] || [ "$IN_ACTION" != deploy ]; }; then
+            err "force=true — только для prod deploy"
+          fi
+          if [ "$IN_BOOTSTRAP" = true ] && { [ "$IN_ENV" != prod ] || [ "$IN_ACTION" != deploy ]; }; then
+            err "bootstrap=true — только для prod deploy"
+          fi
+          if [ -n "$IN_IMAGE" ]; then
+            [ "$IN_ACTION" = rollback ] || err "image — только для rollback"
+            [[ "$IN_IMAGE" =~ ^sha256:[0-9a-f]{64}$ ]] || err "image: ожидается sha256:<64 hex>"
+          fi
+          echo "ok: $IN_ENV $IN_ACTION"
+
+      - id: base
+        env:
+          IN_ENV: ${{ inputs.env }}
+          IN_ACTION: ${{ inputs.action }}
+          IN_BOOTSTRAP: ${{ inputs.bootstrap }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$IN_ENV" != prod ] || [ "$IN_ACTION" != deploy ]; then
+            echo "base=" >> "$GITHUB_OUTPUT"
+            echo "list_base=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          LAST="$(gh run list --workflow deploy.yml --branch main --event workflow_dispatch --json displayTitle,headSha,conclusion -L 200 \
+            | jq -r '[.[] | select(.displayTitle == "prod deploy" and .conclusion == "success")][0].headSha // empty')"
+          if [ "$IN_BOOTSTRAP" = true ]; then
+            echo "base=bootstrap" >> "$GITHUB_OUTPUT"
+            echo "list_base=$LAST" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$LAST" ]; then
+            echo "::error::успешного prod deploy в истории нет — нужен bootstrap=true (O44)"
+            exit 1
+          fi
+          echo "base=$LAST" >> "$GITHUB_OUTPUT"
+          echo "list_base=$LAST" >> "$GITHUB_OUTPUT"
+
+      - id: diff
+        env:
+          BASE: ${{ steps.base.outputs.base }}
+        run: |
+          [ -n "$BASE" ] || exit 0
+          {
+            if [ "$BASE" = bootstrap ]; then
+              echo "### Файлы deploy/ и .github/"
+              echo "bootstrap: проверка базы пропущена"
+              echo '```'
+              git ls-files deploy/ .github/
+              echo '```'
+            else
+              echo "### Изменения выкатки с $BASE"
+              echo '```'
+              git diff --stat "$BASE..HEAD" -- deploy/ scripts/ops/ .github/ apps/server/migrations/
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - id: prs
+        env:
+          BASE: ${{ steps.base.outputs.base }}
+          LIST_BASE: ${{ steps.base.outputs.list_base }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -n "$BASE" ] || exit 0
+          if [ -z "$LIST_BASE" ]; then
+            echo "bootstrap: список PR не строится" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if ! git cat-file -e "$LIST_BASE^{commit}" 2>/dev/null; then
+            echo "::error::коммита $LIST_BASE нет в истории main — список O45 не построить, сверка невозможна"
+            exit 1
+          fi
+          ROWS="$(mktemp)"
+          N=0
+          M=0
+          SEEN=" "
+          for C in $(git rev-list --first-parent --reverse "$LIST_BASE"..HEAD); do
+            PR=$(gh api "repos/$GITHUB_REPOSITORY/commits/$C/pulls" -q '[.[] | select(.merged_at != null)][0].number // empty')
+            if [ -n "$PR" ]; then
+              case "$SEEN" in *" $PR "*) continue ;; esac
+              SEEN="$SEEN$PR "
+              gh pr view "$PR" --json number,title,author,mergedBy,mergedAt,mergeCommit \
+                -q '"| #\(.number) | \(.title | gsub("[|<>`]"; "_")) | \(.author.login) | \(.mergedBy.login) | \(.mergedAt) | \(.mergeCommit.oid[0:7]) |"' >> "$ROWS"
+              N=$((N + 1))
+            else
+              echo "| — | **коммит вне PR** $(git log -1 --format='%h %an %cI %s' "$C" | tr '|<>`' '____') | | | | |" >> "$ROWS"
+              M=$((M + 1))
+            fi
+          done
+          {
+            echo "### PR и коммиты с $LIST_BASE (O45)"
+            if [ "$N" -eq 0 ] && [ "$M" -eq 0 ]; then
+              echo "новых коммитов нет"
+            else
+              echo "| PR | Заголовок | Автор | Смержил | Когда (UTC) | Коммит |"
+              echo "|---|---|---|---|---|---|"
+              cat "$ROWS"
+              echo ""
+              echo "PR: $N, коммитов вне PR: $M"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          rm -f "$ROWS"
+
+  build:
+    needs: plan
+    if: inputs.action == 'deploy'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      app_digest: ${{ steps.build.outputs.app_digest }}
+      tools_digest: ${{ steps.build.outputs.tools_digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: build
+        env:
+          IN_ENV: ${{ inputs.env }}
+          APP_VERSION: ${{ github.sha }}
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          OWNER="$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          image() { # <target> <пакет> <выход>
+            local meta="$RUNNER_TEMP/$1.json"
+            docker buildx build --push --metadata-file "$meta" \
+              -f deploy/Dockerfile --target "$1" \
+              --build-arg "APP_VERSION=$APP_VERSION" \
+              --label "org.opencontainers.image.revision=$APP_VERSION" \
+              --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              -t "ghcr.io/$OWNER/$2:sha-$APP_VERSION" .
+            local digest
+            digest="$(jq -r '."containerimage.digest"' "$meta")"
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "::error::нет digest у $2"; exit 1; }
+            echo "$3=$digest" >> "$GITHUB_OUTPUT"
+            echo "$2: $digest" >> "$GITHUB_STEP_SUMMARY"
+          }
+          if [ "$IN_ENV" = prod ]; then
+            image app chezz-app app_digest
+          else
+            image app chezz-app-staging app_digest
+            image tools chezz-tools-staging tools_digest
+          fi
+          docker logout ghcr.io
+
+  prod:
+    needs: [plan, build]
+    if: always() && needs.plan.result == 'success' && inputs.env == 'prod' && (needs.build.result == 'success' || needs.build.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: prod
+    permissions:
+      contents: read
+    steps:
+      - id: ssh
+        env:
+          IN_ACTION: ${{ inputs.action }}
+          IN_IMAGE: ${{ inputs.image }}
+          IN_FORCE: ${{ inputs.force }}
+          BASE: ${{ needs.plan.outputs.base }}
+          APP_DIGEST: ${{ needs.build.outputs.app_digest }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_HOST_KEY: ${{ vars.VPS_HOST_KEY }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          APP_ENV: prod
+          APP_ORIGIN: ${{ vars.APP_ORIGIN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+          APP_DOMAIN: ${{ vars.APP_DOMAIN }}
+          ACME_EMAIL: ${{ vars.ACME_EMAIL }}
+          SENTRY_INGEST: ${{ vars.SENTRY_INGEST }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          BACKUP_REQUIRE_OFFSITE: ${{ vars.BACKUP_REQUIRE_OFFSITE }}
+        run: |
+          umask 077
+          KEY="$RUNNER_TEMP/deploy_key"
+          KH="$RUNNER_TEMP/known_hosts"
+          trap 'rm -f "$KEY" "$KH"' EXIT
+          printf '%s\n' "$SSH_DEPLOY_KEY" > "$KEY"
+          printf '%s\n' "$VPS_HOST_KEY" > "$KH"
+          vps() { ssh -i "$KEY" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$KH" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 deploy@"$VPS_HOST" "$1"; }
+          if [ "$IN_ACTION" = deploy ]; then
+            CMD="deploy $GITHUB_SHA $APP_DIGEST $BASE"
+            [ "$IN_FORCE" != true ] || CMD="$CMD force"
+          else
+            CMD="rollback${IN_IMAGE:+ $IN_IMAGE}"
+          fi
+          echo "### VPS: $CMD" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          rc=0
+          if [ "$IN_ACTION" = deploy ]; then
+            for k in APP_ENV APP_ORIGIN DATABASE_URL POSTGRES_PASSWORD GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET COOKIE_SECRET SENTRY_DSN \
+              APP_DOMAIN ACME_EMAIL SENTRY_INGEST TELEGRAM_BOT_TOKEN TELEGRAM_CHAT_ID B2_KEY_ID B2_APP_KEY B2_BUCKET BACKUP_REQUIRE_OFFSITE; do
+              printf '%s=%s\n' "$k" "${!k-}"
+            done | vps "$CMD" | tee -a "$GITHUB_STEP_SUMMARY" || rc=$?
+          else
+            vps "$CMD" < /dev/null | tee -a "$GITHUB_STEP_SUMMARY" || rc=$?
+          fi
+          echo "--- status" >> "$GITHUB_STEP_SUMMARY"
+          vps status < /dev/null >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
+
+  staging:
+    needs: [plan, build]
+    if: always() && needs.plan.result == 'success' && inputs.env == 'staging' && (needs.build.result == 'success' || needs.build.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    environment: staging
+    permissions:
+      contents: read
+    steps:
+      # Шаг SSH — первым; после кода ветки SSH не вызывается (9.6 п.4, EC-40).
+      - id: ssh-up
+        if: inputs.action == 'deploy'
+        env:
+          APP_DIGEST: ${{ needs.build.outputs.app_digest }}
+          TOOLS_DIGEST: ${{ needs.build.outputs.tools_digest }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_HOST_KEY: ${{ vars.VPS_HOST_KEY }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          APP_ENV: staging
+          APP_ORIGIN: ${{ vars.APP_ORIGIN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          SEED_TOKEN_SECRET: ${{ secrets.SEED_TOKEN_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+          RATE_LIMIT_IP_PER_MIN: ${{ vars.RATE_LIMIT_IP_PER_MIN }}
+        run: |
+          umask 077
+          KEY="$RUNNER_TEMP/deploy_key"
+          KH="$RUNNER_TEMP/known_hosts"
+          trap 'rm -f "$KEY" "$KH"' EXIT
+          printf '%s\n' "$SSH_DEPLOY_KEY" > "$KEY"
+          printf '%s\n' "$VPS_HOST_KEY" > "$KH"
+          echo '### VPS: staging up' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          rc=0
+          for k in APP_ENV APP_ORIGIN DATABASE_URL POSTGRES_PASSWORD SEED_TOKEN_SECRET GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET \
+            COOKIE_SECRET SENTRY_DSN RATE_LIMIT_IP_PER_MIN; do
+            printf '%s=%s\n' "$k" "${!k-}"
+          done | ssh -i "$KEY" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$KH" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 \
+            deploy@"$VPS_HOST" "up $APP_DIGEST $TOOLS_DIGEST" | tee -a "$GITHUB_STEP_SUMMARY" || rc=$?
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
+
+      - id: checkout
+        if: inputs.action == 'deploy'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: node
+        if: inputs.action == 'deploy'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      - id: npm-ci
+        if: inputs.action == 'deploy'
+        run: npm ci
+
+      - id: browsers
+        if: inputs.action == 'deploy'
+        run: npx playwright install --with-deps chromium
+
+      - id: smoke
+        if: inputs.action == 'deploy'
+        env:
+          E2E_BASE_URL: ${{ vars.APP_ORIGIN }}
+          SEED_TOKEN_SECRET: ${{ secrets.SEED_TOKEN_SECRET }}
+        run: npm run test:e2e -- --grep @smoke --project=desktop
+
+      - id: ssh-down
+        if: inputs.action == 'down'
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_HOST_KEY: ${{ vars.VPS_HOST_KEY }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        run: |
+          umask 077
+          KEY="$RUNNER_TEMP/deploy_key"
+          KH="$RUNNER_TEMP/known_hosts"
+          trap 'rm -f "$KEY" "$KH"' EXIT
+          printf '%s\n' "$SSH_DEPLOY_KEY" > "$KEY"
+          printf '%s\n' "$VPS_HOST_KEY" > "$KH"
+          echo '### VPS: staging down' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          rc=0
+          ssh -i "$KEY" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$KH" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 \
+            deploy@"$VPS_HOST" down < /dev/null | tee -a "$GITHUB_STEP_SUMMARY" || rc=$?
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"

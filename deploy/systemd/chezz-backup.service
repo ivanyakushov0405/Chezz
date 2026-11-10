@@ -1,0 +1,9 @@
+[Unit]
+Description=Chezz daily database backup (OPERATIONS 14.1)
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+ExecStart=/usr/bin/flock -w 900 /srv/chezz/state/lock /srv/chezz/repo/deploy/remote/backup.sh --reason daily

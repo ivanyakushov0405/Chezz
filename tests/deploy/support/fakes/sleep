@@ -1,0 +1,3 @@
+. '@@LIB@@'
+printf '%s\n' "sleep $*" >> "$LOG"
+exit 0

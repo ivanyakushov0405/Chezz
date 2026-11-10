@@ -1,4 +1,4 @@
-# Dependabot (OPERATIONS §16.1 п.6, §8): обновления npm, actions (SHA) и базовых образов раз в неделю.
+# Dependabot (OPERATIONS §16.1 п.6, §8): обновления npm, actions (SHA), базовых образов Dockerfile и образов compose раз в неделю.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -12,6 +12,11 @@ updates:
       interval: weekly
 
   - package-ecosystem: docker
+    directory: /deploy
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker-compose
     directory: /deploy
     schedule:
       interval: weekly

@@ -8,9 +8,9 @@ import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 const TS = ["**/*.{ts,tsx,mts,cts}"];
-const VITEST_FILES = ["**/*.test.{ts,tsx}", "apps/server/test/**/*.ts"];
+const VITEST_FILES = ["**/*.test.{ts,tsx}", "apps/server/test/**/*.ts", "tests/deploy/**/*.ts"];
 const E2E_FILES = ["tests/e2e/**/*.{ts,tsx}"];
-// Единственное место, где разрешён it.skipIf — векторы вида C (TESTING §7.5).
+// it.skipIf разрешён в двух местах: векторы вида C (TESTING §7.5) и tests/deploy (только process.platform === "win32", TESTING §1, V24).
 const GLICKO_VECTORS = "apps/server/test/acceptance/glicko2-vectors.test.ts";
 
 const noInnerHtmlSyntax = [
@@ -105,6 +105,27 @@ export default defineConfig(
         {
           selector: "CallExpression[callee.object.name=/^(it|test|describe|suite)$/][callee.property.name=/^(only|skip|todo|runIf)$/]",
           message: "здесь разрешён только it.skipIf для вида C (TESTING §7.5).",
+        },
+      ],
+    },
+  },
+  {
+    files: ["tests/deploy/**/*.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...noInnerHtmlSyntax,
+        {
+          selector: "MemberExpression[object.name=/^(it|test|describe|suite)$/][property.name=/^(only|skip|todo|runIf)$/]",
+          message: ".only/.skip/.todo/.runIf запрещены (TESTING §1).",
+        },
+        {
+          selector: "MemberExpression[object.property.name='concurrent'][property.name=/^(only|skip|todo|runIf|skipIf)$/]",
+          message: ".only/.skip/.todo/.skipIf запрещены (TESTING §1).",
+        },
+        {
+          selector: "CallExpression[callee.object.name=/^(it|test|describe|suite)$/][callee.property.name='skipIf']:not([arguments.0.type='BinaryExpression'][arguments.0.operator='==='][arguments.0.left.object.name='process'][arguments.0.left.property.name='platform'][arguments.0.right.value='win32'])",
+          message: "здесь разрешён только skipIf(process.platform === \"win32\") (TESTING §1, V24).",
         },
       ],
     },

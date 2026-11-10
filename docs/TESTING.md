@@ -1,6 +1,6 @@
 # F6. Стратегия тестирования и Definition of Done
 
-Статус: утверждён Ivan 2026-11-05, версия 0.7 от 2026-11-10 (ждёт утверждения Ivan): процесс `/epic` по умолчанию — V24 (3.4), разделы 1, 4. Версия 0.6 от 2026-11-07: apply E03 (design E03 утверждён Ivan 2026-11-07) — 7.3, сигнатура `startApp` (`time?`, `sentry?`, `metricsUrl`, `analytics`, `sentryEvents()`); новых решений нет. Версия 0.5 от 2026-11-07: apply E01 (проект `web`), сверка E01 с реализацией — V1, разделы 6, 7.3, 9, 11, 12 (E01 v0.3, утверждено Ivan 2026-11-07); новых решений нет. Версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из OPERATIONS §23 п.10–11 и сверка 18.2 п.8 с OPERATIONS (решения V20–V22 в 3.3, ответ — `docs/setup/reviews/F6-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответы на ревью и решения человека — `docs/setup/reviews/F6-response-r1.md`, `docs/setup/reviews/F6-response-r2.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/OPERATIONS.md` v0.5 (утверждён 2026-11-05).
+Статус: утверждён Ivan 2026-11-05. Версия 0.8 от 2026-11-10 (ждёт утверждения Ivan): процесс `/epic` по умолчанию — V25 (3.4), разделы 1, 4. Версия 0.7 от 2026-11-08: apply E02 — 1, 5, 6, решение V25; ADR-0011. Версия 0.6 от 2026-11-07: apply E03 (design E03 утверждён Ivan 2026-11-07) — 7.3, сигнатура `startApp` (`time?`, `sentry?`, `metricsUrl`, `analytics`, `sentryEvents()`); новых решений нет. Версия 0.5 от 2026-11-07: apply E01 (проект `web`), сверка E01 с реализацией — V1, разделы 6, 7.3, 9, 11, 12 (E01 v0.3, утверждено Ivan 2026-11-07); новых решений нет. Версия 0.4 от 2026-11-05 — reopen этапа 1R (решение Ivan: F1–F6 одним заходом), точечные правки из OPERATIONS §23 п.10–11 и сверка 18.2 п.8 с OPERATIONS (решения V20–V22 в 3.3, ответ — `docs/setup/reviews/F6-reopen-response-r1.md`). Версия 0.3 утверждена Ivan 2026-11-04 (ответы на ревью и решения человека — `docs/setup/reviews/F6-response-r1.md`, `docs/setup/reviews/F6-response-r2.md`). Основа: `docs/TZ.md` v0.1, `docs/setup/BUSINESS.md`, `docs/GLOSSARY.md` v0.4, `docs/ARCHITECTURE.md` v0.5, `docs/SECURITY.md` v0.4, `docs/API_CONVENTIONS.md` v0.4, `docs/DESIGN_SYSTEM.md` v0.4 (reopen 1R, утверждены Ivan вместе с этой версией 2026-11-05), `docs/OPERATIONS.md` v0.5 (утверждён 2026-11-05).
 Утверждает: Ivan (BUSINESS D9).
 
 Как читать: агент открывает только нужный раздел. 1 — правила, 2 — исходные цифры, 3 — решения (3.1 раннеры, владельцы, инфраструктура; 3.2 e2e, нагрузка, CI, приёмка; 3.3 решения reopen 1R; 3.4 процесс `/epic`), 4 — кто какие тесты пишет, 5 — уровни и места, 6 — команды, 7 — тестовая инфраструктура (7.1 PostgreSQL, 7.2 управляемое время, 7.3 запуск `app` и вход, 7.4 фикстуры шахмат, 7.5 векторы Glicko-2, 7.6 сид), 8 — критерии приёмки ТЗ §7 → тесты, 9 — e2e, 10 — нагрузочный тест, 11 — сводка проверок F2–F5, 12 — что в задаче и что в CI, 13 — DoD задачи, 14 — DoD фичи, 15 — падения и нестабильные тесты, 16 — чего не делаем, 17 — план роста, 18 — открытые вопросы и правки для reopen. Номера: решения `V#`, вопросы `F6-Qn`; ссылки — `ARCHITECTURE A#` / `§N`, `SECURITY S#` / `§N`, `API P#` / `§N`, `DESIGN U#` / `§N`, `GLOSSARY G#`.
@@ -14,14 +14,14 @@
 ## 1. Правила для агентов
 
 - MUST: каждый AC задачи покрыт хотя бы одним тестом, номер AC — в начале имени теста: `it("AC-3: повтор game.move с тем же ply → ply_mismatch, второго хода нет")`. Каждая строка edge cases задачи — отдельный тест с её номером `EC-n` (номер строки в таблице edge cases `requirements.md` или `design.md`): `it("EC-2: принятие вызова в момент истечения 30 мин → challenge_expired")`. Тест на AC и строку сразу — оба номера: `"AC-3 EC-2: …"`. reviewer сверяет списки AC и EC с именами тестов (`grep -rn "AC-\|EC-"`).
-- MUST: тесты пишет автор кода в том же шаге (раздел 4, режим `/epic`, V24). В областях слепых тестов — фикстуры `packages/chess`, векторы Glicko-2, схемы и снимок `packages/protocol` — tester пишет тесты до кода и не читает реализацию; автор кода их не правит, спор решает Ivan (в `/feature` — arbiter). В `/epic` номер в имени теста — критерий брифа: `"К-3: …"`, `"К-3 E-2: …"`.
+- MUST: тесты пишет автор кода в том же шаге (раздел 4, режим `/epic`, V25). В областях слепых тестов — фикстуры `packages/chess`, векторы Glicko-2, схемы и снимок `packages/protocol` — tester пишет тесты до кода и не читает реализацию; автор кода их не правит, спор решает Ivan (в `/feature` — arbiter). В `/epic` номер в имени теста — критерий брифа: `"К-3: …"`, `"К-3 E-2: …"`.
 - MUST: тест лежит в папке своего уровня (раздел 5); новый уровень или папка — только правкой этого документа.
 - MUST: работа с БД в тестах — реальная PostgreSQL в Docker (7.1). MUST NOT: моки `repo`, Kysely или `pg` в интеграционных и contract-тестах.
 - MUST: время в тестах сервера — через `ManualTimeSource` (7.2). MUST NOT: ждать реальное время ради таймеров партии (флаг, 30 с первого хода, 60 с переподключения, окно выбора 30 с).
 - MUST NOT: флаги и режимы в коде `app` только для тестов — тестовый вход, ускорение часов, отключение проверок (SECURITY §4, S26). Тест управляет `app` только через параметры `buildApp` (7.3) и сид (7.6).
-- MUST NOT: `.only`, `.skip`, `.todo` и `test.fixme` в ветке на PR — ловит ESLint (раздел 11). Единственное исключение — `it.skipIf` для векторов вида C в `glicko2-vectors.test.ts` (7.5).
+- MUST NOT: `.only`, `.skip`, `.todo` и `test.fixme` в ветке на PR — ловит ESLint (раздел 11). Исключения — `it.skipIf` для векторов вида C в `glicko2-vectors.test.ts` (7.5) и `it.skipIf(process.platform === "win32")` для проверок прав файлов в `tests/deploy/` (V24; их выполняет CI).
 - MUST NOT: тесты, зависящие от порядка запуска или от данных другого теста; каждый файл готовит свои данные фабриками (7.6).
-- MUST NOT: сеть наружу в тестах (Google, Sentry, npm). Google в тестах не вызывается (7.3).
+- MUST NOT: сеть наружу в тестах (Google, Sentry, npm). Google в тестах не вызывается (7.3). Исключение — проект `deploy-image` (`docker build`, базовые образы; V24).
 - MUST: падение теста, которое не повторилось, — не «перезапустить и забыть»: раздел 15.
 
 ## 2. Исходные цифры
@@ -70,6 +70,7 @@
 | V17 | Настоящий вход через Google проверяет Ivan вручную на staging по smoke-списку (F7); для приёмки этапа 5 этого достаточно, как и ручного Lighthouse для первой отрисовки (раздел 8) | SECURITY S1, S33; человек, утверждение F6, 2026-11-04 (F6-Q4) | Автотест входа в Google — нужен тестовый аккаунт Google и обход капчи; ломается от изменений Google |
 | V18 | Репозиторий публичный: лимита минут CI нет; расчётов под лимит нет, остаются таймауты job | человек, утверждение F6, 2026-11-04 (F6-Q1). Публичным становится весь репозиторий (бэкенд, `deploy/`, `docs/`, `.claude/`), а не только фронтенд по DESIGN U33; последствия для секретов и форков F3 и F7 не учитывали — проверить при reopen F3 и при создании F7 (18.2 п.8, п.10) | — |
 | V19 | Обязательные статус-проверки для мержа в `main` — `check` и `e2e`; `e2e` при изменениях только `docs/**` пропускается условием `if` шага внутри job, и job завершается успехом (раздел 12) | ревью r1 (consistency-4, consistency-7); по умолчанию | Фильтр `paths` на workflow — проще, но обязательная проверка висит «ожидается» и PR документов не смержить |
+| V24 | Тесты инфраструктуры выкатки — уровень `deploy` в `tests/deploy/` (tester): проекты Vitest `deploy` (разбор файлов, скрипты VPS с подменой команд через `PATH`; входит в `test:unit`) и `deploy-image` (Docker-демон, сеть; `npm run test:deploy-image`, не в CI) | design E02 (A1); ADR-0011 | Только ручные проверки devops — AC без тестов (раздел 1); bats — ещё раннер |
 
 ### 3.3. Решения reopen 1R (2026-11-05)
 
@@ -84,11 +85,11 @@
 
 | № | Решение | Источник | Альтернатива и почему не она |
 |---|---|---|---|
-| V24 | Режим по умолчанию — `/epic`: все уровни тестов пишет автор кода в том же шаге; tester до кода — только области слепых тестов (фикстуры шахмат, векторы Glicko-2, `packages/protocol`); одно ревью на эпик. Меняет V2 для режима `/epic`; `/feature` — как прежде (раздел 4) | Ivan, 2026-11-10 (разбор E03: 805 строк кода, 2 690 строк тестов, 10,5 млн токенов, одна настоящая ошибка на ревью); `docs/PIPELINE_DECISIONS.md` §13 | V2 везде — независимость тестов, но на эпиках без внешнего эталона она дублирует тесты автора и тратит в 5 раз больше времени. Независимость оставлена там, где правду задаёт ТЗ или эталон |
+| V25 | Режим по умолчанию — `/epic`: все уровни тестов пишет автор кода в том же шаге; tester до кода — только области слепых тестов (фикстуры шахмат, векторы Glicko-2, `packages/protocol`); одно ревью на эпик. Меняет V2 для режима `/epic`; `/feature` — как прежде (раздел 4) | Ivan, 2026-11-10 (разбор E03: 805 строк кода, 2 690 строк тестов, 10,5 млн токенов, одна настоящая ошибка на ревью); `docs/PIPELINE_DECISIONS.md` §13 | V2 везде — независимость тестов, но на эпиках без внешнего эталона она дублирует тесты автора и тратит в 5 раз больше времени. Независимость оставлена там, где правду задаёт ТЗ или эталон |
 
 ## 4. Кто какие тесты пишет
 
-**Режим `/epic` (по умолчанию, V24).** Все уровни раздела 5 — unit, int, contract, acceptance, e2e — пишет автор кода в том же шаге. tester до кода — только области слепых тестов: фикстуры `packages/chess`, векторы Glicko-2, схемы и снимок `packages/protocol`; для них действуют таблица ниже и «Шаг tester до кода». Владелец «tester» в разделах 5, 11, 12, 13 вне этих областей читается как «автор кода»; AC-n / EC-n — как критерии брифа К-n / E-n. reviewer — одно ревью на эпик (`.claude/agents/reviewer.md`, режим «эпик»). Таблица ниже целиком — режим `/feature`.
+**Режим `/epic` (по умолчанию, V25).** Все уровни раздела 5 — unit, int, contract, acceptance, e2e — пишет автор кода в том же шаге. tester до кода — только области слепых тестов: фикстуры `packages/chess`, векторы Glicko-2, схемы и снимок `packages/protocol`; для них действуют таблица ниже и «Шаг tester до кода». Владелец «tester» в разделах 5, 11, 12, 13 вне этих областей читается как «автор кода»; AC-n / EC-n — как критерии брифа К-n / E-n. reviewer — одно ревью на эпик (`.claude/agents/reviewer.md`, режим «эпик»). Таблица ниже целиком — режим `/feature`.
 
 | Роль | Пишет | Когда | Не делает |
 |---|---|---|---|
@@ -122,6 +123,7 @@
 | фикстуры | правила шахмат ТЗ §7 через публичный API `packages/chess` | данные `fixtures/chess/`, `fixtures/glicko2/`; прогон `packages/chess/test/` | `*.json`, `*.test.ts` | tester | `unit` |
 | e2e | сценарии игрока в браузере: два игрока, 360 px, RU/EN | `tests/e2e/` | `*.spec.ts`; утилиты — `tests/e2e/support/` | tester | Playwright |
 | нагрузка | 150 онлайн, 75 партий, p95 ≤ 150 мс | `tests/load/` | `run.ts`, `games/*.pgn` | tester | Node.js + `ws` |
+| инфраструктура выкатки | `deploy/**`, `.dockerignore`, `.github/workflows/{deploy,load}.yml`: разбор, скрипты VPS с подменой команд, сборка образа | `tests/deploy/`; утилиты — `tests/deploy/support/` | `*.test.ts` | tester | `deploy`; `deploy-image` (V24) |
 | статика | типы, линтеры, границы модулей, сверка документов с кодом | конфиги в корне, `scripts/` | — | developer зоны (раздел 11) | `npm run check` |
 
 - Зона `tests` (для `zones.conf`, F8): `apps/server/test/contract/**`, `apps/server/test/acceptance/**`, `packages/chess/test/**`, `fixtures/**`, `tests/**`. Зоны разработчиков — `deny` на эти пути.
@@ -138,7 +140,8 @@
 |---|---|---|
 | `npm run db:test:up` | `docker compose -f deploy/compose.test.yml up -d --wait` — PostgreSQL для тестов (7.1) | Docker запущен |
 | `npm run check` | `tsc -b` + ESLint + Stylelint + `dependency-cruiser` + `scripts/check-architecture.sh` + `scripts/check-api-doc.sh` | — |
-| `npm run test:unit` | `vitest run --project unit --project web` | — |
+| `npm run test:unit` | `vitest run --project unit --project web --project deploy` | — |
+| `npm run test:deploy-image` | `vitest run --project deploy-image` — сборка образа, `caddy validate`, `shellcheck` (V24) | Docker запущен, `db:test:up` |
 | `npm run test:int` | `vitest run --project int` | `db:test:up` |
 | `npm run test:contract` | `vitest run --project contract` | `db:test:up` |
 | `npm run test:affected` | `vitest run --changed origin/main` — затронутое и потребители во всех проектах (`unit`, `web`, `int`, `contract`) | `db:test:up`; `git fetch origin main` |
@@ -154,6 +157,7 @@
 - `npx playwright test -c tests/e2e/playwright.config.ts tests/e2e/challenge-link.spec.ts --project=desktop`
 
 - Проекты Vitest — в корневом `vitest.config.ts` (`test.projects`): `unit` — `**/src/**/*.test.{ts,tsx}` без `*.int.test.ts`, `packages/*/test/**`, `apps/server/test/acceptance/**`; `web` — `apps/web/src/**/*.test.{ts,tsx}`, окружение jsdom (в `unit` их нет). Тест `apps/web`, которому нужен `node:fs` (чтение `tokens.css`, `favicon.svg`), — в проекте `web` с `// @vitest-environment node` в первой строке; `int` — `apps/server/src/**/*.int.test.ts`; `contract` — `apps/server/test/contract/**`. Для `int` и `contract` — `globalSetup` из 7.1, `pool: "forks"`, не больше 2 воркеров.
+- `deploy` — `tests/deploy/**/*.test.ts` без `*.image.test.ts`, нужны `bash` (Windows — Git Bash, путь `CHEZZ_BASH`), `git`, `jq`, Docker CLI; `deploy-image` — `tests/deploy/**/*.image.test.ts`. Изменения `*.sh`, `*.yml`, `Dockerfile` `test:affected` не видит — прогон задач зоны devops: `npx vitest run --project deploy`.
 - Node.js 24 LTS (раздел 2): `node file.ts` работает без сборки; версия закреплена в `.nvmrc` и `engines` корневого `package.json`.
 - Ivan работает в Windows: команды выполняются из Git Bash (там же `scripts/*.sh`), Docker — Docker Desktop. CI — `ubuntu-latest`.
 - Соответствие для профиля F8 (шаблон tester): команда прогона затронутого — `npm run test:affected`; инфраструктура — `npm run db:test:up`; пример имени теста — из раздела 1.

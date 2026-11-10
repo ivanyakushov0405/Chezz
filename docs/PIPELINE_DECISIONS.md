@@ -70,8 +70,8 @@
 | smoke-staging | `conclusion` того же run (шаг `@smoke` в job `staging`) | OPERATIONS §9.6 п.3 |
 | rollback-staging | `… -f env=staging -f action=down` | OPERATIONS §10, §9.6 (staging не откатывают — гасят) |
 | deploy-prod | `gh workflow run deploy.yml --ref main -f env=prod` | OPERATIONS §10, §9.1 шаг 5 |
-| smoke-prod | `result=` того же run | OPERATIONS §9.4 п.8, §9.3 |
-| post-deploy-check | `conclusion` того же run (проверка 60 с, 9.4 п.8 г); дальше — алерты `watch.sh` | OPERATIONS §9.4, §12.3, §13 |
+| smoke-prod | `result=` того же run | OPERATIONS §9.4 п.11, §9.3 |
+| post-deploy-check | `conclusion` того же run (проверка 60 с, 9.4 п.11 г); дальше — алерты `watch.sh` | OPERATIONS §9.4, §12.3, §13 |
 | rollback-prod | `… -f env=prod -f action=rollback` | OPERATIONS §10, §9.5 |
 | load-staging | `gh workflow run load.yml --ref "$REF"` | OPERATIONS §10, §11 |
 
@@ -297,10 +297,10 @@ claude
 | 2 | requirements.md + design.md + ⛔ на каждый | один бриф (`docs/process/brief-template.md`) и одна ⛔ |
 | 3 | окна зон `check-zone.sh` на каждую задачу | охрана автоматическая: `check`, CI, хук `guard.sh` (секреты, защищённые пути) |
 | 4 | ревью каждой задачи, opus | одно ревью всего diff эпика (reviewer, режим «эпик»); opus — только `Риск: high` (профиль, «Режим работы») |
-| 5 | tester пишет все тесты до кода | автор кода пишет тесты в том же шаге; слепые тесты tester — только фикстуры шахмат, векторы Glicko-2, `packages/protocol` (TESTING V24) |
+| 5 | tester пишет все тесты до кода | автор кода пишет тесты в том же шаге; слепые тесты tester — только фикстуры шахмат, векторы Glicko-2, `packages/protocol` (TESTING V25) |
 | 6 | ⛔ на каждом этапе, Jira-задачи на каждый T-N | две точки ⛔ — бриф и PR; в Jira — только эпик |
 
-Файлы: `docs/process/epic.md` (команда), `docs/process/brief-template.md`, `CLAUDE.md`, `.claude/profile.md` («Режим работы», «Трекер», «Модели»), `.claude/agents/reviewer.md` (режим «эпик», sonnet), `docs/TESTING.md` (V24, §1, §4). Установка — Ivan копирует `docs/process/epic.md` в `.claude/commands/epic.md` (защищённый путь).
+Файлы: `docs/process/epic.md` (команда), `docs/process/brief-template.md`, `CLAUDE.md`, `.claude/profile.md` («Режим работы», «Трекер», «Модели»), `.claude/agents/reviewer.md` (режим «эпик», sonnet), `docs/TESTING.md` (V25, §1, §4). Установка — Ivan копирует `docs/process/epic.md` в `.claude/commands/epic.md` (защищённый путь).
 
 `/feature` остаётся — по решению Ivan (сложный эпик, новый экран с designer, спорная архитектура).
 

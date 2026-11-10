@@ -1,0 +1,18 @@
+. '@@LIB@@'
+printf '%s\n' "flock $*" >> "$LOG"
+tamper
+lockfile=""; cmd=""; busy_code=1
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -w|--wait|--timeout) shift 2 ;;
+    -E|--conflict-exit-code) busy_code="$2"; shift 2 ;;
+    -c|--command) cmd="$2"; shift 2 ;;
+    --) shift; break ;;
+    -*) shift ;;
+    *) if [ -z "$lockfile" ]; then lockfile="$1"; shift; else break; fi ;;
+  esac
+done
+has lock_busy && exit "$busy_code"
+[ -n "$cmd" ] && exec bash -c "$cmd"
+[ $# -gt 0 ] && exec "$@"
+exit 0
