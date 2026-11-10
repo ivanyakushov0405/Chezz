@@ -137,7 +137,7 @@
 | Начертание и интервал | `--font-weight-regular 400`, `--font-weight-strong 600`, `--font-line-height 1.4` (U41) |
 | Слои | `--z-header 10`, `--z-dialog 100`, `--z-toast 200` |
 | Линии | `--border-width 1px`, `--focus-width 2px` |
-| Размеры раскладки | `--layout-container-max 1200px`, `--layout-board-max 640px`, `--layout-side-panel 320px`, `--layout-header-height 48px`, `--layout-clock-height 48px`, `--layout-touch-target 44px`, `--layout-logo-mark 28px` (размер знака `Logo`, U31) |
+| Размеры раскладки | `--layout-container-max 1200px`, `--layout-board-max 640px`, `--layout-side-panel 320px`, `--layout-header-height 48px`, `--layout-clock-height 48px`, `--layout-touch-target 44px`, `--layout-logo-mark 28px` (размер знака `Logo`, U31), `--layout-control-icon 1.25rem` (квадрат `Checkbox`, иконка `IconButton`), `--layout-form-max 25rem` (ширина формы, `welcome`), `--layout-text-max 45rem` (колонка текста, `legal`) |
 | Тени | `--shadow-m: 0 1px 3px rgb(0 0 0 / 0.12), 0 4px 12px rgb(0 0 0 / 0.08)` (в тёмной теме — `none`, выделение даёт `--color-surface-raised`) |
 | Длительности | `--duration-fast 120ms`, `--duration-move 200ms` (анимация хода; 0 при `prefers-reduced-motion`) |
 
@@ -225,7 +225,7 @@ Props — минимальный обязательный набор; остал
 |---|---|---|
 | `Button` | `variant: "primary" \| "secondary" \| "danger" \| "ghost"`, `size: "m" \| "l"`, `loading?`, `disabled?` | `loading` блокирует повторный клик |
 | `IconButton` | `icon`, `label` (обязателен, идёт в `aria-label`), `variant?` | — |
-| `TextField`, `Checkbox`, `Switch`, `Select` | `label`, `value`, `onChange`, `error?: string` (ключ перевода); `Select` — `options: {value, label}[]` | подпись — `<label>`; ошибка — текст под полем, `aria-describedby` |
+| `TextField`, `Checkbox`, `Switch`, `Select` | `label`, `value`, `onChange`, `hint?: string`, `error?: string` (ключи перевода); `Select` — `options: {value, label}[]` | подпись — `<label>`; подсказка и ошибка — текст под полем (ошибка над подсказкой, подсказка не пропадает), оба в `aria-describedby` |
 | `SegmentedControl` | `options`, `value`, `onChange`, `label` | выбор из 2–4 (рейтинговая / товарищеская; белые / случайно / чёрные) |
 | `Tabs` | `items: {id, label}[]`, `value`, `onChange` | клавиши ← → |
 | `Dialog` | `open`, `onClose?` (нет — Esc не закрывает), `title`, `children` | на `<dialog>`; фокус внутри и возврат после закрытия |
@@ -235,6 +235,7 @@ Props — минимальный обязательный набор; остал
 | `Spinner`, `Skeleton` | `Skeleton`: `shape: "line" \| "row" \| "card"`, `count?` | раздел 10.1 |
 | `AsyncState` | `state: {status: "loading"} \| {status: "error", code} \| {status: "not_found"} \| {status: "ready", data}`; `isEmpty(data)`; `empty: ReactNode`; `children(data)`; `onRetry` | все props обязательны — TS не даст пропустить ветку (раздел 17) |
 | `Avatar` | `url: string \| null`, `size: "s" \| "m" \| "l"` | `url` только с `https://lh3.googleusercontent.com/`, иначе заглушка (SECURITY §10) |
+| `Menu` | `label` (в `aria-label` кнопки), `trigger: ReactNode`, `items: {id, label, onSelect, loading?}[]` | кнопка `aria-haspopup="menu"`, список `role="menu"`; ↑ ↓ Home End, Esc и клик вне закрывают, фокус возвращается на кнопку; фон `--color-surface`, рамка `--color-border`, `--radius-m`, `--shadow-m`, пункты — вид `Button ghost` |
 | `RatingBadge` | `rating`, `provisional`, `change?` | `1500?`; изменение `+12` зелёным / `−9` красным, всегда со знаком |
 | `TimeControlLabel` | `time_base`, `time_increment`, `withCategory?` | `3+2 · блиц` |
 | `Badge` | `label` | «Бета» в шапке (ТЗ §4.12) |
