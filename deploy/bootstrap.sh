@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Первичная настройка VPS (OPERATIONS §5; design E02 A7, П10). Запускает Ivan один раз от root:
 #   ssh root@<ip> 'bash -s -- --repo-url <url> --ops-key "<ключ>" --ci-prod-key "<ключ>" \
-#     --ci-staging-key "<ключ>" --ops-password-hash "<openssl passwd -6>"' < deploy/bootstrap.sh
+#     --ci-staging-key "<ключ>" --ops-password-hash '\''<openssl passwd -6>'\''' < deploy/bootstrap.sh
+# Хэш — в '\''…'\'' (одинарные кавычки на VPS): в двойных оболочка root раскрыла бы $6 и соль.
 # Идемпотентен: повторный запуск не дублирует строки, не трогает клон, env-файлы и ключи ops;
 # authorized_keys deploy пересобирается из двух строк. Неверный аргумент — код 2 без изменений.
 # BOOTSTRAP_ROOT — префикс путей файлов (только тесты, ADR-0011 п.4); на VPS пуст.
@@ -82,7 +83,7 @@ install_packages() {
     "$arch" "$codename" | write_file "$R/etc/apt/sources.list.d/docker.list" 644
   apt-get update -y
   apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
-    age rclone curl jq git unattended-upgrades
+    age rclone curl jq git ufw unattended-upgrades
 }
 
 configure_docker_journald() {

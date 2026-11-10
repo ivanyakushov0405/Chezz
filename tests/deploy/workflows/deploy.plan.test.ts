@@ -365,6 +365,14 @@ describe("deploy.yml plan.prs (O45)", () => {
     expect(r.summary.trimEnd().split(/\r?\n/).at(-1)).toBe("PR: 1, коммитов вне PR: 0");
   });
 
+  it("К-55 EC-3: коммита LIST_BASE нет в клоне — plan падает, а не пишет «новых коммитов нет»", async () => {
+    const s = await scenario();
+    const r = await run("prs", { BASE: "bootstrap", LIST_BASE: "f".repeat(40) }, s, hist.repo);
+    expect(r.code).not.toBe(0);
+    expect(r.stdout + r.stderr).toMatch(/::error::/);
+    expect(r.summary).not.toContain("новых коммитов нет");
+  });
+
   it("К-54: BASE пустой (staging, rollback) — список не строится", async () => {
     const s = await scenario();
     const r = await run("prs", { BASE: "", LIST_BASE: "" }, s, hist.repo);

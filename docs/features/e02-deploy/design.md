@@ -63,7 +63,7 @@ ssh root@<ip> 'bash -s -- \
   --ops-key "ssh-ed25519 AAAA… ivan" \
   --ci-prod-key "ssh-ed25519 AAAA… ci-prod" \
   --ci-staging-key "ssh-ed25519 AAAA… ci-staging" \
-  --ops-password-hash "$6$…"' < deploy/bootstrap.sh
+  --ops-password-hash '\''$6$…'\''' < deploy/bootstrap.sh
 ```
 Ключи — открытые (не секрет), в репозиторий не попадают. Формат проверяется: `^ssh-ed25519 [A-Za-z0-9+/]+={0,3}( [A-Za-z0-9._@-]+)?$`; `--repo-url` — `^https://github\.com/[A-Za-z0-9-]+/[A-Za-z0-9._-]+\.git$`; хэш — `^\$6\$`. Неверный аргумент или его нет → код 2, система не меняется. Хэш пароля для `sudo` у `ops` — `openssl passwd -6` на машине Ivan. Клон: `git clone --branch main` в `/srv/chezz/repo`; при повторном запуске существующий клон не трогается. Дальше клон переключает только `prod deploy` (O9).
 

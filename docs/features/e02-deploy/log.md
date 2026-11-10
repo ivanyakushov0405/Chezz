@@ -55,3 +55,4 @@
 - 2026-11-10 18:12: бриф остатка (brief.md) утверждён Ivan («Да»): шаги T-4, T-5, хвосты документов; GHCR — вариант (а); .github/** коммитит Ivan.
 - 2026-11-10 18:19: шаг 1 (T-4): bootstrap.sh, 4 юнита systemd; deploy 306 + 11 skip, affected 641, check зелёный.
 - 2026-11-10 22:54: шаг 2 (T-5): deploy.yml, load.yml, dependabot docker-compose (не закоммичены — Ivan); тесты workflows 77 (plan выполняется дословно с подменой gh/jq, build и SSH — с подменой docker/ssh); тесты нашли невалидный YAML в load.yml (`run: echo "ok: …"`) — исправлено; deploy 383 + 11 skip, affected 718, check и check-workflows зелёные.
+- 2026-11-10: ревью эпика (opus): 1 блокер — кавычки хэша в команде запуска bootstrap (комментарий, design A7, OPERATIONS §5); исправлено в скрипте и design, OPERATIONS §5 — ⛔ Ivan. Сделано из «желательно»: проверка LIST_BASE в клоне (+тест), ssh IdentitiesOnly/ConnectTimeout/ServerAliveInterval, ufw в apt-get.
