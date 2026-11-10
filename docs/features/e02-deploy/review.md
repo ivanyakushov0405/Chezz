@@ -99,3 +99,7 @@ k = 4 > 3. Выбор Ivan (2026-11-08): (1) подсказка и ещё 2 ра
 ### Позже
 - Job `staging`: код ветки (`npm ci`, smoke) работает на том же runner после шага с `SSH_DEPLOY_KEY` staging. Секреты job остаются в памяти `Runner.Worker` и с `sudo` на runner читаются (так было при инциденте tj-actions). «Секрет на уровне шага» — не барьер против кода ветки. Это внутри принятого риска SECURITY §17 (секреты staging ничего не дают для prod, ключ ограничен `command=` staging), поэтому не блокер. Если риск будут пересматривать (этап 5), разнести SSH и smoke по разным job → architect-apply.
 - Из брифа: shellcheck для `bootstrap.sh`, `docker build` в `ci.yml`, таймауты docker в `image.image.test.ts`, `db` получает весь `prod.env`, `groupOrder: 3` и `deploy-image` в TESTING §6.
+
+## Ревью эпика — итерация 2 (блокер)
+Вердикт: APPROVE. Блокер закрыт: в `deploy/bootstrap.sh:3-5` и `design.md:66` (A7) хэш передаётся в `'\''…'\''`; симуляция `bash -c` отдаёт хэш `$6$…` целиком. Из «желательно» сделаны три пункта: проверка `git cat-file -e` перед циклом O45 (`deploy.yml:141`, с тестом), опции `ssh` в обоих workflow, `ufw` в `apt-get install`. Тесты deploy.plan и bootstrap: 92 прошли, 2 пропущены.
+- Осталось для правки OPERATIONS §5 (её утверждает Ivan): в `design.md:238` предлагаемый для неё текст по-прежнему содержит `--ops-password-hash "<openssl passwd -6>"`. Заменить его на тот же вариант с `'\''…'\''`.
