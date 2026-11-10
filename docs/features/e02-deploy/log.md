@@ -7,7 +7,7 @@
 - Ограничения: срок — не задан; лимит вызовов — 35 (профиль, M); макеты — не нужны
 - Этап 0: документы на месте; E01 (PR #3) и E03 (PR #9) смержены; infra-up — зелёный
 
-## Вызовы агентов (17/35)
+## Вызовы агентов (22/35)
 | # | Агент | Модель | Этап | Итог |
 |---|---|---|---|---|
 | 1 | analyst | opus | требования | 64 AC, 42 EC, 10 рисков; 5 вопросов Ivan, 10 — architect (A1–A10); блокеров нет; зона OK |
@@ -41,3 +41,11 @@
 - 2026-11-10: Ivan закоммитил ce50358 (правила экономии токенов в /feature, модели в профиле) — действуют с T-3.
 | 16 | tester | opus | T-3 режим 1, правка | вызовы по ключевым словам П2 (лишние флаги допустимы); flock через fd — путь проверяется только в форме с путём; 184 теста; lint/tsc OK; зона OK |
 | 17 | architect | opus | сверка design | A9, П9 (заглушка chezz.invalid, удалено из образа), T-1 (groupOrder 3, tests/deploy — tester, ESLint skipIf); хвост OPERATIONS §6.1 — на приёмке; зона OK |
+| 18 | devops | opus | T-3 код, раунд 1 | deploy/remote/{entry,deploy,backup,staging-ttl,lib}.sh; deploy 226/226 (8 skip), deploy-image 15/15, bash -n, check зелёный; 4 отступления (allowlist целевого коммита, prod.image.prev при restore, staging.started при down, result=broken по умолчанию); бит x — git add --chmod=+x; зона OK (.claude/* — правки Ivan в рабочем дереве) |
+- T-3 прогон (оркестратор): deploy 226 + 8 skip, bash -n, check зелёный, tester-untouched пусто.
+- Риск к T-4: compose без env/prod.env падает «env file not found» — bootstrap.sh не должен на это полагаться.
+| 19 | reviewer | sonnet | T-3 ревью, итерация 1 | CHANGES_REQUESTED: 3 блокера (restore_prev на устаревший prod.repo.prev при провале шага 6; журнал обнуляется до flock; пустые файлы compose-окружения не пересоздаются, OPERATIONS §5); отступления 1–4 приняты; зона OK |
+| 20 | devops | opus | T-3 раунд 2 | CLONE_SWITCHED (клон только после шага 7), журнал под flock + trap EXIT, ensure_compose_env_files; deploy 226 + 8 skip, deploy-image 15/15, check зелёный; блокеры 1, 3 без тестов → tester; зона OK |
+| 21 | tester | opus | T-3 режим 1, добавка | 4 теста (провал шага 6 — клон не трогается; пересоздание compose-файлов deploy/down; права 640), подмена docker падает на нет --env-file; deploy 229 + 9 skip на коде раунда 2; зона OK |
+| 22 | reviewer | sonnet | T-3 ревью, итерация 2 | APPROVE; блокеры 1–3 закрыты; trap EXIT не ломает коды и не пишет второй result=; зона OK |
+- T-3 [infra] готова, раундов: 2, вызовов: 22/35
