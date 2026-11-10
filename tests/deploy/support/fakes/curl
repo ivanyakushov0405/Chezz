@@ -1,0 +1,48 @@
+. '@@LIB@@'
+printf '%s\n' "curl $*" >> "$LOG"
+tamper
+a=" $* "
+case "$a" in
+  *":9465/metrics"*)
+    running app-staging || exit 7
+    cfg staging_metrics ''
+    exit 0
+    ;;
+  *"/metrics"*)
+    has metrics_down && exit 7
+    running app || exit 7
+    v="$(cur)"
+    if [ -n "$v" ] && ! bad metrics; then printf 'app_info{version="%s"} 1\n' "$v"; fi
+    cfg metrics_extra ''
+    echo
+    exit 0
+    ;;
+  *"/api/health"*)
+    running app || exit 7
+    bad health && exit 22
+    if bad health2; then
+      n=$(( $(cfg health_calls 0) + 1 ))
+      printf '%s' "$n" > "$CFG/health_calls"
+      [ "$n" -ge 2 ] && exit 22
+    fi
+    H="HTTP/2 200"$'\r\n'
+    bad hsts || H+="strict-transport-security: max-age=31536000; includeSubDomains"$'\r\n'
+    bad csp || H+="content-security-policy: default-src 'self'"$'\r\n'
+    H+="content-type: application/json"$'\r\n'$'\r\n'
+    B='{"status":"ok"}'
+    hd=""; out=""; inc=0; prev=""
+    for x in "$@"; do
+      case "$prev" in -D|--dump-header) hd="$x" ;; -o|--output) out="$x" ;; esac
+      case "$x" in -i|--include) inc=1 ;; --dump-header=*) hd="${x#*=}" ;; --output=*) out="${x#*=}" ;; esac
+      prev="$x"
+    done
+    if [ -n "$hd" ]; then
+      if [ "$hd" = "-" ]; then printf '%s' "$H"; else printf '%s' "$H" > "$hd"; fi
+    elif [ "$inc" = 1 ]; then
+      printf '%s' "$H"
+    fi
+    if [ -n "$out" ] && [ "$out" != "-" ]; then printf '%s' "$B" > "$out"; else printf '%s\n' "$B"; fi
+    exit 0
+    ;;
+esac
+exit 0

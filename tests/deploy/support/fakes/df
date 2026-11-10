@@ -1,0 +1,5 @@
+. '@@LIB@@'
+printf '%s\n' "df $*" >> "$LOG"
+printf 'Filesystem     1024-blocks      Used Available Capacity Mounted on\n'
+printf '/dev/sda1         41943040  17196646  24746394      41%% /\n'
+exit 0

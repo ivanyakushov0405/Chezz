@@ -1,0 +1,94 @@
+. '@@LIB@@'
+printf '%s\n' "docker $*" >> "$LOG"
+tamper
+a=" $* "
+d="$(printf '%s' "$*" | grep -o 'sha256:[0-9a-f]\{64\}' | head -n1)"
+sub="$1"
+[ "$1" = container ] && [ "$2" = inspect ] && sub=inspect
+case "$sub" in
+  pull)
+    if [ -f "$CFG/pull_fail" ]; then
+      while IFS= read -r p; do
+        [ -n "$p" ] || continue
+        case "$a" in *"$p"*) echo "Error response from daemon: denied" >&2; exit 1 ;; esac
+      done < "$CFG/pull_fail"
+    fi
+    exit 0
+    ;;
+  image)
+    [ "$2" = prune ] && exit 0
+    r="$(rev_of "$d")"
+    [ -n "$r" ] || { echo "Error: No such image" >&2; exit 1; }
+    printf '%s\n' "$r"
+    exit 0
+    ;;
+  inspect)
+    case "$a" in
+      *chezz-app-staging-1*) svc=app-staging ;;
+      *chezz-app-1*) svc=app ;;
+      *) svc="" ;;
+    esac
+    running "$svc" || { echo "Error: No such object" >&2; exit 1; }
+    case "$a" in
+      *RestartCount*) if [ "$svc" = app ] && bad restarts; then echo 2; else cfg restarts 0; echo; fi ;;
+      *Health*) cfg health healthy; echo ;;
+      *StartedAt*) cfg started_at 2026-11-05T10:00:00Z; echo ;;
+      *) echo '[]' ;;
+    esac
+    exit 0
+    ;;
+  compose) ;;
+  *) exit 0 ;;
+esac
+case "$a" in
+  *" run "*)
+    case "$a" in
+      *LOAD_REPORT*) cfg report '{"report":"fake"}'; echo; exit "$(cfg load_code 0)" ;;
+      *seed.ts*--demo*) exit "$(cfg seed_code 0)" ;;
+    esac
+    exit 0
+    ;;
+  *" exec "*pg_dump*)
+    cfg dump 'PGDMP-fake-dump'
+    exit "$(cfg dump_code 0)"
+    ;;
+  *" ps "*)
+    # Сервис — первое слово argv из имён compose (порядок флагов не важен).
+    for w in "$@"; do
+      case "$w" in
+        edge|app|db|app-staging|db-staging|tools-staging) running "$w" && echo "cid-$w"; exit 0 ;;
+      esac
+    done
+    [ -f "$CFG/running" ] && cat "$CFG/running"
+    exit 0
+    ;;
+  *" up "*)
+    case "$a" in
+      *app-staging*)
+        c="$(cfg up_staging_code 0)"
+        [ "$c" = 0 ] && add_running app-staging db-staging
+        exit "$c"
+        ;;
+    esac
+    img="${PROD_APP_IMAGE-}"
+    f="$CHEZZ_ROOT/env/compose.prod.env"
+    if [ -z "$img" ] && [ -f "$f" ]; then img="$(grep '^PROD_APP_IMAGE=' "$f" | tail -n1 | cut -d= -f2-)"; fi
+    pd="$(printf '%s' "$img" | grep -o 'sha256:[0-9a-f]\{64\}' | head -n1)"
+    rev_of "$pd" | tr -d '\n' > "$CFG/current_version"
+    rm -f "$CFG/health_calls"
+    if bad up; then echo "container chezz-app-1 is unhealthy" >&2; exit 1; fi
+    case "$a" in *" edge "*) add_running edge ;; esac
+    case "$a" in *" db "*) add_running db ;; esac
+    add_running app
+    exit 0
+    ;;
+  *" rm "*)
+    case "$a" in *app-staging*) del_running app-staging db-staging tools-staging ;; esac
+    exit 0
+    ;;
+  *" stop "*)
+    del_running app
+    exit 0
+    ;;
+esac
+exit 0
