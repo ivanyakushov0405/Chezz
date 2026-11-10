@@ -147,8 +147,8 @@ jira.task: Task
 jira.status: todo=To Do; in_progress=In Progress; review=In Review; done=Done
 
 ## Модели
-Opus: architect, arbiter; при Риск: high — reviewer, devops, backend-dev, frontend-dev и tester режима 1; analyst — при размере L
-Sonnet: остальные случаи — analyst (S, M), designer, reviewer (Риск: low), devops (Риск: low), backend-dev, frontend-dev, tester
+Opus: architect, arbiter; devops, backend-dev, frontend-dev и tester режима 1; analyst — при размере L
+Sonnet: остальные случаи — analyst (S, M), designer, reviewer, devops (Риск: low), backend-dev, frontend-dev, tester
 
 ## Рассуждения
 sequential-thinking: off; roles: architect, arbiter; max-thoughts: 8   # BUSINESS не говорит о подключённом MCP
