@@ -4,14 +4,14 @@
 
 ## Документы
 Основы — `docs/` (F1–F7, пути и роли — `.claude/profile.md`, «Документы»). Большие — **только разделами**: `.claude/kit/scripts/section.sh <файл> <номер>`, оглавление — `section.sh --toc <файл> 3`. В каждом документе §1 — «Правила для агентов».
-Конвейер: `.claude/profile.md` (метки, зоны, проверки, выкатка), `docs/PIPELINE_DECISIONS.md` (откуда каждое решение).
+Процесс: по умолчанию `/epic` — одна сессия, бриф → шаги → одно ревью → PR (`.claude/commands/epic.md`, профиль «Режим работы»); тяжёлый `/feature` — по решению Ivan. Профиль — `.claude/profile.md` (проверки, выкатка, GitHub), откуда решения — `docs/PIPELINE_DECISIONS.md`.
 
 ## Структура (ARCHITECTURE §13)
 ```
 apps/server/      Node.js 24 + TS, процесс app: модули src/<модуль>/ (ARCHITECTURE §7)
 apps/web/         Vite + React SPA (ARCHITECTURE §12, DESIGN_SYSTEM)
 packages/         protocol (схемы zod), chess (правила), i18n (RU/EN)
-fixtures/, tests/ тесты тестировщика (TESTING §5)
+fixtures/, tests/ фикстуры, e2e, нагрузка (TESTING §5)
 deploy/, scripts/ops/, .github/   выкатка и CI (OPERATIONS)
 ```
 Корневые конфиги (`package.json`, `tsconfig.json`, `vitest.config.ts`, `eslint.config.*`, `package-lock.json`) правят backend, contracts и frontend — каждый свой блок, по очереди (профиль, «Метки задач»).
@@ -22,7 +22,8 @@ deploy/, scripts/ops/, .github/   выкатка и CI (OPERATIONS)
 - Ход, часы, итог решает сервер; типы протокола — только `packages/protocol` (ARCHITECTURE §1, API §1).
 - «Кто я» — из Session; секретов и ПДн нет в коде, логах, репозитории (он публичный) (SECURITY §1).
 - Вне этапа — жалобы, админ-панель, бан, турниры, бот, чат (BUSINESS §1.7, GLOSSARY §3).
-- Тесты tester пишет до кода; developer их не правит (TESTING §1).
+- Тесты пишет автор кода в том же шаге. Слепые тесты tester до кода — только `packages/chess`, `apps/server/src/rating`, `packages/protocol`; их автор кода не правит (TESTING §1, §4).
+- Имя теста — точные номера критериев: `К-3: …` в `/epic`, `AC-3, EC-2: …` в `/feature`; через запятую, без «/» (TESTING §1).
 
 ## Команды (TESTING §6; из корня, на Windows — Git Bash)
 ```
@@ -33,7 +34,7 @@ npm run test:e2e          Playwright
 ```
 
 ## Git, GitHub, выкатка (OPERATIONS §1, §10, §16)
-- Агенты не коммитят и не пушат. Коммитит оркестратор, конкретными путями.
+- Субагенты не коммитят и не пушат. Коммитит ведущая сессия, конкретными путями (`git add -A` и `git add .` — никогда).
 - Сессия — только fine-grained токен (`GH_TOKEN`, OPERATIONS §16.2). Нельзя: `gh api`, `curl`/`wget` к GitHub, `gh auth|secret|variable|repo edit`, `gh run cancel|rerun`, `gh pr review`, обёртки вокруг них.
 - Перед `git push` и `gh pr merge` с изменениями `.github/`, `deploy/`, `scripts/ops/` — показать Ivan diff этих путей (O36). Мерж — только `gh pr merge <N> --match-head-commit <SHA своего push>`.
 - `.github/workflows/**` коммитит и пушит Ivan сам (у токена нет права Workflows).

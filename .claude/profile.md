@@ -102,7 +102,7 @@ npx tsc -b --pretty false 2>&1 | grep "error TS" | grep -v -E "error TS(2307|230
 Источник — TESTING §4 п.2, §6, §12. `tester-untouched` должен быть пустым (ловит и новые файлы). До задачи 2 скелета команд `npm run …` нет — `infra-up` в этапе 0 первого эпика не проходит, `check` в задачах скелета — по их «проверке» (В4). Полный набор — CI (`ci.yml`, job `check` и `e2e`).
 
 ## Ручные проверки Ivan
-Точка ⛔ — этап 5 `/feature`, до PR и мержа (TESTING §4, §14 п.6–7; OPERATIONS §9.6):
+Точка ⛔ — этап 5 `/feature` (этап 4 `/epic`), до PR и мержа (TESTING §4, §14 п.6–7; OPERATIONS §9.6):
 - фича трогает вход, удаление аккаунта или выкатку → ⛔ «да» Ivan на `git push -u origin feature/<slug>` (diff `.github/`, `deploy/`, `scripts/ops/` — O36), затем `deploy-staging` с `REF=feature/<slug>`; Ivan входит через Google на staging. До первой выкатки prod (скелет, эпик «Выкатка») — не запускать (O40, код 7);
 - фича трогает горячий путь хода (`games`, `realtime`, `platform`) перед этапом 5 или 6 → `load-staging`, Ivan подтверждает environment;
 - перед этапами 5 и 6 беты — WebKit и Firefox: `npm run test:e2e -- --project=webkit --project=firefox` (вручную, TESTING §9);
@@ -144,11 +144,19 @@ type: jira
 jira.project: KAN
 jira.epic: Epic
 jira.task: Task
-jira.status: todo=To Do; in_progress=In Progress; review=In Review; done=Done
+jira.status: todo=To Do; in_progress=In Progress; done=Done
+В `/epic` — только эпик: in_progress на старте, done после мёржа; задач в Jira нет. В `/feature` — задачи создаются, статусы in_progress → done (без review).
+
+## Режим работы
+По умолчанию — `/epic` (`.claude/commands/epic.md`; решение Ivan 2026-11-10, `docs/PIPELINE_DECISIONS.md` §13): одна сессия ведёт эпик от брифа до PR; агенты зон, окна `check-zone`, analyst, architect и arbiter не вызываются. `/feature` — по решению Ivan для отдельного эпика.
+- Слепые тесты (tester, режим 1, до кода; автор кода их не правит): `packages/chess` (правила, `fixtures/chess/`), `apps/server/src/rating` (векторы Glicko-2), `packages/protocol` (схемы и снимок). Остальное — тесты пишет автор кода (TESTING §4).
+- `Риск: high` эпика — вход, Session, удаление аккаунта (SECURITY §4, §13), Glicko-2, ход и часы партии (ARCHITECTURE §9), `deploy/`, `scripts/ops/`, `.github/`. Тогда ревью — opus; иначе sonnet.
+- Дизайн экранов — `designer` до брифа, если у эпика новый экран.
+- Ориентир на эпик размера M: ~1–2 ч и 1–2 млн токенов; факт пишется в `log.md` (этап 4 `/epic`). Пилот — E02; хуже E03 (5,5 ч, 10,5 млн) или пропущена ошибка → Ivan решает, вернуть ли `/feature` для таких эпиков.
 
 ## Модели
-Opus: analyst, designer, architect, arbiter, reviewer, devops; при `Риск: high` — backend-dev, frontend-dev и tester режима 1
-Sonnet: backend-dev, frontend-dev, tester
+Opus: analyst, designer, architect, arbiter, devops; reviewer — при `Риск: high`; при `Риск: high` — backend-dev, frontend-dev и tester режима 1
+Sonnet: reviewer, backend-dev, frontend-dev, tester
 
 ## Рассуждения
 sequential-thinking: off; roles: architect, arbiter; max-thoughts: 8   # BUSINESS не говорит о подключённом MCP
