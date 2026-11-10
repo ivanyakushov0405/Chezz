@@ -40,6 +40,15 @@ case "$sub" in
   compose) ;;
   *) exit 0 ;;
 esac
+# Как настоящий compose: отсутствующий --env-file — ошибка.
+prev=""
+for x in "$@"; do
+  f=""
+  [ "$prev" = --env-file ] && f="$x"
+  case "$x" in --env-file=*) f="${x#*=}" ;; esac
+  if [ -n "$f" ] && [ ! -f "$f" ]; then echo "couldn't find env file: $f" >&2; exit 1; fi
+  prev="$x"
+done
 case "$a" in
   *" run "*)
     case "$a" in

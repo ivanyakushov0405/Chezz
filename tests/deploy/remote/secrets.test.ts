@@ -1,6 +1,6 @@
 // Секреты в stdin и файлы env (E02 T-3; OPERATIONS §7, §6.1; design П4, A2): проверка по deploy/env.allowlist,
 // раскладка по файлам, права, атомарная запись, шаблон compose.staging.env.
-import { readdir, stat } from "node:fs/promises";
+import { readdir, rm, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -12,11 +12,13 @@ import {
   STAGING_SECRETS,
   composeCalls,
   expectResult,
+  lastLine,
   isMutating,
   modeOf,
   parseEnvFile,
   secrets,
   useVps,
+  writeFake,
   type Vps,
 } from "../support/index.ts";
 
@@ -211,6 +213,57 @@ describe("раскладка секретов staging (AC-24, AC-25, EC-38)", { 
     const v = await vps("deployed");
     expectResult(await v.entry("staging", UP, secrets(STAGING_SECRETS)), 0, "ok");
     expect((await modeOf(join(v.envDir, "staging.env"))).toString(8)).toBe("600");
+    expect((await modeOf(join(v.envDir, "compose.staging.env"))).toString(8)).toBe("640");
+  });
+});
+
+/** Результаты таблицы кодов П3. */
+const RESULTS = ["ok", "rolled_back", "bad_command", "prod_busy", "broken", "backup_failed", "base_mismatch", "prod_missing", "pull_failed", "locked"];
+
+describe("deploy — провал записи env (шаг 6) и пустые compose-файлы (OPERATIONS §5 п.7, П6)", { timeout: 60_000 }, () => {
+  it("П6 п.6/п.12: запись env-файлов не удалась (mv в env/ упал) → код ≠ 0, result= есть, клон на прежнем HEAD (не на устаревшем prod.repo.prev), state не изменён", async () => {
+    const v = await vps("deployed");
+    // prod.repo.prev — от позапрошлой выкатки и ≠ HEAD: возврат клона на него был бы ошибкой (клон ещё не менялся).
+    await v.writeState("prod.repo.prev", `${v.side}\n`);
+    await writeFake(
+      v.bin,
+      "mv",
+      `for last; do :; done\ncase "$last" in */env/*) echo "mv: cannot move: Permission denied" >&2; exit 1 ;; esac\ncommand -p mv "$@"`,
+    );
+    const state = (s: Awaited<ReturnType<Vps["snapshot"]>>): Record<string, string> =>
+      // state/last-backup меняет бэкап pre-deploy (шаг 5) — законно.
+      Object.fromEntries(Object.entries(s.files).filter(([k]) => k.startsWith("state/") && k !== "state/last-backup"));
+    const before = await v.snapshot();
+    const r = await v.entry("prod", deployCmd(v), secrets(PROD_SECRETS));
+    expect(r.code, r.stdout + r.stderr).not.toBe(0);
+    expect(RESULTS.map((x) => `result=${x}`), `последняя строка: ${lastLine(r.stdout)}`).toContain(lastLine(r.stdout));
+    expect(await v.head(), "клон не переключался").toBe(v.c1);
+    expect(state(await v.snapshot()), "state/ не изменён").toEqual(state(before));
+  });
+
+  it("OPERATIONS §5 п.7: нет compose.prod.env и compose.staging.env → deploy prod их пересоздаёт, код 0", async () => {
+    const v = await vps("deployed");
+    await rm(join(v.envDir, "compose.prod.env"));
+    await rm(join(v.envDir, "compose.staging.env"));
+    expectResult(await v.entry("prod", deployCmd(v), secrets(PROD_SECRETS)), 0, "ok");
+    expect(parseEnvFile(await v.readEnv("compose.prod.env"))["PROD_APP_IMAGE"]).toBe(`${REGISTRY}/chezz-app@${D2}`);
+    expect(await v.readEnv("compose.staging.env"), "compose.staging.env создан").not.toBeNull();
+  });
+
+  it("OPERATIONS §5 п.7: нет compose.staging.env → staging down его пересоздаёт, код 0", async () => {
+    const v = await vps("deployed");
+    await v.setRunning(["edge", "db", "app", "app-staging", "db-staging"]);
+    await rm(join(v.envDir, "compose.staging.env"));
+    expectResult(await v.entry("staging", "down"), 0, "ok");
+    expect(await v.readEnv("compose.staging.env"), "compose.staging.env создан").not.toBeNull();
+  });
+
+  it.skipIf(process.platform === "win32")("OPERATIONS §5 п.7: пересозданные compose.prod.env и compose.staging.env — права 640", async () => {
+    const v = await vps("deployed");
+    await rm(join(v.envDir, "compose.prod.env"));
+    await rm(join(v.envDir, "compose.staging.env"));
+    expectResult(await v.entry("prod", deployCmd(v), secrets(PROD_SECRETS)), 0, "ok");
+    expect((await modeOf(join(v.envDir, "compose.prod.env"))).toString(8)).toBe("640");
     expect((await modeOf(join(v.envDir, "compose.staging.env"))).toString(8)).toBe("640");
   });
 });
