@@ -70,6 +70,7 @@ ssh root@<ip> 'bash -s -- \
 **A8. Том `screenshots`.** В образе `app` каталог `/data/screenshots` принадлежит `node:node` (1000:1000) и имеет права 700. Docker копирует владельца в пустой именованный том при первом монтировании. compose: `app` — `screenshots:/data/screenshots`; `app-staging` — `tmpfs: /data/screenshots:uid=1000,gid=1000,mode=0700,size=256m`. Переменную пути задаёт эпик скриншотов (E18); до него `app` в каталог не пишет.
 
 **A9. `status` staging.** Ровно ключи: `env=staging`, `image=<digest app-staging|none>`, `tools_image=<digest|none>`, `repo=<sha клона>`, `health=healthy|unhealthy|starting|absent`, `restarts=<n>`, `started_at=<state/staging.started|none>`, `staging=up|down`.
+- Уточнение: `image` и `tools_image` берутся из `env/compose.staging.env`; файл пуст или отсутствует → `none`.
 
 **A10. `force=true` при `env=staging` или `action≠deploy`.** Отказ в `plan`, как остальные сочетания EC-1.
 
@@ -190,6 +191,7 @@ ssh root@<ip> 'bash -s -- \
 ### П9. Образ и compose
 - Dockerfile: `FROM node:24-bookworm-slim`, цели `app`, `tools`; `WORKDIR /app`; `ARG APP_VERSION` → `ENV APP_VERSION` и `LABEL org.opencontainers.image.revision=$APP_VERSION`; у `app` — `ENV HOST=0.0.0.0 METRICS_HOST=0.0.0.0`, `EXPOSE 3000 9464`, `USER node`, `CMD ["node","--enable-source-maps","apps/server/src/main.ts"]`, статика — `/app/apps/web/dist` (с `*.map`), `/data/screenshots` (1000:1000, 700). У `tools` — `USER node`, есть `/app/apps/server/scripts/seed.ts`, `/app/node_modules/vitest`.
 - compose: сервисы, сети, тома, лимиты — OPERATIONS §6.1 (имена дословно: `edge`, `app`, `db`, `app-staging`, `db-staging`, `tools-staging`; сети `edge-prod`, `edge-staging`, `prod`, `staging`; тома `pgdata`, `screenshots`, `caddy_data`, `caddy_config`). `env_file` — `${CHEZZ_ROOT:-/srv/chezz}/env/prod.env` / `staging.env`. Тест: `CHEZZ_ROOT=<tmp> docker compose -p chezz -f deploy/compose.yml --env-file <tmp>/env/compose.staging.env --env-file <tmp>/env/compose.prod.env [--profile staging] config --format json` (файлы env в tmp создаёт тест). Caddyfile монтируется `./Caddyfile:/etc/caddy/Caddyfile:ro`.
+- Принятое отклонение (T-2, 0b8b7ec): `image:` с заглушкой по умолчанию `${PROD_APP_IMAGE:-chezz.invalid/unset/chezz-app}`, так же у `chezz-app-staging` и `chezz-tools-staging` — без неё `ps`/`rm` падают с «no image» при пустых `compose.*.env`; pull из `.invalid` невозможен, поэтому `up`/`pull` с заглушкой падают; из образа `app` удалены `*.test.ts` и `packages/*/scripts`.
 - `deploy-image`, AC-5: `app` с `--add-host host.docker.internal:host-gateway` и `DATABASE_URL` на `host.docker.internal:54329` (`db:test:up`), отдельная база теста.
 - Caddy: `docker run --rm -e APP_DOMAIN=chezz.test -e ACME_EMAIL=ops@chezz.test -e SENTRY_INGEST=o0.ingest.sentry.io -v <repo>/deploy/Caddyfile:/etc/caddy/Caddyfile:ro caddy:2 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`.
 
@@ -309,6 +311,7 @@ OPERATIONS §9 задаёт команды на VPS и коды 0–7, но не
 ### T-1 [backend:platform] Риск: low
 Проекты Vitest `deploy` и `deploy-image`, скрипты, зависимость `yaml`, tsconfig `tests/deploy`.
 - Файлы: `vitest.config.ts` (проект `deploy`: `tests/deploy/**/*.test.ts` без `**/*.image.test.ts`, `environment: node`, `testTimeout: 30_000`, `groupOrder: 0`; проект `deploy-image`: `tests/deploy/**/*.image.test.ts`, `testTimeout: 900_000`, `maxWorkers: 1`); `package.json` — `test:unit` += `--project deploy`, `test:deploy-image`, devDependency `yaml` (причина: разбор workflow в тестах выкатки); `package-lock.json`; `tsconfig.json` — ссылка `tests/deploy`; `tests/deploy/tsconfig.json` (как у `tests/e2e`, `lib: ["es2024"]`, `types: ["node"]`, `include: ["**/*.ts"]`); `eslint.config.js` — `tests/deploy/**` с правилами Vitest (как тесты сервера).
+- Принятое отклонение (cea29a0): у `deploy-image` — `groupOrder: 3` (после int и contract); каталог `tests/deploy/` и его `tsconfig.json` создаёт tester (зона tests), не T-1; ESLint для `tests/deploy/**` разрешает только `it.skipIf(process.platform === "win32")`.
 - Шаг tester — нет (каталог пуст, `passWithNoTests`).
 - AC: `npm run check` зелёный; `npx vitest run --project deploy` и `--project deploy-image` — 0 тестов, код 0; `npm run test:unit` запускает три проекта.
 - Проверка: `npm run check`.
@@ -365,3 +368,4 @@ Workflow выкатки и нагрузки, Dependabot.
 - R-c: `bootstrap.sh` отключает вход root — ошибка в `sshd_config` или ключе `ops` закрывает доступ. Смягчение: `sshd -t` до перезапуска, проверка формата ключей, консоль провайдера.
 - R-d: Let's Encrypt — лимит неудачных проверок при неготовом DNS (R8 `requirements.md`).
 - Отступление: `systemd-analyze verify` (AC-49) заменён статическим разбором юнитов (A1).
+- Хвост для apply на приёмке: OPERATIONS §6.1 — дописать одной строкой заглушку `image:` по умолчанию `chezz.invalid/unset/<пакет>` (П9).
