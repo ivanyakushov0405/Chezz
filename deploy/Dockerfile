@@ -6,7 +6,7 @@
 #   docker build -f deploy/Dockerfile --target app --build-arg APP_VERSION=<git sha> .
 # APP_VERSION — git SHA, не секрет. Секретов в ARG/ENV нет (SECURITY §17).
 
-FROM node:24-bookworm-slim AS base
+FROM node:26-bookworm-slim AS base
 WORKDIR /app
 ENV NPM_CONFIG_UPDATE_NOTIFIER=false NPM_CONFIG_FUND=false NPM_CONFIG_AUDIT=false
 
