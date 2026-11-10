@@ -52,3 +52,4 @@
 | 23 | architect | opus | сверка design после T-3 | П6 4 строки, П2 1 строка, R-e (bootstrap создаёт env-файлы до compose); зона OK |
 | 24 | tester | opus | T-4 режим 1 | 79 тестов (bootstrap 61, systemd 18): 46 красные по делу, 29 только CI (права, win32); R-e — пустые prod/staging env 600 и compose 640; root через `id -u`; lint/tsc OK; зона OK |
 - 2026-11-10: Ivan — `/epic E02 продолжи с той же задачи`: дальше облегчённый процесс (код пишет оркестратор, одно ревью на эпик). requirements.md и design.md — вместо brief.md (план утверждён).
+- 2026-11-10 18:12: бриф остатка (brief.md) утверждён Ivan («Да»): шаги T-4, T-5, хвосты документов; GHCR — вариант (а); .github/** коммитит Ivan.
