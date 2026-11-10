@@ -53,3 +53,4 @@
 | 24 | tester | opus | T-4 режим 1 | 79 тестов (bootstrap 61, systemd 18): 46 красные по делу, 29 только CI (права, win32); R-e — пустые prod/staging env 600 и compose 640; root через `id -u`; lint/tsc OK; зона OK |
 - 2026-11-10: Ivan — `/epic E02 продолжи с той же задачи`: дальше облегчённый процесс (код пишет оркестратор, одно ревью на эпик). requirements.md и design.md — вместо brief.md (план утверждён).
 - 2026-11-10 18:12: бриф остатка (brief.md) утверждён Ivan («Да»): шаги T-4, T-5, хвосты документов; GHCR — вариант (а); .github/** коммитит Ivan.
+- 2026-11-10 18:19: шаг 1 (T-4): bootstrap.sh, 4 юнита systemd; deploy 306 + 11 skip, affected 641, check зелёный.
