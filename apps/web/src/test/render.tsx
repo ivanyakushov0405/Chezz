@@ -132,3 +132,17 @@ export async function key(el: Element | null, k: string): Promise<void> {
 const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
 export const flush = (): Promise<void> => act(settle);
+
+/** Повторяет проверку, пока она не пройдёт (асинхронные цепочки fetch → setState), до `timeoutMs`. */
+export async function waitFor(check: () => void, timeoutMs = 3_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    try {
+      check();
+      return;
+    } catch (err) {
+      if (Date.now() > deadline) throw err;
+      await act(settle);
+    }
+  }
+}

@@ -118,7 +118,10 @@ export function WelcomePage() {
             setError(undefined);
           }}
           onBlur={() => {
-            if (changed && nickname !== "") setError(nicknameError(nickname));
+            // Только добавляет ошибку формата: blur при disabled на время отправки не стирает ответ сервера.
+            if (submitting || !changed || nickname === "") return;
+            const local = nicknameError(nickname);
+            if (local !== undefined) setError(local);
           }}
         />
         <Checkbox

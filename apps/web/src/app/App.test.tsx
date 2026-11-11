@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LOCALE_STORAGE_KEY } from "../shared/i18n/locale.ts";
 import { TOAST_MS } from "../shared/ui/Toast/Toast.tsx";
-import { click, flush, makeMe, mountApp, onboardingMe, stubFetch } from "../test/render.tsx";
+import { click, makeMe, mountApp, onboardingMe, stubFetch, waitFor } from "../test/render.tsx";
 
 const $ = (root: HTMLElement, sel: string): HTMLElement | null => root.querySelector(sel);
 
@@ -55,7 +55,9 @@ describe("App: shell и маршруты", () => {
     const items = root.querySelectorAll('[role="menuitem"]');
     expect([...items].map((i) => i.textContent)).toEqual(["Выйти", "Выйти со всех устройств"]);
     await click(items[0] ?? null);
-    await flush();
+    await waitFor(() => {
+      expect($(root, '[role="status"]')?.textContent).toBe("Вы вышли из аккаунта");
+    });
     expect(calls.map((c) => `${c.method} ${c.url}`)).toEqual(["POST /api/auth/logout"]);
     expect($(root, "[data-shell-state]")?.dataset["shellState"]).toBe("guest");
     expect($(root, '[role="status"]')?.textContent).toBe("Вы вышли из аккаунта");

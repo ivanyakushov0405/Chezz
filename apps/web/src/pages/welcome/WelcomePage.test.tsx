@@ -1,7 +1,7 @@
 import { act } from "react";
 import { describe, expect, it } from "vitest";
 import { LOCALE_STORAGE_KEY } from "../../shared/i18n/locale.ts";
-import { click, flush, makeMe, mountApp, onboardingMe, stubFetch } from "../../test/render.tsx";
+import { click, makeMe, mountApp, onboardingMe, stubFetch, waitFor } from "../../test/render.tsx";
 import { nicknameError } from "./WelcomePage.tsx";
 
 const P1 = { status: "ready", me: onboardingMe() } as const;
@@ -76,11 +76,34 @@ describe("WelcomePage", () => {
     await type(input, "alice");
     await click(box);
     await click(submit);
-    await flush();
-    expect(root.textContent).toContain("Ник уже занят");
+    await waitFor(() => {
+      expect(root.textContent).toContain("Ник уже занят");
+    });
     expect(input.value).toBe("alice");
     expect(box.checked).toBe(true);
     expect(document.activeElement).toBe(input);
+  });
+
+  it("К-9: уход с поля не стирает ошибку сервера; неверный формат при уходе — ошибка", async () => {
+    stubFetch({ "POST /api/me/onboarding": [409, apiError("nickname_taken")] });
+    const root = await mountApp("/welcome", P1);
+    const { input, box, submit } = parts(root);
+    await type(input, "alice");
+    await click(box);
+    await click(submit);
+    await waitFor(() => {
+      expect(root.textContent).toContain("Ник уже занят");
+    });
+    await act(async () => {
+      input.blur();
+    });
+    expect(root.textContent).toContain("Ник уже занят");
+    await type(input, "a!");
+    await act(async () => {
+      input.focus();
+      input.blur();
+    });
+    expect(root.textContent).toContain("Недопустимый ник");
   });
 
   it("К-9: internal — Toast, форма снова default", async () => {
@@ -90,8 +113,9 @@ describe("WelcomePage", () => {
     await type(input, "alice");
     await click(box);
     await click(submit);
-    await flush();
-    expect(root.querySelector('[role="status"]')?.textContent).toBe("Что-то пошло не так");
+    await waitFor(() => {
+      expect(root.querySelector('[role="status"]')?.textContent).toBe("Что-то пошло не так");
+    });
     expect(parts(root).screen?.dataset["state"]).toBe("default");
   });
 
@@ -102,7 +126,9 @@ describe("WelcomePage", () => {
     await type(input, "alice");
     await click(box);
     await click(submit);
-    await flush();
+    await waitFor(() => {
+      expect(`${window.location.pathname}${window.location.search}`).toBe("/c/abc?x=1");
+    });
     expect(calls[0]).toMatchObject({ method: "POST", url: "/api/me/onboarding", body: { nickname: "alice", terms_accepted: true } });
     expect(`${window.location.pathname}${window.location.search}`).toBe("/c/abc?x=1");
     expect(root.querySelector('button[aria-haspopup="menu"]')?.getAttribute("aria-label")).toBe("Меню аккаунта alice");
@@ -115,8 +141,9 @@ describe("WelcomePage", () => {
     await type(input, "alice");
     await click(box);
     await click(submit);
-    await flush();
-    expect(window.location.href).toBe(`${window.location.origin}/`);
+    await waitFor(() => {
+      expect(window.location.href).toBe(`${window.location.origin}/`);
+    });
   });
 
   it("К-7: язык гостя из localStorage ≠ Me.locale — PATCH {locale}, ключ очищен", async () => {
@@ -130,7 +157,9 @@ describe("WelcomePage", () => {
     await type(input, "alice");
     await click(box);
     await click(submit);
-    await flush();
+    await waitFor(() => {
+      expect(document.documentElement.lang).toBe("en");
+    });
     expect(calls.map((c) => `${c.method} ${c.url}`)).toEqual(["POST /api/me/onboarding", "PATCH /api/me"]);
     expect(calls[1]?.body).toEqual({ locale: "en" });
     expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBeNull();
@@ -145,7 +174,9 @@ describe("WelcomePage", () => {
     await type(input, "alice");
     await click(box);
     await click(submit);
-    await flush();
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/");
+    });
     expect(calls).toHaveLength(1);
     expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBeNull();
   });
@@ -160,8 +191,9 @@ describe("WelcomePage", () => {
     await type(input, "alice");
     await click(box);
     await click(submit);
-    await flush();
-    expect(window.location.pathname).toBe("/");
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/");
+    });
     expect(root.querySelector('[data-screen="lobby"]')).not.toBeNull();
   });
 
@@ -170,7 +202,8 @@ describe("WelcomePage", () => {
     await mountApp("/welcome", { status: "ready", me: makeMe() });
     expect(window.location.pathname).toBe("/");
     await mountApp("/welcome");
-    await flush();
-    expect(window.location.pathname).toBe("/");
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/");
+    });
   });
 });
