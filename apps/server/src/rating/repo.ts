@@ -53,6 +53,16 @@ export async function updateRating(trx: Trx, row: RatingRow): Promise<void> {
     .execute();
 }
 
+export async function hasHistoryForGame(db: Db | Trx, gameId: string): Promise<boolean> {
+  const row = await forTables<RatingTables>(db)
+    .selectFrom("rating_history")
+    .select("game_id")
+    .where("game_id", "=", gameId)
+    .limit(1)
+    .executeTakeFirst();
+  return row !== undefined;
+}
+
 export async function insertHistory(trx: Trx, rows: Insertable<RatingHistoryTable>[]): Promise<void> {
   await forTables<RatingTables>(trx).insertInto("rating_history").values(rows).execute();
 }

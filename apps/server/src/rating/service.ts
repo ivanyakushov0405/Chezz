@@ -5,7 +5,7 @@ import type { Database } from "../database.ts";
 import type { Db, Trx } from "../platform/db.ts";
 import { DEFAULT_GLICKO, rateMany } from "./domain/glicko2.ts";
 import { roundRating } from "./domain/display.ts";
-import { findRatings, insertHistory, lockRatings, updateRating, type RatingRow } from "./repo.ts";
+import { findRatings, hasHistoryForGame, insertHistory, lockRatings, updateRating, type RatingRow } from "./repo.ts";
 
 /** Rating игрока в категории; `updated_at = null` — партий ещё не было. */
 export interface PlayerRating {
@@ -36,7 +36,10 @@ export interface RatingService {
   getRating(userId: string, category: Category): Promise<PlayerRating>;
   /** Rating нескольких игроков одной категории (лобби, подбор); отсутствующие — по умолчанию. */
   getRatings(userIds: readonly string[], category: Category): Promise<Map<string, PlayerRating>>;
-  /** В транзакции конца партии (ARCHITECTURE §9.1 п.7): Rating обоих и две строки RatingHistory. */
+  /**
+   * В транзакции конца партии (ARCHITECTURE §9.1 п.7): Rating обоих и две строки RatingHistory.
+   * Бросает при ошибке — вызывающий откатывает транзакцию целиком.
+   */
   applyResult(trx: Trx, result: RatedResult): Promise<RatingChanges>;
 }
 
@@ -68,6 +71,8 @@ export function createRatingService(deps: { db: Db<Database> }): RatingService {
 
     async applyResult(trx, r) {
       if (r.whiteId === r.blackId) throw new Error("rating.applyResult: white and black are the same user");
+      // Повтор партии (E-1) — понятная ошибка до записи; одновременный повтор ловит PK rating_history.
+      if (await hasHistoryForGame(trx, r.gameId)) throw new Error("rating.applyResult: game already rated");
       // Новая строка получает updated_at = endedAt: рост RD до первой партии — 0 (ARCHITECTURE §11).
       const rows = await lockRatings(trx, [r.whiteId, r.blackId], r.category, {
         ...DEFAULT_GLICKO,
@@ -82,7 +87,9 @@ export function createRatingService(deps: { db: Db<Database> }): RatingService {
       const next = (self: RatingRow, opp: RatingRow, score: 0 | 0.5 | 1): RatingRow => {
         const elapsedDays = Math.max(0, r.endedAt.getTime() - self.updated_at.getTime()) / DAY_MS;
         const rated = rateMany(self, [{ opponent: { rating: opp.rating, rd: opp.rd }, score }], elapsedDays);
-        return { ...self, ...rated, games_count: self.games_count + 1, updated_at: r.endedAt };
+        // Часы сервера сдвинулись назад — updated_at не уходит в прошлое (лишний рост RD в следующей партии).
+        const updatedAt = r.endedAt > self.updated_at ? r.endedAt : self.updated_at;
+        return { ...self, ...rated, games_count: self.games_count + 1, updated_at: updatedAt };
       };
       // Оба считаются от состояния до партии (одновременный пересчёт).
       const whiteAfter = next(white, black, whiteScore);

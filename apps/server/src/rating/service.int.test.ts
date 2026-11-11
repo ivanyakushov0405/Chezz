@@ -132,7 +132,7 @@ describe("rating.service", () => {
     const r = result(p);
     await apply(r);
     const after = await rating.getRating(p.white, "blitz");
-    await expect(apply({ ...r, endedAt: new Date(T0.getTime() + DAY_MS) })).rejects.toThrow();
+    await expect(apply({ ...r, endedAt: new Date(T0.getTime() + DAY_MS) })).rejects.toThrow(/already rated/);
     expect(await rating.getRating(p.white, "blitz")).toEqual(after);
     expect(await historyOf(r.gameId)).toHaveLength(2);
   });
@@ -142,6 +142,14 @@ describe("rating.service", () => {
     const r = result({ white, black: white });
     await expect(apply(r)).rejects.toThrow(/same user/);
     expect(await rating.getRating(white, "blitz")).toMatchObject({ games_count: 0, updated_at: null });
+  });
+
+  it("К-7: ended_at раньше updated_at (часы назад) — elapsedDays 0, updated_at не уходит в прошлое", async () => {
+    const p = await pair();
+    const later = new Date(T0.getTime() + DAY_MS);
+    await apply(result(p, { endedAt: later }));
+    await apply(result(p, { endedAt: T0, result: "draw" }));
+    expect((await rating.getRating(p.white, "blitz")).updated_at).toEqual(later);
   });
 
   it("К-4: два одновременных результата разных партий одного игрока — оба учтены (блокировка строк)", async () => {

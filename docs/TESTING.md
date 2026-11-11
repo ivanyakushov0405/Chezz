@@ -455,7 +455,7 @@ Reopen 1R (2026-11-05, решение Ivan — F1–F6 одним заходом
 F2 `docs/ARCHITECTURE.md`:
 1. §7.2, §9.2: время и таймеры — через `TimeSource` из `platform/time.ts` (`now`, `wallNow`, `setTimer`, `clearTimer`), а не прямые `performance.now()` и `setTimeout` в `service` и `GameRoom` (V5, 7.2); `domain/` — по-прежнему параметром.
 2. §7.4: правило «Kysely-запросы только в `repo.ts`» — для `apps/server/src/`; `apps/server/test/support/` и `apps/server/scripts/seed.ts` пишут в таблицы напрямую (7.6).
-3. [выполнен частично в ARCHITECTURE v0.5: сигнатура `rateMany` — A29, §11; «Форма файлов — F6 §7.5» — §11. константа роста RD — закрыто в E05 (ARCHITECTURE §11)] §11: сигнатура `glicko2.ts` с массивом партий и параметром времени без игр; константа роста RD (F6-Q3); «Форма файлов — F6» → F6 §7.5.
+3. [выполнен частично в ARCHITECTURE v0.5: сигнатура `rateMany` — A29, §11; «Форма файлов — F6 §7.5» — §11; константа роста RD — закрыто в E05 (ARCHITECTURE §11)] §11: сигнатура `glicko2.ts` с массивом партий и параметром времени без игр; константа роста RD (F6-Q3); «Форма файлов — F6» → F6 §7.5.
 4. §13: `apps/server/src/app.ts` (`buildApp`), `apps/server/test/{support,contract,acceptance}/`, `apps/server/scripts/seed.ts`, `tests/e2e/`, `tests/load/`, `vitest.config.ts`, `tests/e2e/playwright.config.ts`, `deploy/compose.test.yml`, `scripts/check-api-doc.sh` (из API §16), `scripts/check-bundle.sh`, `.nvmrc` (связано с F2-Q12).
 5. §4.1: «Тесты — F6» → Vitest, Playwright (V1, V10); §5: место генератора нагрузки — F6 §10 (V11).
 
