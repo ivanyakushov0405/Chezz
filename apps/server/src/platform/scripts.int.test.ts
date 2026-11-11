@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { databaseUrlFor, withAdmin, workerDatabaseUrl } from "../../test/support/db.ts";
+import { listSessionsByNickname } from "../../test/support/sessions.ts";
 import { LOCAL_SEED_SECRET, SEED_PLAYERS, seedSessionToken } from "../../test/support/seed-token.ts";
 import type { Database } from "../database.ts";
 import { createDb } from "./db.ts";
@@ -48,12 +49,7 @@ describe("seed.ts", () => {
     expect(again.code).toBe(0);
     const db = createDb<Database>(workerDatabaseUrl());
     try {
-      const rows = await db
-        .selectFrom("users")
-        .innerJoin("sessions", "sessions.user_id", "users.id")
-        .select(["users.nickname", "users.terms_accepted_at", "sessions.token_hash", "sessions.expires_at"])
-        .where("users.nickname", "in", [...SEED_PLAYERS])
-        .execute();
+      const rows = await listSessionsByNickname(db, SEED_PLAYERS);
       expect(rows.map((r) => r.nickname).sort()).toEqual([...SEED_PLAYERS]);
       for (const r of rows) {
         // В БД — SHA-256 токена (S3), hex.

@@ -5,6 +5,7 @@ import { listAnalyticsEvents } from "../../test/support/analytics.ts";
 import { startApp, type TestApp } from "../../test/support/app.ts";
 import { createPlayer, randomNickname } from "../../test/support/factories.ts";
 import { rest } from "../../test/support/rest.ts";
+import { listUserSessions } from "../../test/support/sessions.ts";
 
 const WALL = new Date("2026-11-10T12:00:00.000Z");
 const HOUR = 60 * 60 * 1000;
@@ -26,8 +27,7 @@ function errorCode(body: unknown): string | undefined {
 }
 
 async function sessionCount(a: TestApp, userId: string): Promise<number> {
-  const rows = await a.db.selectFrom("sessions").select("id").where("user_id", "=", userId).execute();
-  return rows.length;
+  return (await listUserSessions(a.db, userId)).length;
 }
 
 describe("auth: Session и «Кто»", () => {
@@ -163,7 +163,7 @@ describe("auth: выход", () => {
     const pl = await createPlayer(a.db, { now: WALL, token: null });
     const { token } = await a.auth.createSession(pl.user_id);
     expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
-    const rows = await a.db.selectFrom("sessions").select(["token_hash", "expires_at"]).where("user_id", "=", pl.user_id).execute();
+    const rows = await listUserSessions(a.db, pl.user_id);
     expect(rows[0]?.token_hash).not.toContain(token);
     expect(rows[0]?.expires_at.toISOString()).toBe(new Date(WALL.getTime() + 30 * DAY).toISOString());
   });
