@@ -64,6 +64,9 @@ export function Menu({ label, trigger, items, heading }: MenuProps) {
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       openAndFocus(items.length - 1);
+    } else if (e.key === "Escape" && open) {
+      e.preventDefault();
+      close(true);
     }
   };
 
@@ -95,7 +98,7 @@ export function Menu({ label, trigger, items, heading }: MenuProps) {
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         aria-label={label}
-        onClick={() => (open ? close(false) : setOpen(true))}
+        onClick={() => (open ? close(false) : openAndFocus(0))}
         onKeyDown={onButtonKey}
       >
         {trigger}

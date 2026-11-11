@@ -4,5 +4,6 @@
     "tsBuildInfoFile": "../../node_modules/.cache/tsc/e2e.tsbuildinfo",
     "lib": ["es2024", "dom"]
   },
-  "include": ["*.ts", "support"]
+  "include": ["*.ts", "support", "../../apps/server/src", "../../apps/server/test/support"],
+  "exclude": ["../../apps/server/src/**/*.test.ts"]
 }

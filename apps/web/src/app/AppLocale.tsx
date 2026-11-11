@@ -1,6 +1,6 @@
 // Язык интерфейса (DESIGN §15, U21, U29): Игрок — `Me.locale` (смена — PATCH /api/me); гость и П1 — localStorage / браузер.
 import { REST_ROUTES, type Locale } from "@chezz/protocol";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { meOf, useMe } from "../features/auth/MeContext.tsx";
 import { callApi } from "../shared/api/rest.ts";
 import { I18nProvider } from "../shared/i18n/I18nContext.tsx";
@@ -21,13 +21,14 @@ export function AppLocale({ children }: { children: ReactNode }) {
   const isPlayer = me !== null && !me.onboarding_required;
   const locale: Locale = isPlayer ? me.locale : guestLocale;
 
-  useEffect(() => {
+  // До отрисовки: `lang` и тема не мигают и видны сразу (DESIGN §15).
+  useLayoutEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
 
   // Тема Игрока — из настроек; гость — prefers-color-scheme (DESIGN U8).
   const theme = isPlayer ? me.settings.theme : null;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (theme === null) delete document.documentElement.dataset["theme"];
     else document.documentElement.dataset["theme"] = theme;
   }, [theme]);

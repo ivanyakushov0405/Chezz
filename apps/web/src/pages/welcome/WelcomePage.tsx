@@ -61,9 +61,15 @@ export function WelcomePage() {
     inputRef.current?.focus();
   }, []);
 
+  // Фокус на поле после ошибки — в эффекте: в момент ответа поле ещё disabled (submitting), focus() не сработал бы.
+  const [focusRequest, setFocusRequest] = useState(0);
+  useEffect(() => {
+    if (focusRequest > 0) inputRef.current?.focus();
+  }, [focusRequest]);
+
   const fail = (key: string): void => {
     setError(key);
-    inputRef.current?.focus();
+    setFocusRequest((n) => n + 1);
   };
 
   const submit = async (event: FormEvent): Promise<void> => {

@@ -31,10 +31,11 @@ describe("Menu", () => {
     expect(labels()).toBe("A");
   });
 
-  it("К-9: Esc закрывает и возвращает фокус на кнопку", async () => {
+  it("К-9: клик открывает и фокусирует первый пункт; Esc закрывает и возвращает фокус на кнопку", async () => {
     const root = await mount(<Menu label="Меню" trigger="T" items={items()} />);
     const button = root.querySelector("button")!;
     await click(button);
+    expect(document.activeElement?.textContent).toBe("A");
     await key(root.querySelector('[role="menu"]'), "Escape");
     expect(root.querySelector('[role="menu"]')).toBeNull();
     expect(document.activeElement).toBe(button);
