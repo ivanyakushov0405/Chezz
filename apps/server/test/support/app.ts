@@ -3,6 +3,7 @@ import { createServer } from "node:net";
 import type { FastifyInstance } from "fastify";
 import type { DestinationStream } from "pino";
 import type { AnalyticsService } from "../../src/analytics/service.ts";
+import type { OidcProvider } from "../../src/auth/oidc.ts";
 import type { AuthService, SessionsClosedEvent } from "../../src/auth/service.ts";
 import { buildApp } from "../../src/app.ts";
 import type { Database } from "../../src/database.ts";
@@ -15,6 +16,9 @@ import { memorySentryTransport, TEST_SENTRY_DSN, type SentryEvent } from "./sent
 import { ManualTimeSource } from "./time.ts";
 
 /** Подпись `__Host-oidc` в тестах — не секрет. */
+/** Клиент Google в тестах с подменённым обменом — не секрет. */
+export const TEST_GOOGLE_CLIENT = { clientId: "test-client-id.apps.googleusercontent.com", clientSecret: "test-secret" };
+
 export const TEST_COOKIE_SECRET = "test-cookie-secret-not-a-secret-000000";
 
 export interface TestApp {
@@ -53,6 +57,8 @@ export interface StartAppOptions {
   time?: { wall?: Date };
   /** true: DSN TEST_SENTRY_DSN и транспорт в память (design.md E03). */
   sentry?: boolean;
+  /** Подмена обмена code у Google (AppDeps.oidc); с ней config.google по умолчанию — тестовый клиент. */
+  oidc?: OidcProvider;
 }
 
 const silent: DestinationStream = { write: () => undefined };
@@ -86,7 +92,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       appVersion: "test",
       sentryDsn: null,
       metrics: { host: "127.0.0.1", port: metricsPort },
-      google: null,
+      google: options.oidc ? TEST_GOOGLE_CLIENT : null,
       cookieSecret: TEST_COOKIE_SECRET,
       ...(options.sentry ? { sentryDsn: TEST_SENTRY_DSN } : {}),
       ...options.config,
@@ -114,6 +120,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
         time,
         logDestination: options.logDestination ?? silent,
         reporter,
+        ...(options.oidc ? { oidc: options.oidc } : {}),
         onMetrics: (m) => {
           metrics = m;
         },

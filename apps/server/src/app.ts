@@ -8,6 +8,8 @@ import Fastify, { type FastifyBaseLogger, type FastifyInstance, type RouteOption
 import type { DestinationStream } from "pino";
 import { createAnalyticsService, type AnalyticsService } from "./analytics/service.ts";
 import { registerAuthRoutes } from "./auth/api.ts";
+import { createGoogleProvider, type OidcProvider } from "./auth/oidc.ts";
+import { registerOidcRoutes } from "./auth/oidc-api.ts";
 import { createAuthService, type AuthService } from "./auth/service.ts";
 import type { Database } from "./database.ts";
 import { injectClientConfig } from "./platform/client-config.ts";
@@ -35,6 +37,11 @@ export interface AppDeps {
   onAnalytics?: (analytics: AnalyticsService) => void;
   /** Получает auth сразу после создания (тестовый startApp: подписка на sessions_closed). */
   onAuth?: (auth: AuthService) => void;
+  /**
+   * Обмен code у Google (по умолчанию — openid-client с config.google). Тесты подменяют только его:
+   * проверка утверждений ID-токена, state, nonce, cookie — те же (TESTING §7.3; не флаг конфига).
+   */
+  oidc?: OidcProvider;
   /** Sentry сервера (main.ts — createErrorReporter из конфига; тесты — с транспортом в память). Нет — выключен. */
   reporter?: ErrorReporter;
 }
@@ -99,6 +106,20 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   registerHealthRoute(app, { db: deps.db, time: deps.time });
   registerUsersRoutes(app, { users });
   registerAuthRoutes(app, { auth });
+  registerOidcRoutes(app, {
+    appOrigin: config.appOrigin,
+    clientId: config.google?.clientId ?? null,
+    provider: deps.oidc ?? (config.google === null ? null : createGoogleProvider(config.google)),
+    time: deps.time,
+    log: app.log,
+    users,
+    auth,
+    analytics,
+    sendLoginFailed: (reply) =>
+      indexHtml === null
+        ? reply.code(400).type("text/plain; charset=utf-8").send("login failed")
+        : reply.code(400).header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(indexHtml),
+  });
 
   const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
   deps.onMetrics?.(metrics);
