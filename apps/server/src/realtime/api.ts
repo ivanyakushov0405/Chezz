@@ -15,7 +15,11 @@ export async function registerRealtimeApi(app: FastifyInstance, svc: RealtimeSer
     // Остановка app: всем 1012 (API §10); не закрывшиеся за SHUTDOWN_GRACE_MS — terminate; затем сервер ws.
     preClose(done) {
       const wss = this.websocketServer;
-      void svc.closeAll().then(() => wss.close(() => done()));
+      void svc.closeAll().then(() => {
+        // Сокеты, снятые со счёта раньше (4001–4003, 1008, 1011) и всё ещё в CLOSING, тоже не держат остановку.
+        for (const client of wss.clients) client.terminate();
+        wss.close(() => done());
+      });
     },
     // Обрыв клиента и превышение maxPayload — обычное дело, не ошибка сервера: без error-лога и Sentry.
     errorHandler(error, socket, request) {
