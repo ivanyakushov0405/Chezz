@@ -26,8 +26,35 @@ export {
 } from "./rest/me.ts";
 export { REST_ROUTES } from "./rest/routes.ts";
 export type { RouteDef, Who } from "./rest/routes.ts";
-export { CLIENT_MESSAGE_SCHEMAS, ClientMessage, Pong, WsRef } from "./ws/client.ts";
-export { Ping, SERVER_MESSAGE_SCHEMAS, ServerMessage, SessionClosed, Welcome, WsError } from "./ws/server.ts";
+export {
+  AbandonmentChoice,
+  Clock,
+  Color,
+  Connected,
+  Game,
+  GameRatings,
+  GameResult,
+  GameStatus,
+  GameSummary,
+  Move,
+  Offer,
+  PlayerRef,
+  RatingChange,
+  Reconnect,
+  Termination,
+} from "./game.ts";
+export { CLIENT_MESSAGE_SCHEMAS, ClientMessage, GameMove, GameSubscribe, GameUnsubscribe, Pong, WsRef } from "./ws/client.ts";
+export {
+  GameEnded,
+  GameMoved,
+  GameState,
+  Ping,
+  SERVER_MESSAGE_SCHEMAS,
+  ServerMessage,
+  SessionClosed,
+  Welcome,
+  WsError,
+} from "./ws/server.ts";
 export { PENDING_CATALOG } from "./pending.ts";
 export { PAGES } from "./pages.ts";
 export { safeLocalPath } from "./safe-path.ts";
