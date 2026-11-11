@@ -70,6 +70,7 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   await installHttp(app, {
     appOrigin: config.appOrigin,
     rateLimitIpPerMin: config.rateLimitIpPerMin,
+    cookieSecret: config.cookieSecret,
     resolveCaller,
     time: deps.time,
     reporter,

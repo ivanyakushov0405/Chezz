@@ -34,6 +34,8 @@ beforeAll(async () => {
     appVersion: "test",
     sentryDsn: null,
     metrics: null,
+    google: null,
+    cookieSecret: "test-cookie-secret-not-a-secret-000000",
   };
   const db = createDb<Database>(workerDatabaseUrl());
   const collected: RouteOptions[] = [];

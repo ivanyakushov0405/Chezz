@@ -13,6 +13,9 @@ import { setDatabaseAllowConnections, workerDatabaseName, workerDatabaseUrl } fr
 import { memorySentryTransport, TEST_SENTRY_DSN, type SentryEvent } from "./sentry.ts";
 import { ManualTimeSource } from "./time.ts";
 
+/** Подпись `__Host-oidc` в тестах — не секрет. */
+export const TEST_COOKIE_SECRET = "test-cookie-secret-not-a-secret-000000";
+
 export interface TestApp {
   /** http://127.0.0.1:<случайный порт> */
   url: string;
@@ -76,6 +79,8 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       appVersion: "test",
       sentryDsn: null,
       metrics: { host: "127.0.0.1", port: metricsPort },
+      google: null,
+      cookieSecret: TEST_COOKIE_SECRET,
       ...(options.sentry ? { sentryDsn: TEST_SENTRY_DSN } : {}),
       ...options.config,
     };
