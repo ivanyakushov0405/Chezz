@@ -55,7 +55,7 @@ describe("realtime: сообщения", () => {
     expect(client.isOpen()).toBe(true);
   });
 
-  it("К-5 E-1: ref длиннее 16 в ответ не возвращается", async () => {
+  it("К-5: ref длиннее 16 в ответ не возвращается", async () => {
     const a = await app();
     const { client } = await connectWelcomed(a);
     client.send({ type: "nope", ref: "x".repeat(17) });

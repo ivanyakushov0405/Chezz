@@ -67,6 +67,27 @@ describe("realtime: подключение", () => {
     expect((await listAnalyticsEvents()).filter((e) => e.name === "user_active")).toHaveLength(0);
   });
 
+  it("К-1: upgrade на другой путь с чужим Origin — тоже 403, Session не читается", async () => {
+    const a = await app();
+    const player = await createPlayer(a.db, { now: WALL });
+    const { default: WebSocket } = await import("ws");
+    const status = await new Promise<number>((resolve, reject) => {
+      const socket = new WebSocket(`${a.url.replace("http", "ws")}/api/me`, {
+        headers: { Origin: "https://evil.example", Cookie: player.cookie! },
+      });
+      socket.once("unexpected-response", (_req, res) => {
+        res.resume();
+        resolve(res.statusCode ?? 0);
+      });
+      socket.once("open", () => {
+        socket.terminate();
+        reject(new Error("upgrade accepted"));
+      });
+      socket.once("error", reject);
+    });
+    expect(status).toBe(403);
+  });
+
   it("К-1: upgrade — в общем счётчике REST: 299 REST + upgrade проходят, следующий запрос — 429", async () => {
     const a = await app();
     const client = rest(a.url);

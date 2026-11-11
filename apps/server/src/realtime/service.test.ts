@@ -5,7 +5,7 @@ import type { WebSocket } from "ws";
 import { ManualTimeSource } from "../../test/support/time.ts";
 import type { AuthService } from "../auth/service.ts";
 import { createMetrics } from "../platform/metrics.ts";
-import { createRealtimeService, SEND_BUFFER_LIMIT_BYTES } from "./service.ts";
+import { createRealtimeService, SEND_BUFFER_LIMIT_BYTES, SHUTDOWN_GRACE_MS } from "./service.ts";
 
 const silentLog = { error: () => undefined, warn: () => undefined, info: () => undefined } as unknown as FastifyBaseLogger;
 
@@ -15,19 +15,24 @@ const authStub = {
   sessionExpiries: () => Promise.resolve(new Map()),
 } as unknown as AuthService;
 
-function service() {
+function service(time = new ManualTimeSource()) {
   return createRealtimeService({
-    time: new ManualTimeSource(),
+    time,
     log: silentLog,
     metrics: createMetrics({ config: null, version: "test" }),
     auth: authStub,
   });
 }
 
+/** Сокет, который сам не закрывается: close() только запоминает код (полуоткрытый TCP). */
 class FakeSocket {
+  readonly CLOSED = 3;
+  readyState = 1;
   bufferedAmount = 0;
   sent: string[] = [];
   closedWith: number | null = null;
+  terminated = false;
+  private readonly closeListeners: (() => void)[] = [];
   send(data: string): void {
     this.sent.push(data);
   }
@@ -35,12 +40,25 @@ class FakeSocket {
     this.closedWith = code;
   }
   terminate(): void {
-    this.closedWith = -1;
+    this.terminated = true;
+    this.readyState = this.CLOSED;
+    for (const l of this.closeListeners.splice(0)) l();
+  }
+  /** Клиент ответил на close. */
+  finishClose(): void {
+    this.readyState = this.CLOSED;
+    for (const l of this.closeListeners.splice(0)) l();
   }
   on(): this {
     return this;
   }
+  once(event: string, fn: () => void): this {
+    if (event === "close") this.closeListeners.push(fn);
+    return this;
+  }
 }
+
+const GUEST_ACCEPT = { caller: { who: "guest" } as const, ip: "127.0.0.1", protocol_version: "1" };
 
 describe("realtime.registerHandlers", () => {
   it("К-6: два обработчика одного type — ошибка при старте", () => {
@@ -74,5 +92,42 @@ describe("realtime: медленный клиент", () => {
     await new Promise((r) => setTimeout(r, 0));
     expect(JSON.parse(socket.sent[0]!)).toMatchObject({ type: "welcome", user: null });
     expect(socket.closedWith).toBeNull();
+  });
+});
+
+describe("realtime: остановка", () => {
+  it("К-10: closeAll — 1012; клиент не закрылся за SHUTDOWN_GRACE_MS — terminate, остановка не висит", async () => {
+    const time = new ManualTimeSource();
+    const svc = service(time);
+    const silent = new FakeSocket();
+    const polite = new FakeSocket();
+    svc.accept(silent as unknown as WebSocket, GUEST_ACCEPT);
+    svc.accept(polite as unknown as WebSocket, GUEST_ACCEPT);
+    let finished = false;
+    const closing = svc.closeAll().then(() => {
+      finished = true;
+    });
+    expect(silent.closedWith).toBe(1012);
+    expect(polite.closedWith).toBe(1012);
+    polite.finishClose();
+    await time.advance(SHUTDOWN_GRACE_MS - 1);
+    expect(finished).toBe(false);
+    expect(silent.terminated).toBe(false);
+    await time.advance(1);
+    await closing;
+    expect(silent.terminated).toBe(true);
+    expect(polite.terminated).toBe(false);
+  });
+
+  it("К-10: все закрылись сами — closeAll завершается без ожидания таймера", async () => {
+    const time = new ManualTimeSource();
+    const svc = service(time);
+    const socket = new FakeSocket();
+    svc.accept(socket as unknown as WebSocket, GUEST_ACCEPT);
+    const closing = svc.closeAll();
+    socket.finishClose();
+    await closing;
+    expect(socket.terminated).toBe(false);
+    expect(time.pendingTimers()).toBe(0);
   });
 });

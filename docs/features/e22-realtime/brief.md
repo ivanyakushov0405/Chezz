@@ -24,7 +24,7 @@ Slug: `e22-realtime` · ROADMAP: E22 · Трекер: KAN-9 · Риск: high (S
 ## Шаги
 1. Протокол (слепые тесты: `tester`, режим 1, opus): схемы `Pong` (клиент), `Welcome`, `Ping`, `WsError`, `SessionClosed` (сервер), `ClientMessage`/`ServerMessage` как `discriminatedUnion`. Файлы: тест в `packages/protocol/src/ws/`, затем `ws/client.ts`, `ws/server.ts`, `index.ts`, `snapshot/protocol.json`. К-3, К-5.
 2. Платформа: `@fastify/websocket` в `apps/server/package.json` и lock; в `platform/metrics.ts` — регистрация gauge модуля (`addGauge`) и тест; метрики создаются в `app.ts` раньше модулей. К-10.
-3. `realtime/domain/`: `bucket.ts` (token bucket и «пуста дольше 10 с»), `rtt.ts` (медиана 5, компенсация не здесь), unit-тесты. К-7, К-8.
+3. `realtime/domain/`: `bucket.ts` (token bucket и «пуста дольше 10 с»), `ping.ts` (ping/pong, медиана 5 RTT; компенсация — не здесь), unit-тесты. К-7, К-8.
 4–5 (один коммит: `service.ts` реализует оба). Подключение: `realtime/service.ts` (реестр соединений, лимиты соединений, онлайн, gauge), `realtime/api.ts` (`/ws`: Origin → лимит REST → версия → `welcome`), `app.ts` (L6), `test/support/ws.ts`, int `src/realtime/connect.int.test.ts` (`test/contract/` — зона tester). К-1…К-4, К-10.
 5. Сообщения и жизнь соединения: разбор и права, `registerHandlers`, token bucket, ping/pong/RTT, мёртвое соединение, `sessions_closed`, перепроверка и `expires_at` (`auth.service.sessionExpiries(ids)` + `auth/repo.ts`), 1012 и 1011; int `messages.int.test.ts`, `session.int.test.ts`; unit `service.test.ts`, `domain/rights.test.ts`. К-5…К-10.
 
@@ -32,6 +32,9 @@ Slug: `e22-realtime` · ROADMAP: E22 · Трекер: KAN-9 · Риск: high (S
 - Порядок upgrade (уточнено в шаге 4): Origin проверяет `platform/http.ts` — с чужим Origin у upgrade `/ws` Session не читается (хук «Кто» ставит гостя), отказ 403 — в `preValidation` (после `onRequest` `@fastify/websocket`, иначе сокет отказа не закрывается); затем лимит REST (`preHandler`); затем версия, лимит соединений и `welcome` (service). Хук маршрута отвергнут: он идёт после общего «Кто», то есть после чтения Session.
 - `expires_at`: на перепроверке `auth.sessionExpiries(ids)` возвращает `id → expires_at` живых; Session, которые истекают до следующей перепроверки, получают таймер. На подключение — тот же запрос по одному id. Таймер на 30 дней отвергнут: `setTimeout` больше 24,8 суток срабатывает сразу.
 - Мёртвое соединение (3 `ping` без `pong`) — `terminate()` без кода: клиента нет, кода он не увидит.
+- «Корзина пуста дольше 10 с» (SECURITY §9): отсчёт — от первого отказа; сбрасывается, только когда сообщение принято с запасом (в корзине до него ≥ 2 токенов). Иначе бот на 50/с из примера §9 получал бы токен раз в 100 мс и не закрывался никогда. Цена: клиента, который после отказа держит ровно ~10/с, закроют через 10 с — это и есть потолок. Токен берётся в момент прихода, до очереди соединения (ревью).
+- Остановка: 1012 всем, через `SHUTDOWN_GRACE_MS` = 1 с — `terminate()` неответивших; иначе полуоткрытый TCP держал бы `onClose` до 30 с (ревью, блокер).
+- Origin проверяется у любого WebSocket-upgrade, не только `/ws` (плагин принимает рукопожатие и на других GET) (ревью).
 - Отвергнуто: `isOnline(user_id)` в сервисе — по 7.1 от `realtime` никто не зависит, потребителя нет.
 
 ## Правки документов основ

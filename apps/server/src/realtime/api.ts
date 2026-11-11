@@ -12,10 +12,15 @@ export const WS_MAX_PAYLOAD_BYTES = 4_096;
 export async function registerRealtimeApi(app: FastifyInstance, svc: RealtimeService): Promise<void> {
   await app.register(fastifyWebsocket, {
     options: { maxPayload: WS_MAX_PAYLOAD_BYTES },
-    // Остановка app: всем 1012 (API §10), затем сервер ws.
+    // Остановка app: всем 1012 (API §10); не закрывшиеся за SHUTDOWN_GRACE_MS — terminate; затем сервер ws.
     preClose(done) {
-      svc.closeAll();
-      this.websocketServer.close(() => done());
+      const wss = this.websocketServer;
+      void svc.closeAll().then(() => wss.close(() => done()));
+    },
+    // Обрыв клиента и превышение maxPayload — обычное дело, не ошибка сервера: без error-лога и Sentry.
+    errorHandler(error, socket, request) {
+      request.log.info({ err: { message: error.message } }, "ws socket error");
+      socket.terminate();
     },
   });
   app.get(WS_PATH, { websocket: true, config: { rateLimit: apiRateLimit() } }, (socket, request) => {

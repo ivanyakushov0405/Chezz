@@ -22,6 +22,8 @@ export const MAX_CONNECTIONS_PER_USER = 5;
 export const MAX_GUEST_CONNECTIONS_PER_IP = 50;
 /** Перепроверка Session открытых соединений (S6). */
 export const SESSION_RECHECK_MS = 60_000;
+/** Остановка app: столько ждём закрытия после 1012, потом terminate (полуоткрытый TCP не держит остановку). */
+export const SHUTDOWN_GRACE_MS = 1_000;
 /** Буфер отправки больше 1 МБ — медленный клиент, закрытие 1011 (API §10). */
 export const SEND_BUFFER_LIMIT_BYTES = 1_048_576;
 
@@ -49,8 +51,8 @@ export interface RealtimeService {
   /** Новое соединение после upgrade (Origin и лимит REST уже проверены). */
   accept(socket: WebSocket, options: AcceptOptions): void;
   start(): void;
-  /** Закрыть все соединения кодом 1012 (перезапуск app, API §10). */
-  closeAll(): void;
+  /** Закрыть все соединения кодом 1012 (перезапуск app, API §10); не закрытые за SHUTDOWN_GRACE_MS — terminate. */
+  closeAll(): Promise<void>;
   stop(): Promise<void>;
 }
 
@@ -171,7 +173,8 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
       closeForSession(conn);
       return;
     }
-    if (delay > SESSION_RECHECK_MS) return;
+    // Запас в две перепроверки: срок чуть больше 60 с не должен ждать следующего прохода (и его запроса).
+    if (delay > 2 * SESSION_RECHECK_MS) return;
     conn.expiryTimer = time.setTimer(delay, () => {
       conn.expiryTimer = null;
       closeForSession(conn);
@@ -211,20 +214,25 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
     schedulePing(conn);
   };
 
-  const dispatch = async (conn: Connection, data: Buffer, isBinary: boolean): Promise<void> => {
-    if (conn.closed) return;
+  /** Токен — в момент прихода, до очереди: отказанное не копится в очереди медленного обработчика. */
+  const admit = (conn: Connection): boolean => {
+    if (conn.closed) return false;
     const taken = takeToken(WS_MESSAGE_BUCKET, conn.bucket, time.now());
     conn.bucket = taken.state;
     if (taken.verdict === "close") {
       close(conn, CLOSE_CODE.rate_limited);
-      return;
+      return false;
     }
     if (taken.verdict === "rejected") {
       const retry = Math.max(1, Math.ceil(((1 - taken.state.tokens) * 1000) / WS_MESSAGE_BUCKET.rate_per_s));
       sendError(conn, null, "rate_limited", null, { retry_after_ms: retry });
-      return;
+      return false;
     }
+    return true;
+  };
 
+  const dispatch = async (conn: Connection, data: Buffer, isBinary: boolean): Promise<void> => {
+    if (conn.closed) return;
     let raw: unknown;
     try {
       if (isBinary) throw new Error("binary");
@@ -272,6 +280,30 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
     conn.queue = conn.queue.then(task).catch((err: unknown) => {
       report(err, "ws connection task failed");
       close(conn, CLOSE_CODE.internal);
+    });
+  };
+
+  const closeAll = async (): Promise<void> => {
+    const sockets = [...connections.values()].map((conn) => {
+      close(conn, CLOSE_CODE.restart);
+      return conn.socket;
+    });
+    const pending = sockets.filter((socket) => socket.readyState !== socket.CLOSED);
+    if (pending.length === 0) return;
+    await new Promise<void>((resolve) => {
+      let left = pending.length;
+      const done = (): void => {
+        left--;
+        if (left === 0) {
+          time.clearTimer(grace);
+          resolve();
+        }
+      };
+      for (const socket of pending) socket.once("close", done);
+      const grace = time.setTimer(SHUTDOWN_GRACE_MS, () => {
+        for (const socket of pending) if (socket.readyState !== socket.CLOSED) socket.terminate();
+        resolve();
+      });
     });
   };
 
@@ -347,6 +379,7 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
       if (userId !== null) increment(online, userId);
 
       socket.on("message", (data, isBinary) => {
+        if (!admit(conn)) return;
         const buffer = Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data as ArrayBuffer);
         enqueue(conn, () => dispatch(conn, buffer, isBinary));
       });
@@ -358,13 +391,11 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
       recheck.start();
     },
 
-    closeAll() {
-      for (const conn of [...connections.values()]) close(conn, CLOSE_CODE.restart);
-    },
+    closeAll,
 
     async stop() {
       await recheck.stop();
-      for (const conn of [...connections.values()]) close(conn, CLOSE_CODE.restart);
+      await closeAll();
     },
   };
 }

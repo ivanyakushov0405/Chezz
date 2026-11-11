@@ -60,7 +60,7 @@ describe("token bucket", () => {
     expect(s.empty_since_ms).toBeNull();
   });
 
-  it("К-7 E-1: время назад не добавляет токенов", () => {
+  it("К-7: время назад не добавляет токенов", () => {
     const empty = burst(fullBucket(C, 1_000), 20, 1_000).state;
     expect(takeToken(C, empty, 0).verdict).toBe("rejected");
   });

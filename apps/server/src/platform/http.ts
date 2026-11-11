@@ -51,10 +51,9 @@ export function isWsPath(url: string): boolean {
   return /^\/ws(?:[/?#]|$)/.test(url);
 }
 
+/** Любой WebSocket-upgrade (не только /ws: плагин принимает рукопожатие и на других GET) с чужим Origin. */
 function isForeignWsUpgrade(request: FastifyRequest, appOrigin: string): boolean {
-  return (
-    isWsPath(request.url) && request.headers.upgrade?.toLowerCase() === "websocket" && request.headers.origin !== appOrigin
-  );
+  return request.headers.upgrade?.toLowerCase() === "websocket" && request.headers.origin !== appOrigin;
 }
 
 /** Пути сервера, которые не отдаются SPA-фолбэком (design.md E01). */
