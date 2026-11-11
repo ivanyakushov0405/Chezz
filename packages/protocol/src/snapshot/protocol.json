@@ -157,6 +157,839 @@
         ],
         "additionalProperties": false
       }
+    },
+    "getMe": {
+      "method": "GET",
+      "path": "/api/me",
+      "status": 200,
+      "who": [
+        "guest",
+        "onboarding",
+        "player"
+      ],
+      "errors": [],
+      "response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "user": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "nickname": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "avatar_url": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "country": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  "email": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "locale": {
+                    "type": "string",
+                    "enum": [
+                      "ru",
+                      "en"
+                    ]
+                  },
+                  "settings": {
+                    "type": "object",
+                    "properties": {
+                      "theme": {
+                        "type": "string",
+                        "enum": [
+                          "light",
+                          "dark"
+                        ]
+                      },
+                      "sound": {
+                        "type": "boolean"
+                      },
+                      "board_theme": {
+                        "type": "string",
+                        "enum": [
+                          "brown",
+                          "blue",
+                          "green"
+                        ]
+                      },
+                      "piece_set": {
+                        "type": "string",
+                        "enum": [
+                          "cburnett",
+                          "merida"
+                        ]
+                      },
+                      "auto_queen": {
+                        "type": "boolean"
+                      },
+                      "confirm_move_mobile": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "theme",
+                      "sound",
+                      "board_theme",
+                      "piece_set",
+                      "auto_queen",
+                      "confirm_move_mobile"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "terms_accepted_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "can_change_nickname": {
+                    "type": "boolean"
+                  },
+                  "onboarding_required": {
+                    "type": "boolean"
+                  },
+                  "active_game_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "open_challenge_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "nickname",
+                  "avatar_url",
+                  "country",
+                  "created_at",
+                  "email",
+                  "locale",
+                  "settings",
+                  "terms_accepted_at",
+                  "can_change_nickname",
+                  "onboarding_required",
+                  "active_game_id",
+                  "open_challenge_id"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "completeOnboarding": {
+      "method": "POST",
+      "path": "/api/me/onboarding",
+      "status": 200,
+      "who": [
+        "onboarding"
+      ],
+      "errors": [
+        "nickname_invalid",
+        "nickname_reserved",
+        "nickname_taken",
+        "onboarding_completed"
+      ],
+      "body": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "nickname": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "terms_accepted": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "nickname",
+          "terms_accepted"
+        ],
+        "additionalProperties": false
+      },
+      "response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "nickname": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "avatar_url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "country": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "ru",
+                  "en"
+                ]
+              },
+              "settings": {
+                "type": "object",
+                "properties": {
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "light",
+                      "dark"
+                    ]
+                  },
+                  "sound": {
+                    "type": "boolean"
+                  },
+                  "board_theme": {
+                    "type": "string",
+                    "enum": [
+                      "brown",
+                      "blue",
+                      "green"
+                    ]
+                  },
+                  "piece_set": {
+                    "type": "string",
+                    "enum": [
+                      "cburnett",
+                      "merida"
+                    ]
+                  },
+                  "auto_queen": {
+                    "type": "boolean"
+                  },
+                  "confirm_move_mobile": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "theme",
+                  "sound",
+                  "board_theme",
+                  "piece_set",
+                  "auto_queen",
+                  "confirm_move_mobile"
+                ],
+                "additionalProperties": false
+              },
+              "terms_accepted_at": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "can_change_nickname": {
+                "type": "boolean"
+              },
+              "onboarding_required": {
+                "type": "boolean"
+              },
+              "active_game_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "open_challenge_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "nickname",
+              "avatar_url",
+              "country",
+              "created_at",
+              "email",
+              "locale",
+              "settings",
+              "terms_accepted_at",
+              "can_change_nickname",
+              "onboarding_required",
+              "active_game_id",
+              "open_challenge_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "updateMe": {
+      "method": "PATCH",
+      "path": "/api/me",
+      "status": 200,
+      "who": [
+        "player"
+      ],
+      "errors": [],
+      "body": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "country": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "AD",
+                  "AE",
+                  "AF",
+                  "AG",
+                  "AI",
+                  "AL",
+                  "AM",
+                  "AO",
+                  "AQ",
+                  "AR",
+                  "AS",
+                  "AT",
+                  "AU",
+                  "AW",
+                  "AX",
+                  "AZ",
+                  "BA",
+                  "BB",
+                  "BD",
+                  "BE",
+                  "BF",
+                  "BG",
+                  "BH",
+                  "BI",
+                  "BJ",
+                  "BL",
+                  "BM",
+                  "BN",
+                  "BO",
+                  "BQ",
+                  "BR",
+                  "BS",
+                  "BT",
+                  "BV",
+                  "BW",
+                  "BY",
+                  "BZ",
+                  "CA",
+                  "CC",
+                  "CD",
+                  "CF",
+                  "CG",
+                  "CH",
+                  "CI",
+                  "CK",
+                  "CL",
+                  "CM",
+                  "CN",
+                  "CO",
+                  "CR",
+                  "CU",
+                  "CV",
+                  "CW",
+                  "CX",
+                  "CY",
+                  "CZ",
+                  "DE",
+                  "DJ",
+                  "DK",
+                  "DM",
+                  "DO",
+                  "DZ",
+                  "EC",
+                  "EE",
+                  "EG",
+                  "EH",
+                  "ER",
+                  "ES",
+                  "ET",
+                  "FI",
+                  "FJ",
+                  "FK",
+                  "FM",
+                  "FO",
+                  "FR",
+                  "GA",
+                  "GB",
+                  "GD",
+                  "GE",
+                  "GF",
+                  "GG",
+                  "GH",
+                  "GI",
+                  "GL",
+                  "GM",
+                  "GN",
+                  "GP",
+                  "GQ",
+                  "GR",
+                  "GS",
+                  "GT",
+                  "GU",
+                  "GW",
+                  "GY",
+                  "HK",
+                  "HM",
+                  "HN",
+                  "HR",
+                  "HT",
+                  "HU",
+                  "ID",
+                  "IE",
+                  "IL",
+                  "IM",
+                  "IN",
+                  "IO",
+                  "IQ",
+                  "IR",
+                  "IS",
+                  "IT",
+                  "JE",
+                  "JM",
+                  "JO",
+                  "JP",
+                  "KE",
+                  "KG",
+                  "KH",
+                  "KI",
+                  "KM",
+                  "KN",
+                  "KP",
+                  "KR",
+                  "KW",
+                  "KY",
+                  "KZ",
+                  "LA",
+                  "LB",
+                  "LC",
+                  "LI",
+                  "LK",
+                  "LR",
+                  "LS",
+                  "LT",
+                  "LU",
+                  "LV",
+                  "LY",
+                  "MA",
+                  "MC",
+                  "MD",
+                  "ME",
+                  "MF",
+                  "MG",
+                  "MH",
+                  "MK",
+                  "ML",
+                  "MM",
+                  "MN",
+                  "MO",
+                  "MP",
+                  "MQ",
+                  "MR",
+                  "MS",
+                  "MT",
+                  "MU",
+                  "MV",
+                  "MW",
+                  "MX",
+                  "MY",
+                  "MZ",
+                  "NA",
+                  "NC",
+                  "NE",
+                  "NF",
+                  "NG",
+                  "NI",
+                  "NL",
+                  "NO",
+                  "NP",
+                  "NR",
+                  "NU",
+                  "NZ",
+                  "OM",
+                  "PA",
+                  "PE",
+                  "PF",
+                  "PG",
+                  "PH",
+                  "PK",
+                  "PL",
+                  "PM",
+                  "PN",
+                  "PR",
+                  "PS",
+                  "PT",
+                  "PW",
+                  "PY",
+                  "QA",
+                  "RE",
+                  "RO",
+                  "RS",
+                  "RU",
+                  "RW",
+                  "SA",
+                  "SB",
+                  "SC",
+                  "SD",
+                  "SE",
+                  "SG",
+                  "SH",
+                  "SI",
+                  "SJ",
+                  "SK",
+                  "SL",
+                  "SM",
+                  "SN",
+                  "SO",
+                  "SR",
+                  "SS",
+                  "ST",
+                  "SV",
+                  "SX",
+                  "SY",
+                  "SZ",
+                  "TC",
+                  "TD",
+                  "TF",
+                  "TG",
+                  "TH",
+                  "TJ",
+                  "TK",
+                  "TL",
+                  "TM",
+                  "TN",
+                  "TO",
+                  "TR",
+                  "TT",
+                  "TV",
+                  "TW",
+                  "TZ",
+                  "UA",
+                  "UG",
+                  "UM",
+                  "US",
+                  "UY",
+                  "UZ",
+                  "VA",
+                  "VC",
+                  "VE",
+                  "VG",
+                  "VI",
+                  "VN",
+                  "VU",
+                  "WF",
+                  "WS",
+                  "YE",
+                  "YT",
+                  "ZA",
+                  "ZM",
+                  "ZW"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "ru",
+              "en"
+            ]
+          },
+          "settings": {
+            "type": "object",
+            "properties": {
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "light",
+                  "dark"
+                ]
+              },
+              "sound": {
+                "type": "boolean"
+              },
+              "board_theme": {
+                "type": "string",
+                "enum": [
+                  "brown",
+                  "blue",
+                  "green"
+                ]
+              },
+              "piece_set": {
+                "type": "string",
+                "enum": [
+                  "cburnett",
+                  "merida"
+                ]
+              },
+              "auto_queen": {
+                "type": "boolean"
+              },
+              "confirm_move_mobile": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "nickname": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "avatar_url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "country": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "locale": {
+                "type": "string",
+                "enum": [
+                  "ru",
+                  "en"
+                ]
+              },
+              "settings": {
+                "type": "object",
+                "properties": {
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "light",
+                      "dark"
+                    ]
+                  },
+                  "sound": {
+                    "type": "boolean"
+                  },
+                  "board_theme": {
+                    "type": "string",
+                    "enum": [
+                      "brown",
+                      "blue",
+                      "green"
+                    ]
+                  },
+                  "piece_set": {
+                    "type": "string",
+                    "enum": [
+                      "cburnett",
+                      "merida"
+                    ]
+                  },
+                  "auto_queen": {
+                    "type": "boolean"
+                  },
+                  "confirm_move_mobile": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "theme",
+                  "sound",
+                  "board_theme",
+                  "piece_set",
+                  "auto_queen",
+                  "confirm_move_mobile"
+                ],
+                "additionalProperties": false
+              },
+              "terms_accepted_at": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "can_change_nickname": {
+                "type": "boolean"
+              },
+              "onboarding_required": {
+                "type": "boolean"
+              },
+              "active_game_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "open_challenge_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "nickname",
+              "avatar_url",
+              "country",
+              "created_at",
+              "email",
+              "locale",
+              "settings",
+              "terms_accepted_at",
+              "can_change_nickname",
+              "onboarding_required",
+              "active_game_id",
+              "open_challenge_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "user"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "logout": {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "status": 204,
+      "who": [
+        "onboarding",
+        "player"
+      ],
+      "errors": [],
+      "response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      }
+    },
+    "logoutAll": {
+      "method": "POST",
+      "path": "/api/auth/logout-all",
+      "status": 204,
+      "who": [
+        "onboarding",
+        "player"
+      ],
+      "errors": [],
+      "response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      }
     }
   },
   "ws_client": {},

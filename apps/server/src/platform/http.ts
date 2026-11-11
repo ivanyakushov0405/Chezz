@@ -1,6 +1,7 @@
 // HTTP-шлюз platform: «Кто» (ADR-0005 п.7), rate limit (ADR-0006), разбор тела, ошибки (API §5),
 // registerRoute (API §3, §7, §15; SECURITY §6, §7, §9). platform об auth не знает: резолвер передаёт app.ts.
 import { PROTOCOL_VERSION, type RouteDef, type Who } from "@chezz/protocol";
+import fastifyCookie from "@fastify/cookie";
 import rateLimit, { normalizeIP, type RateLimitOptions } from "@fastify/rate-limit";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
@@ -66,6 +67,8 @@ export interface HttpOptions {
   rateLimitIpPerMin: number;
   resolveCaller: CallerResolver;
   time: TimeSource;
+  /** Секрет подписанных cookie (`__Host-oidc`, SECURITY §4); cookie разбираются до «Кто» (`__Host-sid`). */
+  cookieSecret?: string;
   /** GET/HEAD пути вне /api, /auth, /ws без маршрута — например, index.html SPA; нет — 404 not_found. */
   notFoundFallback?: (request: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
   /** Sentry: 5xx errorHandler — одно событие на ошибку; нет — только лог. */
@@ -95,6 +98,8 @@ export async function installHttp(app: FastifyInstance, options: HttpOptions): P
   if (httpOptionsOf(app) !== undefined) throw new Error("installHttp: already installed");
   app.decorate(HTTP_OPTIONS, options);
 
+  // Cookie разбираются в onRequest плагина — раньше хука «Кто» ниже.
+  await app.register(fastifyCookie, options.cookieSecret === undefined ? {} : { secret: options.cookieSecret });
   app.decorateRequest("caller", null as never);
   app.decorateRequest("bodyIssue", null);
   app.addHook("onRequest", async (request, reply) => {
@@ -256,7 +261,7 @@ export function registerRoute<R extends RouteDef>(
         throw new AppError("client_outdated");
       }
       const caller = request.caller;
-      if (!def.who.includes(caller.who)) throw new AppError(WHO_REFUSAL[caller.who]);
+      if (!def.who.includes(caller.who)) throw new AppError(def.refusals?.[caller.who] ?? WHO_REFUSAL[caller.who]);
 
       if (request.bodyIssue === "too_large") throw new AppError("payload_too_large");
       if (request.bodyIssue !== null) throw validationError([{ path: "", rule: request.bodyIssue }]);
