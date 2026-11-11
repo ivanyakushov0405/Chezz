@@ -24,7 +24,7 @@ export const TEST_COOKIE_SECRET = "test-cookie-secret-not-a-secret-000000";
 export interface TestApp {
   /** http://127.0.0.1:<случайный порт> */
   url: string;
-  /** ws://127.0.0.1:<порт>/ws (в E01 сервера WS нет — только адрес) */
+  /** ws://127.0.0.1:<порт>/ws */
   wsUrl: string;
   time: ManualTimeSource;
   /** http://127.0.0.1:<порт метрик> */
@@ -47,6 +47,8 @@ export interface TestApp {
   sentryEvents(): Promise<SentryEvent[]>;
   /** Без штатного завершения (TESTING §7.3): сервер и пул закрываются, onClose сервисов не вызывается. */
   close(): Promise<void>;
+  /** Штатная остановка app.close() (preClose/onClose сервисов: WebSocket — 1012); после неё — close(). */
+  shutdown(): Promise<void>;
 }
 
 export interface StartAppOptions {
@@ -142,6 +144,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       throw err;
     }
     const server = app.server;
+    const fastify = app;
     const metricsUrl = `http://127.0.0.1:${metrics?.port() ?? metricsPort}`;
     return {
       url,
@@ -166,6 +169,9 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
           await setDatabaseAllowConnections(dbName, true);
           blocked = false;
         },
+      },
+      shutdown: async () => {
+        await fastify.close();
       },
       close: async () => {
         server.closeAllConnections();

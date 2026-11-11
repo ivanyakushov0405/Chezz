@@ -89,12 +89,18 @@ describe("маршруты app", () => {
   });
 
   it("статика — без лимита (SECURITY §9) и без маршрута-шаблона /*", () => {
-    const statics = routes.filter((r) => !isApi(r.url) && !isAuth(r.url));
+    const statics = routes.filter((r) => !isApi(r.url) && !isAuth(r.url) && r.url !== "/ws");
     expect(statics.map((r) => r.url)).toContain("/assets/app-abc123.js");
     for (const r of statics) {
       expect((r.config as { rateLimit?: unknown } | undefined)?.rateLimit, r.url).toBeUndefined();
       expect(r.url, r.url).not.toContain("*");
     }
+  });
+
+  it("К-1: WebSocket-upgrade /ws — в общем лимите REST (ADR-0006 п.2, п.4; E22)", () => {
+    const ws = routes.filter((r) => r.url === "/ws");
+    expect(ws.length).toBeGreaterThan(0);
+    for (const r of ws) expect((r.config as { rateLimit?: unknown } | undefined)?.rateLimit).toEqual({ timeWindow: 60_000 });
   });
 
   it("К-1: маршруты /auth/* — с настройкой лимита (ADR-0006 п.2, п.4)", () => {

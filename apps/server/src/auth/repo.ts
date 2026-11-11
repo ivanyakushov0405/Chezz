@@ -24,6 +24,18 @@ export async function findValidSession(db: Db | Trx, tokenHash: string, now: Dat
   );
 }
 
+/** Действующие Session из списка (перепроверка realtime, S6): id → expires_at; одним запросом. */
+export async function findValidSessionsByIds(db: Db | Trx, ids: readonly string[], now: Date): Promise<Map<string, Date>> {
+  if (ids.length === 0) return new Map();
+  const rows = await forTables<AuthTables>(db)
+    .selectFrom("sessions")
+    .select(["id", "expires_at"])
+    .where("id", "=", (eb) => eb.fn.any(eb.val([...ids])))
+    .where("expires_at", ">", now)
+    .execute();
+  return new Map(rows.map((r) => [r.id, r.expires_at]));
+}
+
 /** «Выйти»: удаляет одну Session; возвращает удалённые id (пусто — её уже нет). */
 export async function deleteSession(db: Db | Trx, id: string): Promise<string[]> {
   const rows = await forTables<AuthTables>(db).deleteFrom("sessions").where("id", "=", id).returning("id").execute();

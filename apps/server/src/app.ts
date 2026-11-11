@@ -21,6 +21,8 @@ import { createMetrics, type MetricsService } from "./platform/metrics.ts";
 import { createLogger, RequestLogController } from "./platform/log.ts";
 import { createErrorReporter, type ErrorReporter } from "./platform/sentry.ts";
 import type { TimeSource } from "./platform/time.ts";
+import { registerRealtimeApi } from "./realtime/api.ts";
+import { createRealtimeService } from "./realtime/service.ts";
 import { registerUsersRoutes } from "./users/api.ts";
 import { createUsersService } from "./users/service.ts";
 
@@ -79,6 +81,8 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   const users = createUsersService({ db: deps.db, time: deps.time });
   const auth = createAuthService({ db: deps.db, time: deps.time, log: app.log, reporter, users, analytics });
   deps.onAuth?.(auth);
+  // L6 realtime: обработчиков модулей пока нет (команды партии — E06).
+  const realtime = createRealtimeService({ time: deps.time, log: app.log, reporter, metrics, auth });
 
   const webDistDir = config.webDistDir;
   // index.html с <meta> конфига клиента (ADR-0010 п.3): читается один раз; нет файла — отдаётся как есть.
@@ -108,6 +112,7 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   });
 
   registerHealthRoute(app, { db: deps.db, time: deps.time });
+  await registerRealtimeApi(app, realtime);
   registerUsersRoutes(app, { users });
   registerAuthRoutes(app, { auth });
   registerOidcRoutes(app, {
@@ -128,10 +133,12 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   app.addHook("onReady", async () => {
     await migrateToLatest(deps.db);
     auth.start();
+    realtime.start();
     // Порт метрик занят — ошибка старта (EC-17), а не молчаливое отсутствие метрик.
     await metrics.start();
   });
   app.addHook("onClose", async () => {
+    await realtime.stop();
     await auth.stop();
     await analytics.drain();
     await metrics.stop();
