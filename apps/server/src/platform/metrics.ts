@@ -12,6 +12,11 @@ export interface MetricsService {
   stop(): Promise<void>;
   /** Фактический порт после start (для METRICS_PORT=0); null — не запущен. */
   port(): number | null;
+  /**
+   * Gauge модуля (OPERATIONS §12.2): значение читается функцией collect при каждом запросе /metrics,
+   * модуль не держит ссылку на prom-client. Повтор имени — ошибка при старте.
+   */
+  addGauge(def: { name: string; help: string; collect: () => number }): void;
 }
 
 export interface MetricsDeps {
@@ -66,6 +71,16 @@ export function createMetrics(deps: MetricsDeps): MetricsService {
     },
     port() {
       return server === null ? null : (server.address() as AddressInfo).port;
+    },
+    addGauge(def) {
+      new Gauge({
+        name: def.name,
+        help: def.help,
+        registers: [registry],
+        collect() {
+          this.set(def.collect());
+        },
+      });
     },
   };
 }

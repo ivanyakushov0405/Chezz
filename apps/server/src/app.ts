@@ -68,6 +68,10 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   const reporter =
     deps.reporter ?? createErrorReporter({ dsn: null, environment: config.appEnv, release: config.appVersion, origin: config.appOrigin });
 
+  // Метрики — до модулей: модуль регистрирует свои gauge в фабрике (addGauge, OPERATIONS §12.2).
+  const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
+  deps.onMetrics?.(metrics);
+
   // Сервисы модулей по слоям (ARCHITECTURE §7.1, ADR-0005): L0 analytics → L1 users → L5 auth.
   // Создаются до шлюза: «Кто» — auth.resolveCaller (ADR-0005 п.7).
   const analytics = createAnalyticsService({ db: deps.db, time: deps.time, log: app.log, reporter });
@@ -120,9 +124,6 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
         ? reply.code(400).type("text/plain; charset=utf-8").send("login failed")
         : reply.code(400).header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(indexHtml),
   });
-
-  const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
-  deps.onMetrics?.(metrics);
 
   app.addHook("onReady", async () => {
     await migrateToLatest(deps.db);
