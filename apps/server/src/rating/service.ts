@@ -71,14 +71,15 @@ export function createRatingService(deps: { db: Db<Database> }): RatingService {
 
     async applyResult(trx, r) {
       if (r.whiteId === r.blackId) throw new Error("rating.applyResult: white and black are the same user");
-      // Повтор партии (E-1) — понятная ошибка до записи; одновременный повтор ловит PK rating_history.
-      if (await hasHistoryForGame(trx, r.gameId)) throw new Error("rating.applyResult: game already rated");
       // Новая строка получает updated_at = endedAt: рост RD до первой партии — 0 (ARCHITECTURE §11).
       const rows = await lockRatings(trx, [r.whiteId, r.blackId], r.category, {
         ...DEFAULT_GLICKO,
         games_count: 0,
         updated_at: r.endedAt,
       });
+      // Повтор партии (E-1) — после блокировки строк: одновременный повтор ждёт первую транзакцию
+      // и видит её историю; PK rating_history — последняя защита.
+      if (await hasHistoryForGame(trx, r.gameId)) throw new Error("rating.applyResult: game already rated");
       const white = rows.find((row) => row.user_id === r.whiteId);
       const black = rows.find((row) => row.user_id === r.blackId);
       if (!white || !black) throw new Error("rating.applyResult: rating rows not locked");

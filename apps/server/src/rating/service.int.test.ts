@@ -140,6 +140,16 @@ describe("rating.service", () => {
     expect(await historyOf(r.gameId)).toHaveLength(2);
   });
 
+  it("К-4 E-1: одновременный повтор одного game_id — одна партия учтена, второй — «already rated»", async () => {
+    const p = await pair();
+    const r = result(p);
+    const outcomes = await Promise.allSettled([apply(r), apply(r)]);
+    expect(outcomes.filter((o) => o.status === "fulfilled")).toHaveLength(1);
+    const rejected = outcomes.find((o) => o.status === "rejected");
+    expect(String(rejected?.status === "rejected" ? rejected.reason : "")).toMatch(/already rated/);
+    expect((await rating.getRating(p.white, "blitz")).games_count).toBe(1);
+  });
+
   it("К-4 E-2: белые и чёрные — один игрок → ошибка до записи", async () => {
     const { white } = await pair();
     const r = result({ white, black: white });
