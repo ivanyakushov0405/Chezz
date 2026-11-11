@@ -22,7 +22,6 @@ export const PENDING_CATALOG = {
     "sendFeedback",
   ],
   ws_client: [
-    "pong",
     "lobby.subscribe",
     "lobby.unsubscribe",
     "game.subscribe",
@@ -41,9 +40,6 @@ export const PENDING_CATALOG = {
     "game.abandonment_choice",
   ],
   ws_server: [
-    "welcome",
-    "ping",
-    "error",
     "lobby.state",
     "lobby.challenge_added",
     "lobby.challenge_removed",
@@ -56,6 +52,5 @@ export const PENDING_CATALOG = {
     "game.presence",
     "game.ended",
     "game.started",
-    "session.closed",
   ],
 } as const satisfies { rest: readonly string[]; ws_client: readonly string[]; ws_server: readonly string[] };

@@ -28,3 +28,8 @@ export async function listSessionsByNickname(db: Db<Database>, nicknames: readon
     .where("users.nickname", "in", [...nicknames])
     .execute();
 }
+
+/** Удалить Session в обход auth — как скрипт отзыва (SECURITY §16; перепроверка realtime, S6). */
+export async function deleteSessionById(db: Db<Database>, sessionId: string): Promise<void> {
+  await db.deleteFrom("sessions").where("id", "=", sessionId).execute();
+}

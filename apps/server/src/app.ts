@@ -21,6 +21,8 @@ import { createMetrics, type MetricsService } from "./platform/metrics.ts";
 import { createLogger, RequestLogController } from "./platform/log.ts";
 import { createErrorReporter, type ErrorReporter } from "./platform/sentry.ts";
 import type { TimeSource } from "./platform/time.ts";
+import { registerRealtimeApi } from "./realtime/api.ts";
+import { createRealtimeService } from "./realtime/service.ts";
 import { registerUsersRoutes } from "./users/api.ts";
 import { createUsersService } from "./users/service.ts";
 
@@ -68,6 +70,10 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   const reporter =
     deps.reporter ?? createErrorReporter({ dsn: null, environment: config.appEnv, release: config.appVersion, origin: config.appOrigin });
 
+  // Метрики — до модулей: модуль регистрирует свои gauge в фабрике (addGauge, OPERATIONS §12.2).
+  const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
+  deps.onMetrics?.(metrics);
+
   // Сервисы модулей по слоям (ARCHITECTURE §7.1, ADR-0005): L0 analytics → L1 users → L5 auth.
   // Создаются до шлюза: «Кто» — auth.resolveCaller (ADR-0005 п.7).
   const analytics = createAnalyticsService({ db: deps.db, time: deps.time, log: app.log, reporter });
@@ -75,6 +81,8 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   const users = createUsersService({ db: deps.db, time: deps.time });
   const auth = createAuthService({ db: deps.db, time: deps.time, log: app.log, reporter, users, analytics });
   deps.onAuth?.(auth);
+  // L6 realtime: обработчиков модулей пока нет (команды партии — E06).
+  const realtime = createRealtimeService({ time: deps.time, log: app.log, reporter, metrics, auth });
 
   const webDistDir = config.webDistDir;
   // index.html с <meta> конфига клиента (ADR-0010 п.3): читается один раз; нет файла — отдаётся как есть.
@@ -104,6 +112,7 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   });
 
   registerHealthRoute(app, { db: deps.db, time: deps.time });
+  await registerRealtimeApi(app, realtime);
   registerUsersRoutes(app, { users });
   registerAuthRoutes(app, { auth });
   registerOidcRoutes(app, {
@@ -121,16 +130,15 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
         : reply.code(400).header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(indexHtml),
   });
 
-  const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
-  deps.onMetrics?.(metrics);
-
   app.addHook("onReady", async () => {
     await migrateToLatest(deps.db);
     auth.start();
+    realtime.start();
     // Порт метрик занят — ошибка старта (EC-17), а не молчаливое отсутствие метрик.
     await metrics.start();
   });
   app.addHook("onClose", async () => {
+    await realtime.stop();
     await auth.stop();
     await analytics.drain();
     await metrics.stop();

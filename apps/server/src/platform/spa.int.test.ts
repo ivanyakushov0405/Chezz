@@ -47,18 +47,22 @@ describe("SPA", () => {
     expect(res.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
   });
 
-  it("путь без файла вне /api, /auth, /ws → тот же index.html; /auth, /ws без маршрута — 404 not_found", async () => {
+  it("путь без файла вне /api, /auth, /ws → тот же index.html; /auth, /ws без маршрута — 404 not_found; GET /ws без upgrade — 404", async () => {
     for (const url of ["/player/magnus", "/game/abc?x=1", "/welcome"]) {
       const { res, text } = await get(url);
       expect(res.status, url).toBe(200);
       expect(res.headers.get("cache-control"), url).toBe("no-cache");
       expect(text, url).toBe(SERVED);
     }
-    for (const url of ["/auth/nothing", "/ws"]) {
+    for (const url of ["/auth/nothing", "/ws/nothing"]) {
       const { res, text } = await get(url);
       expect(res.status, url).toBe(404);
       expect(JSON.parse(text)).toMatchObject({ error: { code: "not_found" } });
     }
+    // /ws — маршрут шлюза (E22): без upgrade — 404, не index.html.
+    const { res, text } = await get("/ws");
+    expect(res.status).toBe(404);
+    expect(text).not.toBe(SERVED);
   });
 
   it("статика и HTML — без лимита: десятки запросов при лимите 3/мин проходят, /api — в своём счётчике", async () => {

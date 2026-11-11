@@ -46,6 +46,16 @@ export function isApiPath(url: string): boolean {
   return /^\/api(?:[/?#]|$)/.test(url);
 }
 
+/** Путь WebSocket-шлюза (/ws, API §8.1), без строки запроса. */
+export function isWsPath(url: string): boolean {
+  return /^\/ws(?:[/?#]|$)/.test(url);
+}
+
+/** Любой WebSocket-upgrade (не только /ws: плагин принимает рукопожатие и на других GET) с чужим Origin. */
+function isForeignWsUpgrade(request: FastifyRequest, appOrigin: string): boolean {
+  return request.headers.upgrade?.toLowerCase() === "websocket" && request.headers.origin !== appOrigin;
+}
+
 /** Пути сервера, которые не отдаются SPA-фолбэком (design.md E01). */
 const SERVER_PATH = /^\/(?:api|auth|ws)(?:[/?#]|$)/;
 
@@ -104,7 +114,12 @@ export async function installHttp(app: FastifyInstance, options: HttpOptions): P
   app.decorateRequest("bodyIssue", null);
   app.addHook("onRequest", async (request, reply) => {
     void reply.header("X-Request-Id", request.id);
-    request.caller = await options.resolveCaller(request);
+    // WebSocket-upgrade: Origin — до проверки Session (SECURITY §6): с чужим Origin Session не читается,
+    // отказ 403 — в preValidation ниже (после onRequest @fastify/websocket, который закрывает сокет отказа).
+    request.caller = isForeignWsUpgrade(request, options.appOrigin) ? GUEST : await options.resolveCaller(request);
+  });
+  app.addHook("preValidation", async (request) => {
+    if (isForeignWsUpgrade(request, options.appOrigin)) throw new AppError("origin_forbidden");
   });
   app.addHook("onSend", async (request, reply) => {
     if (isApiPath(request.url)) void reply.header("Cache-Control", "no-store");

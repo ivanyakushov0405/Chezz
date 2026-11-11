@@ -10,7 +10,15 @@ import { every, type ScheduledTask } from "../platform/schedule.ts";
 import type { ErrorReporter } from "../platform/sentry.ts";
 import type { TimeSource } from "../platform/time.ts";
 import type { UsersService } from "../users/service.ts";
-import { deleteExpiredSessions, deleteSession, deleteUserSessions, findValidSession, insertSession, type SessionRow } from "./repo.ts";
+import {
+  deleteExpiredSessions,
+  deleteSession,
+  deleteUserSessions,
+  findValidSession,
+  findValidSessionsByIds,
+  insertSession,
+  type SessionRow,
+} from "./repo.ts";
 
 /** Cookie Session (S4): `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`, без `Domain`. */
 export const SESSION_COOKIE = "__Host-sid";
@@ -34,6 +42,13 @@ export interface AuthService {
   /** «Выйти со всех устройств»: все Session User. */
   logoutAll(caller: Caller): Promise<void>;
   onSessionsClosed(listener: (event: SessionsClosedEvent) => void): () => void;
+  /**
+   * Для WebSocket (realtime): User и срок Session вызывающего; null — Session уже нет или истекла.
+   * nickname — null у П1 (welcome, API §8.1).
+   */
+  connectionInfo(caller: Caller): Promise<{ user: { id: string; nickname: string | null }; expires_at: Date } | null>;
+  /** Перепроверка открытых WebSocket (S6, ARCHITECTURE §9.1 п.9): действующие из списка, id → expires_at. */
+  sessionExpiries(sessionIds: readonly string[]): Promise<Map<string, Date>>;
   start(): void;
   stop(): Promise<void>;
 }
@@ -116,6 +131,19 @@ export function createAuthService(deps: {
     onSessionsClosed(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+
+    async connectionInfo(caller) {
+      if (caller.who === "guest") return null;
+      const expires = (await findValidSessionsByIds(db, [caller.session_id], time.wallNow())).get(caller.session_id);
+      if (expires === undefined) return null;
+      const user = await users.getUser(caller.user_id);
+      if (user === null || user.deleted_at !== null) return null;
+      return { user: { id: user.id, nickname: user.nickname }, expires_at: expires };
+    },
+
+    sessionExpiries(sessionIds) {
+      return findValidSessionsByIds(db, sessionIds, time.wallNow());
     },
 
     start() {
