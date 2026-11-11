@@ -16,7 +16,7 @@ Slug: `e05-rating` · ROADMAP: E05 · Трекер: KAN-8 · Риск: high (Gli
 - К-4: `applyResult(trx, …)` в транзакции вызывающего записывает обоим Rating (upsert), `games_count + 1`, `updated_at = ended_at` и две строки RatingHistory (`game_id`, `category`, `rating_before`, `rating_after`). Возвращает `{white, black}` в форме `RatingChange` — целые, округлённые до показа.
 - К-5: откат транзакции вызывающего не оставляет изменений ни в `ratings`, ни в `rating_history`.
 - К-6: категории независимы: блиц не трогает Rating пули того же игрока.
-- К-7: `elapsedDays` — сутки от `updated_at` своей строки Rating до `ended_at`; у белых и чёрных — свои.
+- К-7: `elapsedDays` — сутки от `updated_at` своей строки Rating до `ended_at`; у белых и чёрных — свои. RD соперника в пересчёте — тоже с ростом за его простой (ARCHITECTURE §11, добавлено после ревью, решение Ivan).
 - К-8: показ: `provisional = rd > 110` (110 → нет «?»), рейтинг округляется до целого (ТЗ §4.7).
 - E-1: второй `applyResult` с тем же `game_id` — ошибка, рейтинг не пересчитан дважды (уникальный `(game_id, user_id)`).
 - E-2: `white_id = black_id` — ошибка до записи.

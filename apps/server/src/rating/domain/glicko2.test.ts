@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_GLICKO, MAX_RD, rateMany, type Glicko, type RatedGame } from "./glicko2.ts";
+import { DEFAULT_GLICKO, grownRd, MAX_RD, rateMany, type Glicko, type RatedGame } from "./glicko2.ts";
 
 const settled: Glicko = { rating: 1800, rd: 60, volatility: 0.06 };
 const win: RatedGame[] = [{ opponent: { rating: 1800, rd: 60 }, score: 1 }];
@@ -26,6 +26,14 @@ describe("rateMany", () => {
     expect(rateMany(settled, [{ opponent: opp, score: 1 }], 0).rating).toBeGreaterThan(1800);
     expect(rateMany(settled, [{ opponent: opp, score: 0 }], 0).rating).toBeLessThan(1800);
     expect(rateMany(settled, [{ opponent: opp, score: 0.5 }], 0).rating).toBeCloseTo(1800, 6);
+  });
+
+  it("К-7: grownRd — RD 60 за год ≈ 110 (lila), 0 суток — без роста, потолок 350", () => {
+    expect(grownRd(60, 0.06, 0)).toBeCloseTo(60, 10);
+    expect(grownRd(60, 0.06, 365)).toBeGreaterThan(105);
+    expect(grownRd(60, 0.06, 365)).toBeLessThan(115);
+    expect(grownRd(300, 0.06, 36500)).toBe(MAX_RD);
+    expect(() => grownRd(60, 0.06, -1)).toThrow(RangeError);
   });
 
   it("К-1: пустой массив партий и отрицательное или нечисловое время — ошибка", () => {

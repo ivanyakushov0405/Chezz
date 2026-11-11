@@ -3,7 +3,7 @@
 import type { Category } from "@chezz/protocol";
 import type { Database } from "../database.ts";
 import type { Db, Trx } from "../platform/db.ts";
-import { DEFAULT_GLICKO, rateMany } from "./domain/glicko2.ts";
+import { DEFAULT_GLICKO, grownRd, rateMany } from "./domain/glicko2.ts";
 import { roundRating } from "./domain/display.ts";
 import { findRatings, hasHistoryForGame, insertHistory, lockRatings, updateRating, type RatingRow } from "./repo.ts";
 
@@ -84,9 +84,11 @@ export function createRatingService(deps: { db: Db<Database> }): RatingService {
       if (!white || !black) throw new Error("rating.applyResult: rating rows not locked");
 
       const whiteScore = WHITE_SCORE[r.result];
+      const daysSince = (row: RatingRow): number => Math.max(0, r.endedAt.getTime() - row.updated_at.getTime()) / DAY_MS;
       const next = (self: RatingRow, opp: RatingRow, score: 0 | 0.5 | 1): RatingRow => {
-        const elapsedDays = Math.max(0, r.endedAt.getTime() - self.updated_at.getTime()) / DAY_MS;
-        const rated = rateMany(self, [{ opponent: { rating: opp.rating, rd: opp.rd }, score }], elapsedDays);
+        // RD соперника — тоже с ростом за его простой (ARCHITECTURE §11, как в lila).
+        const oppRd = grownRd(opp.rd, opp.volatility, daysSince(opp));
+        const rated = rateMany(self, [{ opponent: { rating: opp.rating, rd: oppRd }, score }], daysSince(self));
         // Часы сервера сдвинулись назад — updated_at не уходит в прошлое (лишний рост RD в следующей партии).
         const updatedAt = r.endedAt > self.updated_at ? r.endedAt : self.updated_at;
         return { ...self, ...rated, games_count: self.games_count + 1, updated_at: updatedAt };

@@ -73,18 +73,28 @@ function newVolatility(phi: number, sigma: number, v: number, delta: number): nu
   return Math.exp(A / 2);
 }
 
+/** φ после `elapsedDays` суток без игр, шкала Glicko-2, не выше MAX_RD (ARCHITECTURE §11). */
+function grownPhi(rd: number, volatility: number, elapsedDays: number): number {
+  if (!Number.isFinite(elapsedDays) || elapsedDays < 0) throw new RangeError("glicko2: elapsedDays must be >= 0");
+  const grown = Math.sqrt((rd / SCALE) ** 2 + RD_PERIODS_PER_DAY * elapsedDays * volatility * volatility);
+  return Math.min(grown, MAX_RD / SCALE);
+}
+
+/** RD после роста за время без игр — для соперника в пересчёте (ARCHITECTURE §11). */
+export function grownRd(rd: number, volatility: number, elapsedDays: number): number {
+  return grownPhi(rd, volatility, elapsedDays) * SCALE;
+}
+
 /**
  * Единственная функция пересчёта (A29): после партии — массив из одной партии.
  * Перед шагами статьи RD растёт за `elapsedDays` суток без игр, не выше MAX_RD (ARCHITECTURE §11).
  */
 export function rateMany(player: Glicko, games: RatedGame[], elapsedDays: number): Glicko {
   if (games.length === 0) throw new RangeError("glicko2: games must not be empty");
-  if (!Number.isFinite(elapsedDays) || elapsedDays < 0) throw new RangeError("glicko2: elapsedDays must be >= 0");
 
   const mu = (player.rating - BASE_RATING) / SCALE;
   const sigma = player.volatility;
-  const grown = Math.sqrt((player.rd / SCALE) ** 2 + RD_PERIODS_PER_DAY * elapsedDays * sigma * sigma);
-  const phi = Math.min(grown, MAX_RD / SCALE);
+  const phi = grownPhi(player.rd, sigma, elapsedDays);
 
   // Шаги 3–4: v и Δ.
   let vInv = 0;

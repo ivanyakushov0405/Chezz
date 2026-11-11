@@ -6,7 +6,7 @@ import { createPlayer } from "../../test/support/factories.ts";
 import { countRatingRows, listRatingHistory } from "../../test/support/ratings.ts";
 import type { Database } from "../database.ts";
 import { createDb, withTransaction } from "../platform/db.ts";
-import { rateMany } from "./domain/glicko2.ts";
+import { grownRd, rateMany } from "./domain/glicko2.ts";
 import { createRatingService, type RatedResult } from "./service.ts";
 
 const db = createDb<Database>(workerDatabaseUrl());
@@ -105,7 +105,7 @@ describe("rating.service", () => {
     expect((await rating.getRating(p.white, "blitz")).games_count).toBe(1);
   });
 
-  it("К-7: elapsedDays у каждого свой — от updated_at своей строки до ended_at", async () => {
+  it("К-7: elapsedDays у каждого свой — от updated_at своей строки до ended_at; RD соперника тоже с ростом", async () => {
     const p = await pair();
     const other = await createPlayer(db, { token: null });
     // Белые играют в день 0, чёрные — нет; через 30 дней белые и чёрные играют между собой.
@@ -117,8 +117,11 @@ describe("rating.service", () => {
     const end = new Date(T0.getTime() + 30 * DAY_MS);
     await apply(result(p, { endedAt: end, result: "draw" }));
 
-    const expW = rateMany(w0, [{ opponent: { rating: b0.rating, rd: b0.rd }, score: 0.5 }], 30);
-    const expB = rateMany(b0, [{ opponent: { rating: w0.rating, rd: w0.rd }, score: 0.5 }], 1);
+    // RD соперника — тоже с ростом за его простой (ARCHITECTURE §11).
+    const expW = rateMany(w0, [{ opponent: { rating: b0.rating, rd: grownRd(b0.rd, b0.volatility, 1) }, score: 0.5 }], 30);
+    const expB = rateMany(b0, [{ opponent: { rating: w0.rating, rd: grownRd(w0.rd, w0.volatility, 30) }, score: 0.5 }], 1);
+    // Без роста RD соперника результат другой — тест различает.
+    expect(rateMany(b0, [{ opponent: { rating: w0.rating, rd: w0.rd }, score: 0.5 }], 1).rd).not.toBeCloseTo(expB.rd, 6);
     const w = await rating.getRating(p.white, "blitz");
     const b = await rating.getRating(p.black, "blitz");
     expect(w.rd).toBeCloseTo(expW.rd, 9);
