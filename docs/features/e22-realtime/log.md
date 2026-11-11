@@ -1,3 +1,8 @@
 # E22: лог
 
 - 2026-11-11 20:00 — старт (/epic E22). Решение Ivan: E22 выделен (ROADMAP «Открытые вопросы» п.11 — «да»). Зависимость E04 смержена (PR #14); infra-up зелёный; KAN-9 → In Progress.
+- 2026-11-11 20:12 — шаг 1: tester (opus) — ws-messages.test.ts, 49 тестов (38 красных до кода); схемы Pong, WsRef, Welcome, Ping, WsError, SessionClosed, снимок, PENDING_CATALOG. protocol 140 зелёных.
+- 2026-11-11 20:12 — шаг 2: @fastify/websocket, ws и @types/ws (dev, тестовый клиент); MetricsService.addGauge; метрики в app.ts до модулей.
+- 2026-11-11 20:12 — шаг 3: domain/bucket.ts (отсчёт «пуста» сбрасывается, только если сообщение принято с запасом ≥ 2 токенов — иначе бот на 50/с не закрылся бы, пример SECURITY §9), domain/ping.ts. check зелёный, affected 1040.
+- 2026-11-11 20:12 — отклонение от брифа: тесты шагов 4–5 — int рядом с кодом (src/realtime/*.int.test.ts), а не test/contract/ — это зона tester (tester-untouched), как api.int.test.ts в E04.
+- 2026-11-11 21:10 — шаги 4–5 (один коммит a3c6f99): realtime/service.ts, api.ts, domain/rights.ts; auth.connectionInfo, auth.sessionExpiries (repo findValidSessionsByIds); Origin /ws — в platform/http.ts (preValidation; с чужим Origin Session не читается); TestApp.shutdown(), test/support/ws.ts (autoPong, advanceLive). int 26 (connect 11, messages 9, session 6), unit 7. Правка E01-тестов routes/spa: /ws теперь маршрут (лимит REST, без upgrade — 404). check-architecture поймал SQL в int-тесте под src/ — вынесен в test/support/sessions.ts. Ловушка окружения: два одновременных прогона vitest делят базы воркеров (VITEST_POOL_ID) — ложные падения; гонять по одному. check зелёный, affected 1074.
