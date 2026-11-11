@@ -85,6 +85,12 @@ describe("seed.ts", () => {
     expect(real.code).not.toBe(0);
   });
 
+  it("К-10: APP_ENV=staging без SEED_TOKEN_SECRET — код 2 до подключения к БД (публичный ключ сида не берётся)", async () => {
+    const run = await runScript("seed.ts", ["--demo"], { APP_ENV: "staging", DATABASE_URL: "postgres://nobody@127.0.0.1:1/none" });
+    expect(run.code).toBe(2);
+    expect(run.stderr).toContain("SEED_TOKEN_SECRET is required on staging");
+  });
+
   it("без режима и с --load (E21) — код ≠ 0", async () => {
     expect((await runScript("seed.ts", [], { DATABASE_URL: workerDatabaseUrl() })).code).not.toBe(0);
     expect((await runScript("seed.ts", ["--load", "1"], { DATABASE_URL: workerDatabaseUrl() })).code).not.toBe(0);

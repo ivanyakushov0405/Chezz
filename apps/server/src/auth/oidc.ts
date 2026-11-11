@@ -1,5 +1,7 @@
 // Вход через Google (SECURITY §4, S1): параметры запроса, обмен code и проверка утверждений ID-токена.
-// Подпись ID-токена по JWKS Google проверяет openid-client; утверждения (п.4) — verifyIdTokenClaims, unit-тест (TESTING §7.3).
+// Подпись ID-токена по JWKS Google (п.4) проверяет openid-client — только с enableNonRepudiationChecks (по умолчанию v6
+// полагается на TLS token endpoint); утверждения (п.4) — ещё и verifyIdTokenClaims, unit-тест (TESTING §7.3).
+// openid-client принимает лишь iss = issuer метаданных (https://accounts.google.com): вариант без схемы отклоняется при обмене.
 import * as client from "openid-client";
 import type { GoogleIdentity } from "../users/service.ts";
 
@@ -27,8 +29,16 @@ export interface OidcProvider {
   exchange(callbackUrl: URL, redirectUri: string, checks: OidcChecks): Promise<Record<string, unknown>>;
 }
 
-export function createGoogleProvider(google: { clientId: string; clientSecret: string }): OidcProvider {
+export interface GoogleProviderOptions {
+  /** Подмена HTTP (token endpoint, JWKS) — только unit-тест подписи. */
+  fetch?: client.CustomFetch;
+}
+
+export function createGoogleProvider(google: { clientId: string; clientSecret: string }, options: GoogleProviderOptions = {}): OidcProvider {
   const config = new client.Configuration(GOOGLE_METADATA, google.clientId, google.clientSecret);
+  if (options.fetch !== undefined) config[client.customFetch] = options.fetch;
+  // SECURITY §4 п.4 (MUST): подпись ID-токена по ключам jwks_uri.
+  client.enableNonRepudiationChecks(config);
   return {
     authorizationUrl(params) {
       return client

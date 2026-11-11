@@ -64,6 +64,28 @@ describe("App: shell и маршруты", () => {
     expect(TOAST_MS).toBe(5_000);
   });
 
+  it("К-6, К-9: «Выйти» при уже закрытой Session (401) — тоже гость и Toast", async () => {
+    stubFetch({ "POST /api/auth/logout": [401, { error: { code: "unauthenticated", message: "x", details: null, request_id: "00000000-0000-4000-8000-000000000009" } }] });
+    const root = await mountApp("/", { status: "ready", me: makeMe() });
+    await click($(root, 'button[aria-haspopup="menu"]'));
+    await click(root.querySelectorAll('[role="menuitem"]')[0] ?? null);
+    await waitFor(() => {
+      expect($(root, "[data-shell-state]")?.dataset["shellState"]).toBe("guest");
+    });
+    expect($(root, '[role="status"]')?.textContent).toBe("Вы вышли из аккаунта");
+  });
+
+  it("К-6, К-9: «Выйти» — сеть недоступна: Toast ошибки, остаётся вошедшим", async () => {
+    stubFetch({});
+    const root = await mountApp("/", { status: "ready", me: makeMe() });
+    await click($(root, 'button[aria-haspopup="menu"]'));
+    await click(root.querySelectorAll('[role="menuitem"]')[0] ?? null);
+    await waitFor(() => {
+      expect($(root, '[role="status"]')?.textContent).toBe("Нет связи с сервером");
+    });
+    expect($(root, "[data-shell-state]")?.dataset["shellState"]).toBe("default");
+  });
+
   it("К-9: неизвестный путь — not-found", async () => {
     stubFetch({ "GET /api/me": [200, { user: null }] });
     const root = await mountApp("/no/such/page");

@@ -22,6 +22,15 @@ export function errorCodeOf(err: unknown): ApiErrorCode {
   return err instanceof ApiError ? err.code : "unknown";
 }
 
+/** Выход: 401 `unauthenticated` — Session уже закрыта (другое устройство, срок): итог тот же, что у успеха. */
+async function signOut(call: () => Promise<unknown>): Promise<void> {
+  try {
+    await call();
+  } catch (err) {
+    if (!(err instanceof ApiError && err.code === "unauthenticated")) throw err;
+  }
+}
+
 export function MeProvider({ children, initial }: { children: ReactNode; initial?: MeState }) {
   const [state, setState] = useState<MeState>(initial ?? { status: "loading" });
 
@@ -39,12 +48,12 @@ export function MeProvider({ children, initial }: { children: ReactNode; initial
   }, [initial, refresh]);
 
   const logout = useCallback(async () => {
-    await callApi(REST_ROUTES.logout, {});
+    await signOut(() => callApi(REST_ROUTES.logout, {}));
     setState({ status: "guest" });
   }, []);
 
   const logoutAll = useCallback(async () => {
-    await callApi(REST_ROUTES.logoutAll, {});
+    await signOut(() => callApi(REST_ROUTES.logoutAll, {}));
     setState({ status: "guest" });
   }, []);
 

@@ -1,7 +1,7 @@
 // Сид (TESTING §7.6): node apps/server/scripts/seed.ts --demo — в базу из DATABASE_URL (с применёнными миграциями).
 // При APP_ENV=prod — ошибка до подключения к БД, ничего не записано (MUST).
 // --demo с E04: Игроки seed_player_01…12 с Session. Rating, партии, вызовы и удалённый игрок — эпики своих таблиц (E05, E06, E08, E19).
-// Токен Session — seedSessionToken(секрет, ник) (V20, V23): секрет — SEED_TOKEN_SECRET (staging), иначе фиксированный локальный.
+// Токен Session — seedSessionToken(секрет, ник) (V20, V23): секрет — SEED_TOKEN_SECRET (на staging обязателен, иначе код 2), иначе фиксированный локальный.
 // Повтор на той же базе ничего не пишет (seed_player_01 уже есть).
 // --load N --tokens <файл> — E21.
 import { createDb } from "../src/platform/db.ts";
@@ -24,6 +24,8 @@ async function main(): Promise<void> {
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) fail("DATABASE_URL is not set", 2);
+  // Публичный локальный ключ — только вне staging: на staging токены сида иначе угадываются (V23).
+  if (process.env.APP_ENV === "staging" && !process.env.SEED_TOKEN_SECRET) fail("SEED_TOKEN_SECRET is required on staging", 2);
   const secret = process.env.SEED_TOKEN_SECRET || LOCAL_SEED_SECRET;
 
   const db = createDb<Database>(databaseUrl, { max: 1 });
