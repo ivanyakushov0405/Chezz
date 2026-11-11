@@ -1,0 +1,2234 @@
+[
+  {
+    "id": "seq-01-white-newcomer-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1500,
+      "rd": 350,
+      "volatility": 0.06
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1620,
+          "rd": 180
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1732.623055,
+      "rd": 268.489427,
+      "volatility": 0.060000097
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-01-black-provisional-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1620,
+      "rd": 180,
+      "volatility": 0.06
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1500,
+          "rd": 350
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1551.064411,
+      "rd": 170.800942,
+      "volatility": 0.060000546
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-02-white-strong-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1850,
+      "rd": 60,
+      "volatility": 0.06
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1400,
+          "rd": 80
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1851.541783,
+      "rd": 60.655839,
+      "volatility": 0.059999196
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-02-black-steady-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1400,
+      "rd": 80,
+      "volatility": 0.06
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1850,
+          "rd": 60
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1397.358245,
+      "rd": 80.115439,
+      "volatility": 0.0599992
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-03-white-steady-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1397.358245,
+      "rd": 80.115439,
+      "volatility": 0.0599992
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1732.623055,
+          "rd": 268.489427
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1392.107518,
+      "rd": 80.031553,
+      "volatility": 0.059998296
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-03-black-newcomer-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1732.623055,
+      "rd": 268.489427,
+      "volatility": 0.060000097
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1397.358245,
+          "rd": 80.115439
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1775.298122,
+      "rd": 239.377004,
+      "volatility": 0.059999075
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-04-white-provisional-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1551.064411,
+      "rd": 170.800942,
+      "volatility": 0.060000546
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1851.541783,
+          "rd": 60.655839
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1601.994685,
+      "rd": 161.524391,
+      "volatility": 0.060000262
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-04-black-strong-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1851.541783,
+      "rd": 60.655839,
+      "volatility": 0.059999196
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1551.064411,
+          "rd": 170.800942
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1845.482114,
+      "rd": 61.110077,
+      "volatility": 0.059998725
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-05-white-newcomer-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1775.298122,
+      "rd": 239.377004,
+      "volatility": 0.059999075
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1845.482114,
+          "rd": 61.110077
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1684.749017,
+      "rd": 199.614936,
+      "volatility": 0.059997918
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-05-black-strong-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1845.482114,
+      "rd": 61.110077,
+      "volatility": 0.059998725
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1775.298122,
+          "rd": 239.377004
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1852.74241,
+      "rd": 61.39161,
+      "volatility": 0.059998134
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-06-white-steady-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1392.107518,
+      "rd": 80.031553,
+      "volatility": 0.059998296
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1601.994685,
+          "rd": 161.524391
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1383.884848,
+      "rd": 79.429957,
+      "volatility": 0.059996981
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-06-black-provisional-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1601.994685,
+      "rd": 161.524391,
+      "volatility": 0.060000262
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1392.107518,
+          "rd": 80.031553
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1632.146596,
+      "rd": 151.110943,
+      "volatility": 0.059998805
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-07-white-provisional-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1632.146596,
+      "rd": 151.110943,
+      "volatility": 0.059998805
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1684.749017,
+          "rd": 199.614936
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1589.190798,
+      "rd": 142.274789,
+      "volatility": 0.059998143
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-07-black-newcomer-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1684.749017,
+      "rd": 199.614936,
+      "volatility": 0.059997918
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1632.146596,
+          "rd": 151.110943
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1755.645098,
+      "rd": 177.780993,
+      "volatility": 0.05999707
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-08-white-steady-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1383.884848,
+      "rd": 79.429957,
+      "volatility": 0.059996981
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1852.74241,
+          "rd": 61.39161
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1399.424525,
+      "rd": 79.609431,
+      "volatility": 0.059998577
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-08-black-strong-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1852.74241,
+      "rd": 61.39161,
+      "volatility": 0.059998134
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1383.884848,
+          "rd": 79.429957
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1843.464318,
+      "rd": 62.032948,
+      "volatility": 0.059999668
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-09-white-newcomer-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1755.645098,
+      "rd": 177.780993,
+      "volatility": 0.05999707
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1399.424525,
+          "rd": 79.609431
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1694.830337,
+      "rd": 169.439859,
+      "volatility": 0.059997351
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-09-black-steady-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1399.424525,
+      "rd": 79.609431,
+      "volatility": 0.059998577
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1755.645098,
+          "rd": 177.780993
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1410.718622,
+      "rd": 79.500784,
+      "volatility": 0.059998593
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-10-white-strong-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1843.464318,
+      "rd": 62.032948,
+      "volatility": 0.059999668
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1589.190798,
+          "rd": 142.274789
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1847.715958,
+      "rd": 62.34472,
+      "volatility": 0.059998321
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-10-black-provisional-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1589.190798,
+      "rd": 142.274789,
+      "volatility": 0.059998143
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1843.464318,
+          "rd": 62.032948
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1569.127377,
+      "rd": 135.969559,
+      "volatility": 0.059996707
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-11-white-strong-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1847.715958,
+      "rd": 62.34472,
+      "volatility": 0.059998321
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1694.830337,
+          "rd": 169.439859
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1834.148455,
+      "rd": 62.520651,
+      "volatility": 0.060000807
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-11-black-newcomer-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1694.830337,
+      "rd": 169.439859,
+      "volatility": 0.059997351
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1847.715958,
+          "rd": 62.34472
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1790.877199,
+      "rd": 155.505205,
+      "volatility": 0.059999602
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-12-white-provisional-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1569.127377,
+      "rd": 135.969559,
+      "volatility": 0.059996707
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1410.718622,
+          "rd": 79.500784
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1596.221476,
+      "rd": 128.864842,
+      "volatility": 0.059995228
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-12-black-steady-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1410.718622,
+      "rd": 79.500784,
+      "volatility": 0.059998593
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1569.127377,
+          "rd": 135.969559
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1400.827424,
+      "rd": 78.704809,
+      "volatility": 0.059997246
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-13-white-newcomer-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1790.877199,
+      "rd": 155.505205,
+      "volatility": 0.059999602
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1596.221476,
+          "rd": 128.864842
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1763.662179,
+      "rd": 146.405812,
+      "volatility": 0.059998142
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-13-black-provisional-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1596.221476,
+      "rd": 128.864842,
+      "volatility": 0.059995228
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1790.877199,
+          "rd": 155.505205
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1614.630863,
+      "rd": 123.982578,
+      "volatility": 0.059993764
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-14-white-strong-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1834.148455,
+      "rd": 62.520651,
+      "volatility": 0.060000807
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1400.827424,
+          "rd": 78.704809
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1813.735168,
+      "rd": 63.088107,
+      "volatility": 0.060010385
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-14-black-steady-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1400.827424,
+      "rd": 78.704809,
+      "volatility": 0.059997246
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1834.148455,
+          "rd": 62.520651
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1433.105739,
+      "rd": 78.813561,
+      "volatility": 0.060006994
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-15-white-steady-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1433.105739,
+      "rd": 78.813561,
+      "volatility": 0.060006994
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1763.662179,
+          "rd": 146.405812
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1460.507779,
+      "rd": 78.635952,
+      "volatility": 0.060013262
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-15-black-newcomer-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1763.662179,
+      "rd": 146.405812,
+      "volatility": 0.059998142
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1433.105739,
+          "rd": 78.813561
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1667.376392,
+      "rd": 141.293643,
+      "volatility": 0.060004895
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-16-white-provisional-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1614.630863,
+      "rd": 123.982578,
+      "volatility": 0.059993764
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1813.735168,
+          "rd": 63.088107
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1594.990323,
+      "rd": 119.101312,
+      "volatility": 0.059992218
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-16-black-strong-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1813.735168,
+      "rd": 63.088107,
+      "volatility": 0.060010385
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1614.630863,
+          "rd": 123.982578
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1819.220913,
+      "rd": 63.240788,
+      "volatility": 0.060008939
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-17-white-newcomer-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1667.376392,
+      "rd": 141.293643,
+      "volatility": 0.060004895
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1819.220913,
+          "rd": 63.240788
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1687.564115,
+      "rd": 133.058586,
+      "volatility": 0.060002912
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-17-black-strong-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1819.220913,
+      "rd": 63.240788,
+      "volatility": 0.060008939
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1667.376392,
+          "rd": 141.293643
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1815.229771,
+      "rd": 63.330376,
+      "volatility": 0.060006973
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-18-white-steady-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1460.507779,
+      "rd": 78.635952,
+      "volatility": 0.060013262
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1594.990323,
+          "rd": 119.101312
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1466.160092,
+      "rd": 77.779183,
+      "volatility": 0.060011092
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-18-black-provisional-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1594.990323,
+      "rd": 119.101312,
+      "volatility": 0.059992218
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1460.507779,
+          "rd": 78.635952
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1581.934678,
+      "rd": 114.142254,
+      "volatility": 0.059990036
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-19-white-provisional-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1581.934678,
+      "rd": 114.142254,
+      "volatility": 0.059990036
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1687.564115,
+          "rd": 133.058586
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1622.784527,
+      "rd": 110.01166,
+      "volatility": 0.059991532
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-19-black-newcomer-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1687.564115,
+      "rd": 133.058586,
+      "volatility": 0.060002912
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1581.934678,
+          "rd": 114.142254
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1632.562251,
+      "rd": 126.094293,
+      "volatility": 0.06000434
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-20-white-steady-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1466.160092,
+      "rd": 77.779183,
+      "volatility": 0.060011092
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1815.229771,
+          "rd": 63.330376
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1461.994281,
+      "rd": 77.660898,
+      "volatility": 0.060009913
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-20-black-strong-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1815.229771,
+      "rd": 63.330376,
+      "volatility": 0.060006973
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1466.160092,
+          "rd": 77.779183
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1818.055504,
+      "rd": 63.737275,
+      "volatility": 0.060005797
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-21-white-newcomer-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1632.562251,
+      "rd": 126.094293,
+      "volatility": 0.06000434
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1461.994281,
+          "rd": 77.660898
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1655.183529,
+      "rd": 120.613064,
+      "volatility": 0.060002831
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-21-black-steady-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1461.994281,
+      "rd": 77.660898,
+      "volatility": 0.060009913
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1632.562251,
+          "rd": 126.094293
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1452.912971,
+      "rd": 76.989089,
+      "volatility": 0.060008506
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-22-white-strong-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1818.055504,
+      "rd": 63.737275,
+      "volatility": 0.060005797
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1622.784527,
+          "rd": 110.01166
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1812.675201,
+      "rd": 63.837367,
+      "volatility": 0.060004229
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-22-black-provisional-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1622.784527,
+      "rd": 110.01166,
+      "volatility": 0.059991532
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1818.055504,
+          "rd": 63.737275
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1638.878319,
+      "rd": 106.690247,
+      "volatility": 0.059989977
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-23-white-strong-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1812.675201,
+      "rd": 63.837367,
+      "volatility": 0.060004229
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1655.183529,
+          "rd": 120.613064
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1819.258678,
+      "rd": 63.876625,
+      "volatility": 0.060002825
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-23-black-newcomer-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1655.183529,
+      "rd": 120.613064,
+      "volatility": 0.060002831
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1812.675201,
+          "rd": 63.837367
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1633.204684,
+      "rd": 115.621716,
+      "volatility": 0.060001305
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-24-white-provisional-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1638.878319,
+      "rd": 106.690247,
+      "volatility": 0.059989977
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1452.912971,
+          "rd": 76.989089
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1594.479739,
+      "rd": 103.664399,
+      "volatility": 0.059993758
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-24-black-steady-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1452.912971,
+      "rd": 76.989089,
+      "volatility": 0.060008506
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1638.878319,
+          "rd": 106.690247
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1476.244703,
+      "rd": 76.36488,
+      "volatility": 0.06001231
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-25-white-newcomer-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1633.204684,
+      "rd": 115.621716,
+      "volatility": 0.060001305
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1594.479739,
+          "rd": 103.664399
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1596.161231,
+      "rd": 110.707106,
+      "volatility": 0.060001644
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-25-black-provisional-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1594.479739,
+      "rd": 103.664399,
+      "volatility": 0.059993758
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1633.204684,
+          "rd": 115.621716
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1624.513858,
+      "rd": 100.328705,
+      "volatility": 0.059994148
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-26-white-strong-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1819.258678,
+      "rd": 63.876625,
+      "volatility": 0.060002825
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1476.244703,
+          "rd": 76.36488
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1810.66609,
+      "rd": 64.253184,
+      "volatility": 0.060003137
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-26-black-steady-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1476.244703,
+      "rd": 76.36488,
+      "volatility": 0.06001231
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1819.258678,
+          "rd": 63.876625
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1488.516868,
+      "rd": 76.28221,
+      "volatility": 0.060012648
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-27-white-steady-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1488.516868,
+      "rd": 76.28221,
+      "volatility": 0.060012648
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1596.161231,
+          "rd": 110.707106
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1492.915689,
+      "rd": 75.489668,
+      "volatility": 0.060010216
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-27-black-newcomer-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1596.161231,
+      "rd": 110.707106,
+      "volatility": 0.060001644
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1488.516868,
+          "rd": 76.28221
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1586.871375,
+      "rd": 106.5809,
+      "volatility": 0.059999195
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-28-white-provisional-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1624.513858,
+      "rd": 100.328705,
+      "volatility": 0.059994148
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1810.66609,
+          "rd": 64.253184
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1664.537312,
+      "rd": 97.872694,
+      "volatility": 0.059998108
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-28-black-strong-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1810.66609,
+      "rd": 64.253184,
+      "volatility": 0.060003137
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1624.513858,
+          "rd": 100.328705
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1793.993433,
+      "rd": 64.30025,
+      "volatility": 0.060007118
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-29-white-newcomer-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1586.871375,
+      "rd": 106.5809,
+      "volatility": 0.059999195
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1793.993433,
+          "rd": 64.30025
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1633.157684,
+      "rd": 103.721008,
+      "volatility": 0.060003633
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-29-black-strong-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1793.993433,
+      "rd": 64.30025,
+      "volatility": 0.060007118
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1586.871375,
+          "rd": 106.5809
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1776.905287,
+      "rd": 64.394291,
+      "volatility": 0.060011542
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-30-white-steady-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1492.915689,
+      "rd": 75.489668,
+      "volatility": 0.060010216
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1664.537312,
+          "rd": 97.872694
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1515.109874,
+      "rd": 74.892206,
+      "volatility": 0.06001377
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-30-black-provisional-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1664.537312,
+      "rd": 97.872694,
+      "volatility": 0.059998108
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1492.915689,
+          "rd": 75.489668
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1627.559657,
+      "rd": 95.565494,
+      "volatility": 0.060001635
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-31-white-provisional-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1627.559657,
+      "rd": 95.565494,
+      "volatility": 0.060001635
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1633.157684,
+          "rd": 103.721008
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1627.921324,
+      "rd": 92.975489,
+      "volatility": 0.059998788
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-31-black-newcomer-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1633.157684,
+      "rd": 103.721008,
+      "volatility": 0.060003633
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1627.559657,
+          "rd": 95.565494
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1632.731364,
+      "rd": 100.196131,
+      "volatility": 0.060000779
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-32-white-steady-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1515.109874,
+      "rd": 74.892206,
+      "volatility": 0.06001377
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1776.905287,
+          "rd": 64.394291
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1509.27412,
+      "rd": 74.594504,
+      "volatility": 0.060012284
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-32-black-strong-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1776.905287,
+      "rd": 64.394291,
+      "volatility": 0.060011542
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1515.109874,
+          "rd": 74.892206
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1781.285247,
+      "rd": 64.579365,
+      "volatility": 0.060010065
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-33-white-newcomer-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1632.731364,
+      "rd": 100.196131,
+      "volatility": 0.060000779
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1509.27412,
+          "rd": 74.594504
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1597.359127,
+      "rd": 97.349701,
+      "volatility": 0.060003075
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-33-black-steady-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1509.27412,
+      "rd": 74.594504,
+      "volatility": 0.060012284
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1632.731364,
+          "rd": 100.196131
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1529.153158,
+      "rd": 73.923101,
+      "volatility": 0.06001465
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-34-white-strong-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1781.285247,
+      "rd": 64.579365,
+      "volatility": 0.060010065
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1627.921324,
+          "rd": 92.975489
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1765.190875,
+      "rd": 64.537317,
+      "volatility": 0.060013291
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-34-black-provisional-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1627.921324,
+      "rd": 92.975489,
+      "volatility": 0.059998788
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1781.285247,
+          "rd": 64.579365
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1660.749772,
+      "rd": 90.955548,
+      "volatility": 0.060001966
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-35-white-strong-vs-newcomer",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1765.190875,
+      "rd": 64.537317,
+      "volatility": 0.060013291
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1597.359127,
+          "rd": 97.349701
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1760.251499,
+      "rd": 64.530621,
+      "volatility": 0.060011391
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-35-black-newcomer-vs-strong",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1597.359127,
+      "rd": 97.349701,
+      "volatility": 0.060003075
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1765.190875,
+          "rd": 64.537317
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1608.584252,
+      "rd": 95.031959,
+      "volatility": 0.060001175
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-36-white-provisional-vs-steady",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1660.749772,
+      "rd": 90.955548,
+      "volatility": 0.060001966
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1529.153158,
+          "rd": 73.923101
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1652.912959,
+      "rd": 89.022173,
+      "volatility": 0.059999674
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "seq-36-black-steady-vs-provisional",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1529.153158,
+      "rd": 73.923101,
+      "volatility": 0.06001465
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1660.749772,
+          "rd": 90.955548
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1534.33265,
+      "rd": 73.295182,
+      "volatility": 0.060012362
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  }
+]

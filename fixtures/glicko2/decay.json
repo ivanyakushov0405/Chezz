@@ -1,0 +1,188 @@
+[
+  {
+    "id": "decay-1d-strong-win",
+    "kind": "decay",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1850,
+      "rd": 60,
+      "volatility": 0.06
+    },
+    "elapsed_days": 1,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1700,
+          "rd": 90
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1856.12309,
+      "rd": 60.364226,
+      "volatility": 0.05999852
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "decay-30d-steady-draw",
+    "kind": "decay",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1400,
+      "rd": 80,
+      "volatility": 0.06
+    },
+    "elapsed_days": 30,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1450,
+          "rd": 70
+        },
+        "score": 0.5
+      }
+    ],
+    "expect": {
+      "rating": 1402.677001,
+      "rd": 82.622197,
+      "volatility": 0.05999707
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "decay-365d-strong-loss",
+    "kind": "decay",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1850,
+      "rd": 60,
+      "volatility": 0.06
+    },
+    "elapsed_days": 365,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1800,
+          "rd": 60
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1814.070293,
+      "rd": 105.559082,
+      "volatility": 0.060000615
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "decay-0.5d-provisional-loss",
+    "kind": "decay",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1620,
+      "rd": 180,
+      "volatility": 0.06
+    },
+    "elapsed_days": 0.5,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1500,
+          "rd": 350
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1551.042254,
+      "rd": 170.828389,
+      "volatility": 0.060000546
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "decay-cap350-3650d-win",
+    "kind": "decay",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1700,
+      "rd": 200,
+      "volatility": 0.06
+    },
+    "elapsed_days": 3650,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1600,
+          "rd": 100
+        },
+        "score": 1
+      }
+    ],
+    "expect": {
+      "rating": 1832.674924,
+      "rd": 256.976805,
+      "volatility": 0.059998944
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  },
+  {
+    "id": "no-decay-0d-strong-loss",
+    "kind": "single",
+    "source": "fixtures/glicko2/generate.py (независимая реализация по статье Glickman, Python)",
+    "tau": 0.5,
+    "player": {
+      "rating": 1850,
+      "rd": 60,
+      "volatility": 0.06
+    },
+    "elapsed_days": 0,
+    "games": [
+      {
+        "opponent": {
+          "rating": 1800,
+          "rd": 60
+        },
+        "score": 0
+      }
+    ],
+    "expect": {
+      "rating": 1838.379216,
+      "rd": 60.032507,
+      "volatility": 0.060000898
+    },
+    "tolerance": {
+      "rating": 0.01,
+      "rd": 0.01,
+      "volatility": 1e-06
+    }
+  }
+]
