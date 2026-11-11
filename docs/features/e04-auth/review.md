@@ -33,3 +33,23 @@
 - SQL только в `repo` владельца. Миграции 0002 и 0003 добавляющие. RU и EN ключи совпадают, `error.<code>` есть для всех новых кодов.
 - Слепые тесты protocol (`user.test.ts`, `safe-path.test.ts`, `auth-routes.test.ts`) менялись только коммитом tester 556216c.
 - Новые зависимости (`openid-client` по SECURITY §4, `@fastify/cookie` в шаге 2 брифа) добавлены в задаче, где они нужны.
+
+## Эпик E04 — итерация 2 (коммит 9c0c4f4)
+Вердикт: APPROVE
+
+Что смотрел: `git show 9c0c4f4` — блокер итерации 1 и правки из «Желательно». Остальной diff заново не читал.
+
+### Блокеры итерации 1
+- Подпись ID-токена (SECURITY §4 п.4) — закрыт. В `createGoogleProvider` после создания `Configuration` вызывается `client.enableNonRepudiationChecks(config)` (apps/server/src/auth/oidc.ts:41). `customFetch` ставится до этого вызова; его передаёт только unit-тест, `app.ts` опцию не задаёт. Комментарий исправлен, в нём отмечено, что `iss` без схемы отклоняется. В `apps/server/src/auth/oidc-signature.test.ts` работает настоящий `authorizationCodeGrant`, подменены только token endpoint и `jwks_uri`, сеть не нужна. Токен, подписанный ключом из JWKS, принимается. Чужой ключ с тем же `kid`, испорченная подпись и `alg: none` приводят к ошибке обмена. Утверждения в позитивном и негативных случаях одинаковые, поэтому тест «чужой ключ» без исправления упал бы: он действительно ловит блокер. Тесты запущены локально (13 зелёных).
+
+### Закрыто из «Желательно»
+- `seed.ts`: при `APP_ENV=staging` без `SEED_TOKEN_SECRET` скрипт завершается с кодом 2 до подключения к БД, на это есть int-тест.
+- «Выйти» при 401 `unauthenticated`: показывается гость и Toast «Вы вышли» (`signOut` в MeContext). Сетевая ошибка по-прежнему даёт Toast ошибки, игрок остаётся вошедшим. Есть jsdom-тесты на оба случая.
+
+### Желательно (остаётся из итерации 1, не блокирует)
+- Старая Session из входящей cookie не удаляется при новом входе (oidc-api.ts).
+- В `__Host-oidc` нет `issued_at`.
+- `resolveCaller` выполняется для статики.
+- `heading` у `Menu` не описан в DESIGN_SYSTEM §7 → architect-apply.
+- Нет покрытия WebKit для `@https-cookie`; первый прогон firefox в CI проверить отдельно.
+- `deploy/env.allowlist`, `tests/deploy/**`: показать diff Ivan до push (O36).
