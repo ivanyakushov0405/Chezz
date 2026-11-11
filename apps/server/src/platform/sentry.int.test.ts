@@ -38,6 +38,8 @@ async function harness(): Promise<Harness> {
     appVersion: "abc123",
     sentryDsn: TEST_SENTRY_DSN,
     metrics: null,
+    google: null,
+    cookieSecret: "test-cookie-secret-not-a-secret-000000",
   };
   const memory = memorySentryTransport();
   const reporter = createErrorReporter({

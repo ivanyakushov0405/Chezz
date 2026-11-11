@@ -3,6 +3,8 @@ import { createServer } from "node:net";
 import type { FastifyInstance } from "fastify";
 import type { DestinationStream } from "pino";
 import type { AnalyticsService } from "../../src/analytics/service.ts";
+import type { OidcProvider } from "../../src/auth/oidc.ts";
+import type { AuthService, SessionsClosedEvent } from "../../src/auth/service.ts";
 import { buildApp } from "../../src/app.ts";
 import type { Database } from "../../src/database.ts";
 import type { AppConfig } from "../../src/platform/config.ts";
@@ -12,6 +14,12 @@ import { createDb, type Db } from "../../src/platform/db.ts";
 import { setDatabaseAllowConnections, workerDatabaseName, workerDatabaseUrl } from "./db.ts";
 import { memorySentryTransport, TEST_SENTRY_DSN, type SentryEvent } from "./sentry.ts";
 import { ManualTimeSource } from "./time.ts";
+
+/** Подпись `__Host-oidc` в тестах — не секрет. */
+/** Клиент Google в тестах с подменённым обменом — не секрет. */
+export const TEST_GOOGLE_CLIENT = { clientId: "test-client-id.apps.googleusercontent.com", clientSecret: "test-secret" };
+
+export const TEST_COOKIE_SECRET = "test-cookie-secret-not-a-secret-000000";
 
 export interface TestApp {
   /** http://127.0.0.1:<случайный порт> */
@@ -23,6 +31,12 @@ export interface TestApp {
   metricsUrl: string;
   /** Экземпляр analytics, созданный buildApp. */
   analytics: AnalyticsService;
+  /** Экземпляр auth, созданный buildApp. */
+  auth: AuthService;
+  /** События sessions_closed с момента старта (ARCHITECTURE §7.3). */
+  sessionsClosed: SessionsClosedEvent[];
+  /** Пул к базе воркера (для фабрик: createPlayer(app.db, …)). */
+  db: Db<Database>;
   database: {
     /** База воркера недоступна для app: соединения рвутся, новые отклоняются. */
     block(): Promise<void>;
@@ -43,6 +57,8 @@ export interface StartAppOptions {
   time?: { wall?: Date };
   /** true: DSN TEST_SENTRY_DSN и транспорт в память (design.md E03). */
   sentry?: boolean;
+  /** Подмена обмена code у Google (AppDeps.oidc); с ней config.google по умолчанию — тестовый клиент. */
+  oidc?: OidcProvider;
 }
 
 const silent: DestinationStream = { write: () => undefined };
@@ -76,6 +92,8 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       appVersion: "test",
       sentryDsn: null,
       metrics: { host: "127.0.0.1", port: metricsPort },
+      google: options.oidc ? TEST_GOOGLE_CLIENT : null,
+      cookieSecret: TEST_COOKIE_SECRET,
       ...(options.sentry ? { sentryDsn: TEST_SENTRY_DSN } : {}),
       ...options.config,
     };
@@ -94,17 +112,24 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
     let app: FastifyInstance | undefined;
     let metrics: MetricsService | undefined;
     let analytics: AnalyticsService | undefined;
+    let auth: AuthService | undefined;
+    const sessionsClosed: SessionsClosedEvent[] = [];
     try {
       app = await buildApp(config, {
         db,
         time,
         logDestination: options.logDestination ?? silent,
         reporter,
+        ...(options.oidc ? { oidc: options.oidc } : {}),
         onMetrics: (m) => {
           metrics = m;
         },
         onAnalytics: (a) => {
           analytics = a;
+        },
+        onAuth: (a) => {
+          auth = a;
+          a.onSessionsClosed((e) => sessionsClosed.push(e));
         },
       });
       await app.listen({ host: "127.0.0.1", port });
@@ -124,6 +149,9 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       wsUrl: `ws://127.0.0.1:${port}/ws`,
       time,
       analytics: analytics as AnalyticsService,
+      auth: auth as AuthService,
+      sessionsClosed,
+      db,
       sentryEvents: async () => {
         if (memory === null) return [];
         await reporter.flush(2_000);

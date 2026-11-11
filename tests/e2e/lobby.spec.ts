@@ -9,25 +9,25 @@ async function htmlLang(page: Page): Promise<string> {
 test.describe("главная, RU по умолчанию", () => {
   test.use({ locale: "ru-RU" });
 
-  test("AC-35, EC-29: один lobby, data-state ровно default, состав заглушки", async ({ page }) => {
+  test("AC-35, EC-29, К-9: один lobby, data-state ровно default; бренд и Бета — в шапке shell", async ({ page }) => {
     const screen = await openScreen(page, "/", "lobby");
     await expect(page.locator("[data-screen]")).toHaveCount(1);
     await expect(page.locator('[data-screen="lobby"]')).toHaveCount(1);
     expect(await screen.getAttribute("data-state")).toBe("default");
 
-    const link = screen.getByRole("link", { name: "Chezz" });
+    const header = page.locator("header");
+    const link = header.getByRole("link", { name: "Chezz" });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute("href", "/");
-    await expect(screen.getByText(LOBBY_STRINGS.ru.beta, { exact: true })).toBeVisible();
+    await expect(header.getByText(LOBBY_STRINGS.ru.beta, { exact: true })).toBeVisible();
     await expect(screen.getByText(LOBBY_STRINGS.ru.comingSoon, { exact: true })).toBeVisible();
 
-    await expect(page.getByRole("button")).toHaveCount(0);
-    await expect(page.getByRole("link")).toHaveCount(1);
+    await expect(screen.getByRole("button")).toHaveCount(0);
+    await expect(screen.getByRole("link")).toHaveCount(0);
     await expect(page.getByRole("navigation")).toHaveCount(0);
     await expect(page.getByRole("list")).toHaveCount(0);
 
-    const lines = visibleLines(await screen.innerText());
-    expect(lines).toEqual([LOBBY_STRINGS.ru.name, LOBBY_STRINGS.ru.beta, LOBBY_STRINGS.ru.comingSoon]);
+    expect(visibleLines(await screen.innerText())).toEqual([LOBBY_STRINGS.ru.comingSoon]);
   });
 
   test("AC-35: title Chezz и favicon /favicon.svg", async ({ page }) => {
@@ -68,9 +68,9 @@ test.describe("главная, RU по умолчанию", () => {
     expect(foreign).toEqual([]);
   });
 
-  test("AC-39: ссылка Logo достижима по Tab, фокус виден (--focus-width, --color-focus)", async ({ page, browserName }) => {
-    const screen = await openScreen(page, "/", "lobby");
-    const link = screen.getByRole("link", { name: "Chezz" });
+  test("AC-39, К-9: ссылка Logo в шапке достижима по Tab, фокус виден (--focus-width, --color-focus)", async ({ page, browserName }) => {
+    await openScreen(page, "/", "lobby");
+    const link = page.locator("header").getByRole("link", { name: "Chezz" });
     if (browserName === "webkit") {
       // WebKit/Safari не фокусирует ссылки по Tab (tabsToLinks), Option+Tab в Playwright WebKit на Windows не воспроизводится.
       test.info().annotations.push({ type: "note", description: "webkit: tabsToLinks / Option+Tab; достижимость по Tab не проверяется, только стиль фокуса" });
@@ -143,7 +143,7 @@ test.describe("EC-20: выбор языка", () => {
       const page = await context.newPage();
       const screen = await openScreen(page, "/", "lobby");
       expect(await htmlLang(page)).toBe(c.expected);
-      await expect(screen.getByText(LOBBY_STRINGS[c.expected].beta, { exact: true })).toBeVisible();
+      await expect(page.locator("header").getByText(LOBBY_STRINGS[c.expected].beta, { exact: true })).toBeVisible();
       await expect(screen.getByText(LOBBY_STRINGS[c.expected].comingSoon, { exact: true })).toBeVisible();
       await context.close();
     });

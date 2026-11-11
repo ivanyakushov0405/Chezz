@@ -1,0 +1,32 @@
+.group {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+}
+
+.option {
+  min-block-size: var(--layout-touch-target);
+  min-inline-size: var(--layout-touch-target);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-s);
+  cursor: pointer;
+}
+
+.option[aria-pressed="true"] {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-weight: var(--font-weight-strong);
+}
+
+.option:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-width);
+}

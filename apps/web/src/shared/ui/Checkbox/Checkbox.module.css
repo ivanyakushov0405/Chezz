@@ -1,0 +1,79 @@
+.row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-block-size: var(--layout-touch-target);
+  padding-block: var(--space-2);
+  cursor: pointer;
+}
+
+.input {
+  position: absolute;
+  inline-size: var(--layout-control-icon);
+  block-size: var(--layout-control-icon);
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.box {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--layout-control-icon);
+  block-size: var(--layout-control-icon);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-s);
+  background: var(--color-surface);
+  color: var(--color-accent-on);
+}
+
+.mark {
+  inline-size: 100%;
+  block-size: 100%;
+  visibility: hidden;
+}
+
+.row:hover .box {
+  border-color: var(--color-text);
+}
+
+.row[data-checked] .box {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.row[data-checked]:hover .box {
+  border-color: var(--color-accent-hover);
+  background: var(--color-accent-hover);
+}
+
+.row[data-checked] .mark {
+  visibility: visible;
+}
+
+.input:focus-visible + .box {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-width);
+}
+
+.row:has(.input:disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.text {
+  color: var(--color-text);
+  font-size: var(--font-size-m);
+}
+
+.text a {
+  color: var(--color-accent);
+}
+
+.text a:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-width);
+}

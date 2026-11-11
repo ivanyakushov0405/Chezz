@@ -5,12 +5,7 @@
  */
 export const PENDING_CATALOG = {
   rest: [
-    "getMe",
-    "completeOnboarding",
-    "updateMe",
     "changeNickname",
-    "logout",
-    "logoutAll",
     "startAccountDeletion",
     "deleteAccount",
     "getProfile",

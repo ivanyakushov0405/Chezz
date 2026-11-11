@@ -17,6 +17,7 @@ let distDir = "";
 
 const methodsOf = (r: RouteOptions): string[] => (Array.isArray(r.method) ? r.method : [r.method]).map(String);
 const isApi = (url: string): boolean => url === "/api" || url.startsWith("/api/");
+const isAuth = (url: string): boolean => url.startsWith("/auth/");
 
 beforeAll(async () => {
   // С собранным SPA: статические маршруты тоже попадают в onRoute и не должны мешать сравнению.
@@ -34,6 +35,8 @@ beforeAll(async () => {
     appVersion: "test",
     sentryDsn: null,
     metrics: null,
+    google: null,
+    cookieSecret: "test-cookie-secret-not-a-secret-000000",
   };
   const db = createDb<Database>(workerDatabaseUrl());
   const collected: RouteOptions[] = [];
@@ -86,11 +89,17 @@ describe("маршруты app", () => {
   });
 
   it("статика — без лимита (SECURITY §9) и без маршрута-шаблона /*", () => {
-    const statics = routes.filter((r) => !isApi(r.url));
+    const statics = routes.filter((r) => !isApi(r.url) && !isAuth(r.url));
     expect(statics.map((r) => r.url)).toContain("/assets/app-abc123.js");
     for (const r of statics) {
       expect((r.config as { rateLimit?: unknown } | undefined)?.rateLimit, r.url).toBeUndefined();
       expect(r.url, r.url).not.toContain("*");
     }
+  });
+
+  it("К-1: маршруты /auth/* — с настройкой лимита (ADR-0006 п.2, п.4)", () => {
+    const auth = routes.filter((r) => isAuth(r.url) && !methodsOf(r).every((m) => m === "HEAD"));
+    expect(auth.map((r) => r.url).sort()).toEqual(["/auth/google/callback", "/auth/google/start"]);
+    for (const r of auth) expect((r.config as { rateLimit?: unknown } | undefined)?.rateLimit, r.url).toBeDefined();
   });
 });

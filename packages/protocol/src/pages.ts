@@ -6,7 +6,8 @@ import type { Category } from "./common.ts";
  */
 export const PAGES = {
   home: (): string => "/",
-  welcome: (): string => "/welcome",
+  welcome: (returnTo?: string): string =>
+    returnTo === undefined ? "/welcome" : `/welcome?return_to=${encodeURIComponent(returnTo)}`,
   player: (nickname: string): string => `/player/${encodeURIComponent(nickname)}`,
   playerGames: (nickname: string): string => `/player/${encodeURIComponent(nickname)}/games`,
   leaderboard: (category: Category): string => `/leaderboard/${category}`,

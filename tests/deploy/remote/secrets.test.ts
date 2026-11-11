@@ -46,6 +46,9 @@ const BAD_PROD: Array<[string, string]> = [
   ["обязательный POSTGRES_PASSWORD пуст", secrets(PROD_SECRETS, { POSTGRES_PASSWORD: "" })],
   ["обязательный [ops] SENTRY_INGEST отсутствует", secrets(PROD_SECRETS, { SENTRY_INGEST: undefined })],
   ["обязательный [ops] APP_DOMAIN пуст", secrets(PROD_SECRETS, { APP_DOMAIN: "" })],
+  ["обязательный GOOGLE_CLIENT_ID пуст (E04)", secrets(PROD_SECRETS, { GOOGLE_CLIENT_ID: "" })],
+  ["обязательный GOOGLE_CLIENT_SECRET отсутствует (E04)", secrets(PROD_SECRETS, { GOOGLE_CLIENT_SECRET: undefined })],
+  ["обязательный COOKIE_SECRET пуст (E04)", secrets(PROD_SECRETS, { COOKIE_SECRET: "" })],
   ["APP_ENV ≠ prod", secrets(PROD_SECRETS, { APP_ENV: "staging" })],
   ["пустой stdin", ""],
 ];
@@ -61,6 +64,8 @@ const BAD_STAGING: Array<[string, string]> = [
   ["значение с обратной кавычкой", secrets(STAGING_SECRETS, { SEED_TOKEN_SECRET: "a`b" })],
   ["обязательный SEED_TOKEN_SECRET отсутствует", secrets(STAGING_SECRETS, { SEED_TOKEN_SECRET: undefined })],
   ["обязательный DATABASE_URL пуст", secrets(STAGING_SECRETS, { DATABASE_URL: "" })],
+  ["обязательный COOKIE_SECRET отсутствует (E04)", secrets(STAGING_SECRETS, { COOKIE_SECRET: undefined })],
+  ["обязательный GOOGLE_CLIENT_ID пуст (E04)", secrets(STAGING_SECRETS, { GOOGLE_CLIENT_ID: "" })],
   ["APP_ENV ≠ staging", secrets(STAGING_SECRETS, { APP_ENV: "prod" })],
 ];
 
@@ -98,6 +103,8 @@ describe("раскладка секретов prod (AC-24, EC-10)", { timeout: 6
       APP_ORIGIN: "https://chezz.test",
       DATABASE_URL: "postgres://app:new-prod-pw@db:5432/chezz",
       POSTGRES_PASSWORD: "new-prod-pw",
+      GOOGLE_CLIENT_ID: PROD_SECRETS["GOOGLE_CLIENT_ID"],
+      GOOGLE_CLIENT_SECRET: PROD_SECRETS["GOOGLE_CLIENT_SECRET"],
       COOKIE_SECRET: "cookie-value",
       SENTRY_DSN: "https://k@o0.ingest.sentry.io/1",
     });
@@ -110,12 +117,12 @@ describe("раскладка секретов prod (AC-24, EC-10)", { timeout: 6
     expect(parseEnvFile(await v.readEnv("ops.env"))).toEqual({ TELEGRAM_CHAT_ID: "new-chat" });
   });
 
-  it("EC-10: пустые optional (GOOGLE_*, COOKIE_SECRET, TELEGRAM_*, B2_*) не блокируют выкатку и не пишутся", async () => {
+  it("EC-10: пустые optional (SENTRY_DSN, TELEGRAM_*, B2_*) не блокируют выкатку и не пишутся", async () => {
     const v = await vps("deployed");
     const r = await v.entry("prod", deployCmd(v), secrets(PROD_SECRETS));
     expectResult(r, 0, "ok");
     const all = { ...parseEnvFile(await v.readEnv("prod.env")), ...parseEnvFile(await v.readEnv("ops.env")) };
-    for (const k of ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "COOKIE_SECRET", "TELEGRAM_BOT_TOKEN", "B2_KEY_ID", "B2_BUCKET"]) {
+    for (const k of ["SENTRY_DSN", "TELEGRAM_BOT_TOKEN", "B2_KEY_ID", "B2_BUCKET"]) {
       expect(all, k).not.toHaveProperty(k);
     }
   });
@@ -162,6 +169,9 @@ describe("раскладка секретов staging (AC-24, AC-25, EC-38)", { 
       DATABASE_URL: "postgres://app:new-staging-pw@db-staging:5432/chezz",
       POSTGRES_PASSWORD: "new-staging-pw",
       SEED_TOKEN_SECRET: "seed-secret-value",
+      GOOGLE_CLIENT_ID: STAGING_SECRETS["GOOGLE_CLIENT_ID"],
+      GOOGLE_CLIENT_SECRET: STAGING_SECRETS["GOOGLE_CLIENT_SECRET"],
+      COOKIE_SECRET: STAGING_SECRETS["COOKIE_SECRET"],
       RATE_LIMIT_IP_PER_MIN: "100000",
     });
     const after = await v.snapshot();

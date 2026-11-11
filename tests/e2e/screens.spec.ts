@@ -1,5 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
+import { addSessionCookie, closeFactoryDb, factoryPlayer, TAG_HTTPS_COOKIE, TAG_LOCAL_DB } from "./support/auth.ts";
 import { openScreen } from "./support/open-screen.ts";
 import { LOBBY_STRINGS, TRANSLATION_KEY_RE, visibleLines, type Lang } from "./support/strings.ts";
 
@@ -28,5 +29,40 @@ for (const { lang, locale } of LOCALES) {
         path: path.join(import.meta.dirname, "screens", `lobby-default-${lang}-${testInfo.project.name}.png`),
       });
     });
+  });
+}
+
+// E04: новые экраны (DESIGN §16.2, §17): shell Игрока, welcome (П1), legal, login-failed, not-found.
+const E04_SCREENS: { name: string; path: string; id: string; as?: "player" | "p1" }[] = [
+  { name: "shell-default", path: "/", id: "lobby", as: "player" },
+  { name: "welcome-default", path: "/welcome", id: "welcome", as: "p1" },
+  { name: "legal-default", path: "/terms", id: "legal" },
+  { name: "login-failed-default", path: "/auth/google/callback", id: "login-failed" },
+  { name: "not-found-default", path: "/no-such-page", id: "not-found" },
+];
+
+for (const { lang, locale } of LOCALES) {
+  test.describe(`экраны E04, ${lang}`, () => {
+    test.use({ locale });
+    test.afterAll(closeFactoryDb);
+
+    for (const s of E04_SCREENS) {
+      const tag = s.as !== undefined ? [TAG_HTTPS_COOKIE, TAG_LOCAL_DB] : [];
+      test(`К-9: ${s.name} / ${lang}`, { tag }, async ({ page, context, baseURL }, testInfo) => {
+        if (s.as !== undefined) {
+          const player = await factoryPlayer({ locale: lang, ...(s.as === "p1" ? { nickname: null } : {}) });
+          await addSessionCookie(context, baseURL ?? "", player.token);
+        }
+        const screen = await openScreen(page, s.path, s.id);
+        await expect(screen).toHaveAttribute("data-state", /(^|\s)default(\s|$)/);
+        expect(await page.evaluate(() => document.documentElement.lang)).toBe(lang);
+        for (const line of visibleLines(await page.locator("body").innerText())) {
+          expect(line).not.toMatch(TRANSLATION_KEY_RE);
+        }
+        await page.screenshot({
+          path: path.join(import.meta.dirname, "screens", `${s.name}-${lang}-${testInfo.project.name}.png`),
+        });
+      });
+    }
   });
 }

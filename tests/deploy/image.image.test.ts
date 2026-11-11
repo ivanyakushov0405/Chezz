@@ -241,6 +241,13 @@ describe("образ app — запуск с тестовой БД", () => {
     "APP_ORIGIN=https://chezz.test",
     "-e",
     `DATABASE_URL=${containerDbUrl()}`,
+    // Вход вне dev обязателен (E04); значения — не секреты.
+    "-e",
+    "GOOGLE_CLIENT_ID=test-client-id",
+    "-e",
+    "GOOGLE_CLIENT_SECRET=test-client-secret",
+    "-e",
+    "COOKIE_SECRET=test-cookie-secret-not-a-secret-000000",
   ];
 
   it("AC-5 / EC-37: образ без --build-arg APP_VERSION, APP_ENV=prod — app не стартует (код ≠ 0)", async () => {

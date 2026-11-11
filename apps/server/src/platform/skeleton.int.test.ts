@@ -92,6 +92,8 @@ describe("Кто (Caller)", () => {
       appVersion: "test",
       sentryDsn: null,
       metrics: null,
+      google: null,
+      cookieSecret: "test-cookie-secret-not-a-secret-000000",
     };
     const db = createDb<Database>(workerDatabaseUrl());
     const app = await buildApp(config, { db, time: new ManualTimeSource() });
