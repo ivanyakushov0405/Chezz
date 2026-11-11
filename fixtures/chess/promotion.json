@@ -1,0 +1,280 @@
+[
+  {
+    "id": "promotion-queen",
+    "tz": "ТЗ §7",
+    "fen": "8/4P3/8/8/8/8/k6P/4K3 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7e8q",
+        "san": "e8=Q"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-rook",
+    "tz": "ТЗ §7",
+    "fen": "8/4P3/8/8/8/8/k6P/4K3 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7e8r",
+        "san": "e8=R"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-bishop",
+    "tz": "ТЗ §7",
+    "fen": "8/4P3/8/8/8/8/k6P/4K3 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7e8b",
+        "san": "e8=B"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-knight",
+    "tz": "ТЗ §7",
+    "fen": "8/4P3/8/8/8/8/k6P/4K3 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7e8n",
+        "san": "e8=N"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-legal-list-four-pieces",
+    "tz": "ТЗ §7",
+    "fen": "8/4P3/8/8/8/8/k6P/4K3 w - - 0 1",
+    "moves": [],
+    "legal": [
+      "e1d1",
+      "e1d2",
+      "e1e2",
+      "e1f1",
+      "e1f2",
+      "e7e8b",
+      "e7e8n",
+      "e7e8q",
+      "e7e8r",
+      "h2h3",
+      "h2h4"
+    ],
+    "illegal": [
+      "e7e8k",
+      "e7e8p"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-without-letter-illegal-e1",
+    "tz": "ТЗ §7",
+    "fen": "8/4P3/8/8/8/8/k6P/4K3 w - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e7e8"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-capture-queen",
+    "tz": "ТЗ §7",
+    "fen": "5r2/4P3/8/8/8/8/k7/4K3 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7f8q",
+        "san": "exf8=Q"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-capture-legal-list",
+    "tz": "ТЗ §7",
+    "fen": "5r2/4P3/8/8/8/8/k7/4K3 w - - 0 1",
+    "moves": [],
+    "legal": [
+      "e1d1",
+      "e1d2",
+      "e1e2",
+      "e7e8b",
+      "e7e8n",
+      "e7e8q",
+      "e7e8r",
+      "e7f8b",
+      "e7f8n",
+      "e7f8q",
+      "e7f8r"
+    ],
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-capture-without-letter-illegal-e1",
+    "tz": "ТЗ §7",
+    "fen": "5r2/4P3/8/8/8/8/k7/4K3 w - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e7f8",
+      "e7e8"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-capture-knight-check",
+    "tz": "ТЗ §7",
+    "fen": "3r4/4Pk2/8/8/8/8/7P/4K3 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7d8n",
+        "san": "exd8=N+"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-queen-check",
+    "tz": "ТЗ §7",
+    "fen": "7k/4P3/8/8/8/8/8/K7 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7e8q",
+        "san": "e8=Q+"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-rook-check",
+    "tz": "ТЗ §7",
+    "fen": "7k/4P3/8/8/8/8/8/K7 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7e8r",
+        "san": "e8=R+"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-queen-checkmate",
+    "tz": "ТЗ §7",
+    "fen": "7k/4P1pp/8/8/8/8/8/K7 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7e8q",
+        "san": "e8=Q#"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "white_wins",
+      "termination": "checkmate"
+    }
+  },
+  {
+    "id": "promotion-rook-checkmate",
+    "tz": "ТЗ §7",
+    "fen": "7k/4P1pp/8/8/8/8/8/K7 w - - 0 1",
+    "moves": [
+      {
+        "uci": "e7e8r",
+        "san": "e8=R#"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "white_wins",
+      "termination": "checkmate"
+    }
+  },
+  {
+    "id": "promotion-black-queen-check",
+    "tz": "ТЗ §7",
+    "fen": "k7/8/8/8/8/8/3p4/K7 b - - 0 1",
+    "moves": [
+      {
+        "uci": "d2d1q",
+        "san": "d1=Q+"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-black-knight-check",
+    "tz": "ТЗ §7",
+    "fen": "k7/8/8/8/8/8/P3K1p1/8 b - - 0 1",
+    "moves": [
+      {
+        "uci": "g2g1n",
+        "san": "g1=N+"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "promotion-black-without-letter-illegal-e1",
+    "tz": "ТЗ §7",
+    "fen": "k7/8/8/8/8/8/3p4/K7 b - - 0 1",
+    "moves": [],
+    "legal": [
+      "a8a7",
+      "a8b7",
+      "a8b8",
+      "d2d1b",
+      "d2d1n",
+      "d2d1q",
+      "d2d1r"
+    ],
+    "illegal": [
+      "d2d1"
+    ],
+    "flag": null,
+    "expect": null
+  }
+]

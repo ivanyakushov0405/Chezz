@@ -1,0 +1,327 @@
+[
+  {
+    "id": "threefold-knights-start",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "g8f6",
+        "san": "Nf6"
+      },
+      {
+        "uci": "f3g1",
+        "san": "Ng1"
+      },
+      {
+        "uci": "f6g8",
+        "san": "Ng8"
+      },
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "g8f6",
+        "san": "Nf6"
+      },
+      {
+        "uci": "f3g1",
+        "san": "Ng1"
+      },
+      {
+        "uci": "f6g8",
+        "san": "Ng8"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "threefold_repetition"
+    }
+  },
+  {
+    "id": "threefold-knights-start-not-yet",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "g8f6",
+        "san": "Nf6"
+      },
+      {
+        "uci": "f3g1",
+        "san": "Ng1"
+      },
+      {
+        "uci": "f6g8",
+        "san": "Ng8"
+      },
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "g8f6",
+        "san": "Nf6"
+      },
+      {
+        "uci": "f3g1",
+        "san": "Ng1"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "threefold-twofold-not-draw",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "g8f6",
+        "san": "Nf6"
+      },
+      {
+        "uci": "f3g1",
+        "san": "Ng1"
+      },
+      {
+        "uci": "f6g8",
+        "san": "Ng8"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "threefold-middlegame",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "e7e5",
+        "san": "e5"
+      },
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "b8c6",
+        "san": "Nc6"
+      },
+      {
+        "uci": "f3g1",
+        "san": "Ng1"
+      },
+      {
+        "uci": "c6b8",
+        "san": "Nb8"
+      },
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "b8c6",
+        "san": "Nc6"
+      },
+      {
+        "uci": "f3g1",
+        "san": "Ng1"
+      },
+      {
+        "uci": "c6b8",
+        "san": "Nb8"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "threefold_repetition"
+    }
+  },
+  {
+    "id": "threefold-from-fen",
+    "tz": "ТЗ §7",
+    "fen": "4k3/8/8/8/8/8/4P3/RN2K3 w - - 0 1",
+    "moves": [
+      {
+        "uci": "b1c3",
+        "san": "Nc3"
+      },
+      {
+        "uci": "e8d8",
+        "san": "Kd8"
+      },
+      {
+        "uci": "c3b1",
+        "san": "Nb1"
+      },
+      {
+        "uci": "d8e8",
+        "san": "Ke8"
+      },
+      {
+        "uci": "b1c3",
+        "san": "Nc3"
+      },
+      {
+        "uci": "e8d8",
+        "san": "Kd8"
+      },
+      {
+        "uci": "c3b1",
+        "san": "Nb1"
+      },
+      {
+        "uci": "d8e8",
+        "san": "Ke8"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "threefold_repetition"
+    }
+  },
+  {
+    "id": "threefold-castling-rights-differ-not-draw",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "e7e5",
+        "san": "e5"
+      },
+      {
+        "uci": "e1e2",
+        "san": "Ke2"
+      },
+      {
+        "uci": "e8e7",
+        "san": "Ke7"
+      },
+      {
+        "uci": "e2e1",
+        "san": "Ke1"
+      },
+      {
+        "uci": "e7e8",
+        "san": "Ke8"
+      },
+      {
+        "uci": "e1e2",
+        "san": "Ke2"
+      },
+      {
+        "uci": "e8e7",
+        "san": "Ke7"
+      },
+      {
+        "uci": "e2e1",
+        "san": "Ke1"
+      },
+      {
+        "uci": "e7e8",
+        "san": "Ke8"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "threefold-after-castling-rights-lost",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "e7e5",
+        "san": "e5"
+      },
+      {
+        "uci": "e1e2",
+        "san": "Ke2"
+      },
+      {
+        "uci": "e8e7",
+        "san": "Ke7"
+      },
+      {
+        "uci": "e2e1",
+        "san": "Ke1"
+      },
+      {
+        "uci": "e7e8",
+        "san": "Ke8"
+      },
+      {
+        "uci": "e1e2",
+        "san": "Ke2"
+      },
+      {
+        "uci": "e8e7",
+        "san": "Ke7"
+      },
+      {
+        "uci": "e2e1",
+        "san": "Ke1"
+      },
+      {
+        "uci": "e7e8",
+        "san": "Ke8"
+      },
+      {
+        "uci": "e1e2",
+        "san": "Ke2"
+      },
+      {
+        "uci": "e8e7",
+        "san": "Ke7"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "threefold_repetition"
+    }
+  }
+]

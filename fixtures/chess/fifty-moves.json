@@ -1,0 +1,130 @@
+[
+  {
+    "id": "fifty-moves-quiet-move-at-99",
+    "tz": "ТЗ §7",
+    "fen": "8/8/4k3/8/8/4K3/4R3/7r w - - 99 80",
+    "moves": [
+      {
+        "uci": "e2a2",
+        "san": "Ra2"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "fifty_moves"
+    }
+  },
+  {
+    "id": "fifty-moves-black-quiet-move-at-99",
+    "tz": "ТЗ §7",
+    "fen": "8/8/4k3/8/8/4K3/4R3/7r b - - 99 80",
+    "moves": [
+      {
+        "uci": "h1h2",
+        "san": "Rh2"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "fifty_moves"
+    }
+  },
+  {
+    "id": "fifty-moves-not-yet-at-99",
+    "tz": "ТЗ §7",
+    "fen": "8/8/4k3/8/8/4K3/4R3/7r w - - 99 80",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "fifty-moves-not-yet-at-98",
+    "tz": "ТЗ §7",
+    "fen": "8/8/4k3/8/8/4K3/4R3/7r w - - 98 80",
+    "moves": [
+      {
+        "uci": "e2a2",
+        "san": "Ra2"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "fifty-moves-pawn-move-resets",
+    "tz": "ТЗ §7",
+    "fen": "8/8/4k3/8/8/4K3/P3R3/7r w - - 99 80",
+    "moves": [
+      {
+        "uci": "a2a3",
+        "san": "a3"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "fifty-moves-capture-resets",
+    "tz": "ТЗ §7",
+    "fen": "8/8/4k3/8/8/4K3/7R/7r w - - 99 80",
+    "moves": [
+      {
+        "uci": "h2h1",
+        "san": "Rxh1"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "fifty-moves-reset-then-quiet-move",
+    "tz": "ТЗ §7",
+    "fen": "8/8/4k3/8/8/4K3/P3R3/7r w - - 99 80",
+    "moves": [
+      {
+        "uci": "a2a3",
+        "san": "a3"
+      },
+      {
+        "uci": "h1h2",
+        "san": "Rh2"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "fifty-moves-checkmate-on-100th-wins",
+    "tz": "ТЗ §7",
+    "fen": "6k1/5ppp/8/8/8/8/8/R5K1 w - - 99 80",
+    "moves": [
+      {
+        "uci": "a1a8",
+        "san": "Ra8#"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "white_wins",
+      "termination": "checkmate"
+    }
+  }
+]
