@@ -8,6 +8,7 @@ import { currentPath, Link, useLocation } from "../../shared/router/Router.tsx";
 import { Avatar } from "../../shared/ui/Avatar/Avatar.tsx";
 import { Badge } from "../../shared/ui/Badge/Badge.tsx";
 import { ButtonLink } from "../../shared/ui/Button/Button.tsx";
+import { ConnectionBanner } from "../../shared/ui/ConnectionBanner/ConnectionBanner.tsx";
 import { Logo } from "../../shared/ui/Logo/Logo.tsx";
 import { Menu } from "../../shared/ui/Menu/Menu.tsx";
 import { SegmentedControl } from "../../shared/ui/SegmentedControl/SegmentedControl.tsx";
@@ -116,6 +117,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      <ConnectionBanner />
       <div className={styles["content"]}>{children}</div>
       <footer className={styles["footer"]}>
         <Link className={styles["footerLink"]} href={PAGES.terms()}>

@@ -5,9 +5,11 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, vi } from "vitest";
 import { App } from "../app/App.tsx";
 import { AppLocale } from "../app/AppLocale.tsx";
+import { AppWs } from "../app/AppWs.tsx";
 import { MeProvider, type MeState } from "../features/auth/MeContext.tsx";
 import { RouterProvider } from "../shared/router/Router.tsx";
 import { ToastProvider } from "../shared/ui/Toast/Toast.tsx";
+import { FakeWsClient } from "./ws.ts";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -47,15 +49,17 @@ export async function mount(node: ReactNode): Promise<HTMLElement> {
   return container;
 }
 
-/** Всё приложение (как main.tsx) на адресе `path`. */
-export async function mountApp(path: string, initial?: MeState): Promise<HTMLElement> {
+/** Всё приложение (как main.tsx) на адресе `path`; WebSocket — `ws` (по умолчанию новый FakeWsClient). */
+export async function mountApp(path: string, initial?: MeState, ws: FakeWsClient = new FakeWsClient()): Promise<HTMLElement> {
   window.history.replaceState(null, "", path);
   return mount(
     <RouterProvider>
       <MeProvider initial={initial}>
         <AppLocale>
           <ToastProvider>
-            <App />
+            <AppWs client={ws}>
+              <App />
+            </AppWs>
           </ToastProvider>
         </AppLocale>
       </MeProvider>
