@@ -1,0 +1,29 @@
+.clock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-inline-size: 6ch;
+  block-size: var(--layout-clock-height);
+  padding: 0 var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-m);
+  background: var(--clock-bg);
+  color: var(--clock-text);
+  font-size: var(--font-size-clock);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.active {
+  border-color: var(--color-success);
+  background: var(--clock-bg-active);
+}
+
+.low {
+  background: var(--clock-bg-low);
+  color: var(--color-danger);
+}
+
+.low:not(.active) {
+  border-color: var(--color-danger);
+}

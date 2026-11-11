@@ -1,0 +1,31 @@
+.line {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-inline-size: 0;
+}
+
+.dot {
+  flex-shrink: 0;
+  inline-size: var(--space-2);
+  block-size: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-success);
+}
+
+.away {
+  background: var(--color-border-strong);
+}
+
+.nickname {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rating,
+.status {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}

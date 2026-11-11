@@ -1,0 +1,93 @@
+/* Раскладка партии (DESIGN §8): s — соперник сверху, доска, свои снизу, ходы и ввод ниже; m/l — колонка справа. */
+.page {
+  display: grid;
+  grid-template-areas:
+    "top"
+    "board"
+    "bottom"
+    "panel";
+  gap: var(--space-2);
+  inline-size: 100%;
+  max-inline-size: var(--layout-container-max);
+  margin: 0 auto;
+}
+
+.top,
+.bottom {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  min-inline-size: 0;
+  padding: 0 var(--space-2);
+}
+
+.top {
+  grid-area: top;
+}
+
+.bottom {
+  grid-area: bottom;
+}
+
+.boardArea {
+  position: relative;
+  grid-area: board;
+  inline-size: 100%;
+}
+
+.locked {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-header);
+  background: var(--color-overlay);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  grid-area: panel;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: 0 var(--space-2);
+}
+
+.spectator {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-text-muted);
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-5) var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .page {
+    grid-template-areas:
+      "board top"
+      "board panel"
+      "board bottom";
+    grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+    grid-template-rows: auto 1fr auto;
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .boardArea {
+    align-self: start;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page {
+    grid-template-columns: minmax(0, var(--layout-board-max)) var(--layout-side-panel);
+    justify-content: center;
+  }
+}

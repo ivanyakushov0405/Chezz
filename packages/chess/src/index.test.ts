@@ -46,3 +46,28 @@ describe("play (UCI)", () => {
     expect(p.ply()).toBe(1);
   });
 });
+
+describe("клиент: последний ход и SAN → UCI", () => {
+  it("К-9: lastMoveUci — последний ход в UCI, без ходов — null", () => {
+    expect(ChessPosition.start().lastMoveUci()).toBeNull();
+    expect(ChessPosition.fromSans(["e4", "e5", "Nf3"]).lastMoveUci()).toBe("g1f3");
+    const p = pos("8/4P3/8/8/8/8/k7/4K3 w - - 0 1");
+    p.play("e7e8n");
+    expect(p.lastMoveUci()).toBe("e7e8n");
+  });
+
+  it("К-9: uciOfSan — SAN текущей позиции, знаки +#!? и регистр превращения не важны", () => {
+    const start = ChessPosition.start();
+    expect(start.uciOfSan("Nf3")).toBe("g1f3");
+    expect(start.uciOfSan(" e4 ")).toBe("e2e4");
+    expect(start.uciOfSan("Nf6")).toBeNull();
+    expect(start.uciOfSan("")).toBeNull();
+    const mate = ChessPosition.fromSans(["e4", "e5", "Bc4", "Nc6", "Qh5", "Nf6"]);
+    expect(mate.uciOfSan("Qxf7")).toBe("h5f7");
+    expect(mate.uciOfSan("Qxf7#")).toBe("h5f7");
+    const promo = pos("8/4P3/8/8/8/8/k7/4K3 w - - 0 1");
+    expect(promo.uciOfSan("e8=q")).toBe("e7e8q");
+    expect(promo.uciOfSan("e8=N")).toBe("e7e8n");
+    expect(promo.uciOfSan("e8")).toBeNull();
+  });
+});

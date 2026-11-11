@@ -1,0 +1,72 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-block-size: 0;
+}
+
+/* s: горизонтальная лента ходов (DESIGN §8); m/l — столбец с прокруткой. */
+.list {
+  display: flex;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.row {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-1);
+  align-items: baseline;
+}
+
+.number {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.move {
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.move:hover {
+  background: var(--color-bg);
+}
+
+.move[aria-current="true"] {
+  background: var(--color-accent);
+  color: var(--color-accent-on);
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .list {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-block-size: calc(var(--layout-clock-height) * 6);
+    overflow: auto;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 3ch 1fr 1fr;
+  }
+
+  .move {
+    text-align: start;
+  }
+}

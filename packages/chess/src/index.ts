@@ -61,6 +61,24 @@ export class ChessPosition {
       .sort();
   }
 
+  /** Последний сделанный ход в UCI (подсветка на доске); null — ходов не было. */
+  lastMoveUci(): string | null {
+    const last = this.#chess.history({ verbose: true }).at(-1);
+    return last === undefined ? null : last.from + last.to + (last.promotion ?? "");
+  }
+
+  /**
+   * Ход в SAN текущей позиции → UCI (ввод с клавиатуры, U19); null — нет такого хода.
+   * Знаки `+`, `#`, `!`, `?` и регистр буквы превращения не важны: `e8=q` и `Qxf7` без `#` находят ход.
+   */
+  uciOfSan(san: string): string | null {
+    const norm = (text: string): string => text.trim().replace(/[+#!?]+$/u, "").replace(/=([qrbn])$/u, (_m, p: string) => `=${p.toUpperCase()}`);
+    const wanted = norm(san);
+    if (wanted === "") return null;
+    const found = this.#chess.moves({ verbose: true }).find((move) => norm(move.san) === wanted);
+    return found === undefined ? null : found.from + found.to + (found.promotion ?? "");
+  }
+
   turn(): Color {
     return toColor(this.#chess.turn());
   }
