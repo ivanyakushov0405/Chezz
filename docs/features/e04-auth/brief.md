@@ -30,6 +30,7 @@ Slug: `e04-auth` · ROADMAP: E04 · Трекер: KAN-7 · Риск: high (вх�
 4. `[backend:auth]` миграция `sessions`, `repo`, `service`: Session, `resolveCaller`, `logout`, `logoutAll`, `sessions_closed`, чистка, `user_active`; `getMe`; фабрика `createPlayer`, `seedSessionToken`, сид `--demo`. К-4, К-6, К-8, К-10.
 5. `[backend:auth]` OIDC: `openid-client`, `/auth/google/start`, `/auth/google/callback`, проверка утверждений ID-токена (unit), `user_registered`, отдача `login-failed`. К-1, К-2, К-3, E-2.
 6. `[frontend]` основа: клиент REST поверх `REST_ROUTES`, роутер по `PAGES`, контекст `Me`, `Button`, `Avatar`, `Menu`, `Toast`, `SegmentedControl`, шапка (`guest`, `default`, П1) и подвал (язык U21), `not-found`; RU/EN. К-9.
+   - 6 вышел ~30 файлов (общие компоненты §7 + shell): части по отдельности не используются, поэтому одним коммитом; страницы `/welcome`, `login-failed`, `legal` — шаг 7.
 7. `[frontend]` `/welcome` (`TextField` с `hint`, `Checkbox`, `<T>`, U29), `login-failed`, `legal` (`/terms`, `/privacy`); `screens.spec.ts` для новых экранов. К-7, К-9.
 Макеты — `design-spec.md` (Figma, раздел «E04», 17 фреймов).
 8. `[infra]` `deploy/env.allowlist`: `GOOGLE_*`, `COOKIE_SECRET` → `required` (OPERATIONS §6, строка 281). —

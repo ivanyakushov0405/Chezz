@@ -12,21 +12,16 @@ function render(locale: "ru" | "en"): string {
 }
 
 describe("LobbyPage", () => {
-  it("AC-35: data-screen/data-state, ссылка на /, Бета и текст", () => {
+  it("К-9: data-screen/data-state и текст; бренд — в шапке shell", () => {
     const html = render("ru");
     expect(html).toContain('data-screen="lobby"');
     expect(html).toContain('data-state="default"');
-    expect(html).toContain('href="/"');
-    expect(html).toContain("Chezz");
-    expect(html).toContain("Бета");
     expect(html).toContain("Скоро здесь можно будет играть в шахматы онлайн.");
-    expect(html.match(/<a\b/g)).toHaveLength(1);
+    expect(html).not.toContain("<a");
     expect(html).not.toContain("<button");
   });
 
-  it("EN", () => {
-    const html = render("en");
-    expect(html).toContain("Beta");
-    expect(html).toContain("Online chess is coming soon.");
+  it("К-9: EN", () => {
+    expect(render("en")).toContain("Online chess is coming soon.");
   });
 });

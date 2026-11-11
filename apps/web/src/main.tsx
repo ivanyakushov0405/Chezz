@@ -1,22 +1,27 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { LobbyPage } from "./pages/lobby/LobbyPage.tsx";
-import { I18nProvider } from "./shared/i18n/I18nContext.tsx";
-import { currentLocale } from "./shared/i18n/locale.ts";
+import { App } from "./app/App.tsx";
+import { AppLocale } from "./app/AppLocale.tsx";
+import { MeProvider } from "./features/auth/MeContext.tsx";
 import { initSentry } from "./shared/observability/sentry.ts";
+import { RouterProvider } from "./shared/router/Router.tsx";
+import { ToastProvider } from "./shared/ui/Toast/Toast.tsx";
 import "./shared/ui/global.css";
 
 initSentry();
-
-const locale = currentLocale();
-document.documentElement.lang = locale;
 
 const root = document.getElementById("root");
 if (!root) throw new Error("#root не найден");
 createRoot(root).render(
   <StrictMode>
-    <I18nProvider locale={locale}>
-      <LobbyPage />
-    </I18nProvider>
+    <RouterProvider>
+      <MeProvider>
+        <AppLocale>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </AppLocale>
+      </MeProvider>
+    </RouterProvider>
   </StrictMode>,
 );

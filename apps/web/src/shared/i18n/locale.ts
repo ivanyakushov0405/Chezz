@@ -27,3 +27,29 @@ export function currentLocale(): Locale {
   }
   return detectLocale(storage, navigator.language);
 }
+
+/** Язык, явно выбранный гостем (U21), или null. */
+export function storedGuestLocale(): Locale | null {
+  try {
+    const v = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    return isLocale(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveGuestLocale(locale: Locale): void {
+  try {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+  } catch {
+    // хранилище недоступно — выбор живёт до перезагрузки
+  }
+}
+
+export function clearGuestLocale(): void {
+  try {
+    window.localStorage.removeItem(LOCALE_STORAGE_KEY);
+  } catch {
+    // нечего чистить
+  }
+}

@@ -57,6 +57,9 @@
   --layout-header-height: 48px;
   --layout-clock-height: 48px;
   --layout-touch-target: 44px;
+  --layout-control-icon: 1.25rem;
+  --layout-form-max: 25rem;
+  --layout-text-max: 45rem;
   --duration-fast: 120ms;
   --duration-move: 200ms;
 
