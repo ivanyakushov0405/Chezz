@@ -2,34 +2,54 @@
 import { PAGES } from "@chezz/protocol";
 import { useEffect, useRef, type ReactNode } from "react";
 import { useMe } from "../features/auth/MeContext.tsx";
+import { LegalPage } from "../pages/legal/LegalPage.tsx";
 import { LobbyPage } from "../pages/lobby/LobbyPage.tsx";
+import { LoginFailedPage } from "../pages/login-failed/LoginFailedPage.tsx";
 import { NotFoundPage } from "../pages/not-found/NotFoundPage.tsx";
 import { AppShell } from "../pages/shell/AppShell.tsx";
+import { WelcomePage } from "../pages/welcome/WelcomePage.tsx";
 import { currentPath, useLocation, useNavigate } from "../shared/router/Router.tsx";
 
 /** Пути, открытые П1 (до завершения первого входа): сам `/welcome` и тексты правил. */
 export const ONBOARDING_PATHS: readonly string[] = [PAGES.welcome(), PAGES.terms(), PAGES.privacy()];
 
+/** Адрес callback: при ошибке входа сервер отдаёт на нём index.html (бриф E04, «Решения»). */
+export const OIDC_CALLBACK_PATH = "/auth/google/callback";
+
 export function routeFor(pathname: string): ReactNode {
   switch (pathname) {
     case PAGES.home():
       return <LobbyPage />;
+    case PAGES.welcome():
+      return <WelcomePage />;
+    case PAGES.terms():
+      return <LegalPage kind="terms" />;
+    case PAGES.privacy():
+      return <LegalPage kind="privacy" />;
+    case OIDC_CALLBACK_PATH:
+      return <LoginFailedPage />;
     default:
       return <NotFoundPage />;
   }
 }
 
-/** Экран по адресу + ограничения П1: любой другой путь → `/welcome?return_to=<путь>` (replace). */
+/**
+ * Экран по адресу + ограничения П1: любой другой путь → `/welcome?return_to=<путь>` (replace).
+ * `/welcome` нужен только П1: гость и Игрок уходят на главную.
+ */
 export function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const { state, refresh } = useMe();
   const onboarding = state.status === "ready" && state.me.onboarding_required;
-  const blocked = onboarding && !ONBOARDING_PATHS.includes(location.pathname);
+  const onWelcome = location.pathname === PAGES.welcome();
+  const settled = state.status !== "loading";
+  const blocked = (onboarding && !ONBOARDING_PATHS.includes(location.pathname)) || (onWelcome && (!settled || !onboarding));
 
   useEffect(() => {
-    if (blocked) navigate(PAGES.welcome(currentPath(location)), { replace: true });
-  }, [blocked, location, navigate]);
+    if (onboarding && !ONBOARDING_PATHS.includes(location.pathname)) navigate(PAGES.welcome(currentPath(location)), { replace: true });
+    else if (onWelcome && settled && !onboarding) navigate(PAGES.home(), { replace: true });
+  }, [onboarding, onWelcome, settled, location, navigate]);
 
   // `/api/me` не ответил — повтор при следующей навигации, не таймером (design-spec п.14).
   const lastPath = useRef(currentPath(location));
