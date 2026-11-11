@@ -992,6 +992,202 @@
       }
     }
   },
-  "ws_client": {},
-  "ws_server": {}
+  "ws_client": {
+    "pong": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "pong"
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "type",
+        "n"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "ws_server": {
+    "welcome": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "welcome"
+        },
+        "protocol_version": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "user": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "nickname": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "nickname"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ping_interval_ms": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "type",
+        "protocol_version",
+        "user",
+        "ping_interval_ms"
+      ],
+      "additionalProperties": false
+    },
+    "ping": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "ping"
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "type",
+        "n"
+      ],
+      "additionalProperties": false
+    },
+    "error": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "error"
+        },
+        "ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "enum": [
+            "validation_failed",
+            "invalid_time_control",
+            "nickname_invalid",
+            "nickname_reserved",
+            "unauthenticated",
+            "onboarding_required",
+            "origin_forbidden",
+            "forbidden",
+            "delete_confirmation_invalid",
+            "not_found",
+            "client_outdated",
+            "onboarding_completed",
+            "nickname_taken",
+            "nickname_change_used",
+            "open_challenge_exists",
+            "player_busy",
+            "opponent_busy",
+            "own_challenge",
+            "rating_out_of_range",
+            "challenge_expired",
+            "challenge_cancelled",
+            "challenge_taken",
+            "account_has_active_game",
+            "game_not_active",
+            "payload_too_large",
+            "screenshot_unsupported",
+            "rate_limited",
+            "internal",
+            "too_many_connections",
+            "not_a_participant",
+            "ply_mismatch",
+            "not_your_turn",
+            "illegal_move",
+            "takeback_not_allowed",
+            "abort_not_allowed",
+            "offer_not_open",
+            "own_offer",
+            "abandonment_choice_not_open"
+          ]
+        },
+        "game_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "details": {}
+      },
+      "required": [
+        "type",
+        "ref",
+        "code",
+        "game_id",
+        "details"
+      ],
+      "additionalProperties": false
+    },
+    "session.closed": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "session.closed"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false
+    }
+  }
 }

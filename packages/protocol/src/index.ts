@@ -26,8 +26,8 @@ export {
 } from "./rest/me.ts";
 export { REST_ROUTES } from "./rest/routes.ts";
 export type { RouteDef, Who } from "./rest/routes.ts";
-export { CLIENT_MESSAGE_SCHEMAS, ClientMessage } from "./ws/client.ts";
-export { SERVER_MESSAGE_SCHEMAS, ServerMessage } from "./ws/server.ts";
+export { CLIENT_MESSAGE_SCHEMAS, ClientMessage, Pong, WsRef } from "./ws/client.ts";
+export { Ping, SERVER_MESSAGE_SCHEMAS, ServerMessage, SessionClosed, Welcome, WsError } from "./ws/server.ts";
 export { PENDING_CATALOG } from "./pending.ts";
 export { PAGES } from "./pages.ts";
 export { safeLocalPath } from "./safe-path.ts";
