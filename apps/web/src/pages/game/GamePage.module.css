@@ -83,6 +83,23 @@
   .boardArea {
     align-self: start;
   }
+
+  /* Колонка справа (Figma 9:391, 9:581): сверху строка соперника, под ней его часы; снизу свои часы, под ними своя строка. */
+  .top,
+  .bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: 0;
+  }
+
+  .bottom {
+    flex-direction: column-reverse;
+  }
+
+  .panel {
+    padding: 0;
+  }
 }
 
 @media (min-width: 1024px) {

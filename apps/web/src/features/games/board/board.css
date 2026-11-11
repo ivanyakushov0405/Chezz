@@ -48,13 +48,51 @@
   background: var(--board-check);
 }
 
-.board coords coord {
-  color: var(--board-dark);
+/* Координаты внутри доски: цифры у правого края, буквы у нижнего; цвет — противоположный клетке под ними.
+   Дети coords всегда 1…8 и a…h, ориентацию chessground переворачивает через flex-flow (класс black). */
+.board coords {
   font-size: var(--font-size-s);
   font-weight: 600;
+  opacity: 1;
 }
 
-.board coords.ranks coord:nth-child(odd),
-.board coords.files coord:nth-child(even) {
+.board coords.ranks {
+  top: 0;
+  right: 0;
+  left: auto;
+  width: auto;
+}
+
+.board coords.ranks coord {
+  padding: var(--space-1) var(--space-1) 0;
+  text-align: end;
+  transform: none;
+}
+
+.board coords.files {
+  bottom: 0;
+  left: 0;
+  height: auto;
+  text-align: start;
+  text-transform: none;
+}
+
+.board coords.files coord {
+  flex: 1 1 0;
+  padding: 0 var(--space-1) var(--space-1);
+}
+
+/* Белые снизу: правый столбец — h (h1 светлая), нижний ряд — 1 (a1 тёмная); чёрные снизу — наоборот. */
+.board coords.ranks:not(.black) coord:nth-child(odd),
+.board coords.ranks.black coord:nth-child(even),
+.board coords.files.black coord:nth-child(odd),
+.board coords.files:not(.black) coord:nth-child(even) {
+  color: var(--board-dark);
+}
+
+.board coords.ranks:not(.black) coord:nth-child(even),
+.board coords.ranks.black coord:nth-child(odd),
+.board coords.files.black coord:nth-child(even),
+.board coords.files:not(.black) coord:nth-child(odd) {
   color: var(--board-light);
 }

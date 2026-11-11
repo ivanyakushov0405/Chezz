@@ -1,6 +1,7 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { addSessionCookie, closeFactoryDb, factoryPlayer, TAG_HTTPS_COOKIE, TAG_LOCAL_DB } from "./support/auth.ts";
+import { activeGame, finishedGame } from "./support/game.ts";
 import { openScreen } from "./support/open-screen.ts";
 import { LOBBY_STRINGS, TRANSLATION_KEY_RE, visibleLines, type Lang } from "./support/strings.ts";
 
@@ -61,6 +62,33 @@ for (const { lang, locale } of LOCALES) {
         }
         await page.screenshot({
           path: path.join(import.meta.dirname, "screens", `${s.name}-${lang}-${testInfo.project.name}.png`),
+        });
+      });
+    }
+  });
+}
+
+// E06: game-live default и ended (DESIGN §16.2; Figma 9:209, 9:391, 9:581, 9:1150, 9:1333).
+for (const { lang, locale } of LOCALES) {
+  test.describe(`экраны E06, ${lang}`, () => {
+    test.use({ locale });
+    test.afterAll(closeFactoryDb);
+
+    for (const kind of ["default", "ended"] as const) {
+      test(`К-9: game-live-${kind} / ${lang}`, { tag: [TAG_HTTPS_COOKIE, TAG_LOCAL_DB] }, async ({ page, context, baseURL }, testInfo) => {
+        const me = await factoryPlayer({ locale: lang });
+        const opponent = await factoryPlayer({ locale: lang });
+        await addSessionCookie(context, baseURL ?? "", me.token);
+        const moves = ["e4", "e5", "Bc4", "Nc6", "Qh5", "Nf6", ...(kind === "ended" ? ["Qxf7#"] : [])].map((san, i) => ({ san, clock_ms: 170_000 - i * 1_000 }));
+        const options = { white_id: me.user_id, black_id: opponent.user_id, moves };
+        const gameId = kind === "ended" ? await finishedGame({ ...options, result: "white_wins", termination: "checkmate" }) : await activeGame(options);
+        const screen = await openScreen(page, `/game/${gameId}`, "game-live");
+        await expect(screen).toHaveAttribute("data-state", kind === "ended" ? /(^|\s)ended(\s|$)/ : /(^|\s)default(\s|$)/);
+        for (const line of visibleLines(await page.locator("body").innerText())) {
+          expect(line).not.toMatch(TRANSLATION_KEY_RE);
+        }
+        await page.screenshot({
+          path: path.join(import.meta.dirname, "screens", `game-live-${kind}-${lang}-${testInfo.project.name}.png`),
         });
       });
     }

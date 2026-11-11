@@ -138,7 +138,8 @@ function LiveGame({ view, online, move }: { view: GameView; online: boolean; mov
 
   const side = (color: Color, where: "top" | "bottom") => (
     <div className={styles[where]} data-side={color}>
-      <PlayerLine player={game[color]} connected={view.connected[color]} side={where} />
+      {/* Связь важна только в идущей партии: у законченной из БД подписчиков нет. */}
+      <PlayerLine player={game[color]} connected={!active || view.connected[color]} side={where} />
       <Clock
         ms={ms(color)}
         active={active && clock.running === color}

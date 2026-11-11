@@ -32,11 +32,16 @@ let db: Db<Database> | null = null;
 export const TAG_LOCAL_DB = "@local-db";
 export const TAG_HTTPS_COOKIE = "@https-cookie";
 
+/** База e2e для фабрик (тест с тегом `@local-db`). */
+export function factoryDb(): Db<Database> {
+  if (isExternal()) throw new Error("фабрики — только локальная база e2e: пометьте тест тегом @local-db");
+  db ??= createDb<Database>(E2E_DATABASE_URL);
+  return db;
+}
+
 /** Игрок или П1 (`nickname: null`) прямо в базе e2e (тест с тегом `@local-db`). */
 export async function factoryPlayer(options: CreatePlayerOptions = {}): Promise<CreatedPlayer & { token: string }> {
-  if (isExternal()) throw new Error("factoryPlayer — только локальная база e2e: пометьте тест тегом @local-db");
-  db ??= createDb<Database>(E2E_DATABASE_URL);
-  const player = await createPlayer(db, { nickname: randomNickname("e2e"), locale: "ru", ...options });
+  const player = await createPlayer(factoryDb(), { nickname: randomNickname("e2e"), locale: "ru", ...options });
   if (player.token === null) throw new Error("фабрика вернула Игрока без Session");
   return { ...player, token: player.token };
 }
