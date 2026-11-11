@@ -17,6 +17,8 @@ import { createMetrics, type MetricsService } from "./platform/metrics.ts";
 import { createLogger, RequestLogController } from "./platform/log.ts";
 import { createErrorReporter, type ErrorReporter } from "./platform/sentry.ts";
 import type { TimeSource } from "./platform/time.ts";
+import { registerUsersRoutes } from "./users/api.ts";
+import { createUsersService } from "./users/service.ts";
 
 export interface AppDeps {
   db: Db<Database>;
@@ -89,6 +91,9 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   const analytics = createAnalyticsService({ db: deps.db, time: deps.time, log: app.log, reporter });
   deps.onAnalytics?.(analytics);
   registerHealthRoute(app, { db: deps.db, time: deps.time });
+  // L1
+  const users = createUsersService({ db: deps.db, time: deps.time });
+  registerUsersRoutes(app, { users });
 
   const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
   deps.onMetrics?.(metrics);
