@@ -3,29 +3,33 @@ import { REST_ROUTES, type GetMeResponse, type MeResponse } from "@chezz/protoco
 import type { FastifyInstance } from "fastify";
 import { AppError } from "../platform/errors.ts";
 import { registerRoute, type Caller } from "../platform/http.ts";
-import type { UsersService } from "./service.ts";
+import type { MeExtras, UsersService } from "./service.ts";
 
 function userIdOf(caller: Caller): string {
   if (caller.who === "guest") throw new AppError("unauthenticated");
   return caller.user_id;
 }
 
-export function registerUsersRoutes(app: FastifyInstance, deps: { users: UsersService }): void {
+export function registerUsersRoutes(
+  app: FastifyInstance,
+  deps: { users: UsersService; meExtras?: (userId: string) => Promise<MeExtras> },
+): void {
   const { users } = deps;
+  const extrasOf = (userId: string): Promise<MeExtras | undefined> => deps.meExtras?.(userId) ?? Promise.resolve(undefined);
 
   registerRoute(app, REST_ROUTES.getMe, async ({ caller }): Promise<GetMeResponse> => {
     if (caller.who === "guest") return { user: null };
     const user = await users.getUser(caller.user_id);
-    return { user: user === null ? null : users.toMe(user) };
+    return { user: user === null ? null : users.toMe(user, await extrasOf(user.id)) };
   });
 
   registerRoute(app, REST_ROUTES.completeOnboarding, async ({ caller, body }): Promise<MeResponse> => {
     const user = await users.completeOnboarding(userIdOf(caller), body.nickname);
-    return { user: users.toMe(user) };
+    return { user: users.toMe(user, await extrasOf(user.id)) };
   });
 
   registerRoute(app, REST_ROUTES.updateMe, async ({ caller, body }): Promise<MeResponse> => {
     const user = await users.updateMe(userIdOf(caller), body);
-    return { user: users.toMe(user) };
+    return { user: users.toMe(user, await extrasOf(user.id)) };
   });
 }

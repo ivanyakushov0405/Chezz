@@ -10,6 +10,8 @@ export interface WsContext {
   rtt_ms: number | null;
   /** Отправить сообщение этому соединению (тип сообщения — ServerMessage из packages/protocol). */
   send(message: unknown): void;
+  /** Вызвать fn один раз при закрытии соединения (подписки модулей, E06); уже закрыто — сразу. */
+  onClose(fn: () => void): void;
 }
 
 export type WsHandler = (ctx: WsContext, message: unknown) => Promise<void>;

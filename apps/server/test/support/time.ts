@@ -13,6 +13,7 @@ export class ManualTimeSource implements TimeSource {
   private readonly monoStart: number;
   private nextId = 1;
   private readonly timers = new Map<number, PendingTimer>();
+  private readonly idleHooks: (() => Promise<void>)[] = [];
 
   constructor(start?: { now?: number; wall?: Date }) {
     this.current = start?.now ?? 0;
@@ -38,6 +39,11 @@ export class ManualTimeSource implements TimeSource {
     this.timers.delete(id as unknown as number);
   }
 
+  /** Ожидание простоя после advance (очереди GameRoom, TESTING §7.2); регистрирует startApp. */
+  addIdleHook(hook: () => Promise<void>): void {
+    this.idleHooks.push(hook);
+  }
+
   /** Число ещё не сработавших таймеров (для проверок в тестах). */
   pendingTimers(): number {
     return this.timers.size;
@@ -46,7 +52,7 @@ export class ManualTimeSource implements TimeSource {
   /**
    * Сдвигает оба вида времени на ms. Таймеры с дедлайном ≤ now+ms срабатывают синхронно,
    * по возрастанию дедлайна (при равных — в порядке постановки), в том числе поставленные
-   * обработчиком внутри окна; now() в обработчике равен его дедлайну. Затем ждёт простоя (хуки — E06).
+   * обработчиком внутри окна; now() в обработчике равен его дедлайну. Затем ждёт простоя: очереди GameRoom пусты.
    */
   async advance(ms: number): Promise<void> {
     if (!(ms >= 0)) throw new RangeError("advance(ms): ms must be >= 0");
@@ -65,5 +71,6 @@ export class ManualTimeSource implements TimeSource {
     }
     this.current = target;
     await new Promise<void>((resolve) => setImmediate(resolve));
+    for (const hook of this.idleHooks) await hook();
   }
 }

@@ -2,7 +2,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { workerDatabaseUrl } from "../../test/support/db.ts";
-import { createPlayer } from "../../test/support/factories.ts";
+import { createFinishedGame, createPlayer } from "../../test/support/factories.ts";
 import { countRatingRows, listRatingHistory } from "../../test/support/ratings.ts";
 import type { Database } from "../database.ts";
 import { createDb, withTransaction } from "../platform/db.ts";
@@ -26,7 +26,15 @@ function result(p: { white: string; black: string }, over: Partial<RatedResult> 
   return { gameId: randomUUID(), category: "blitz", whiteId: p.white, blackId: p.black, result: "white_wins", endedAt: T0, ...over };
 }
 
-const apply = (r: RatedResult) => withTransaction(db, (trx) => rating.applyResult(trx, r));
+/** Строка Game для внешнего ключа rating_history.game_id (E06). */
+const ensureGame = async (r: RatedResult): Promise<void> => {
+  if (r.whiteId !== r.blackId) await createFinishedGame(db, { id: r.gameId, white_id: r.whiteId, black_id: r.blackId });
+};
+
+const apply = async (r: RatedResult) => {
+  await ensureGame(r);
+  return withTransaction(db, (trx) => rating.applyResult(trx, r));
+};
 
 const historyOf = (gameId: string) => listRatingHistory(db, gameId);
 
@@ -86,6 +94,7 @@ describe("rating.service", () => {
   it("К-5: откат транзакции вызывающего — ни Rating, ни RatingHistory", async () => {
     const p = await pair();
     const r = result(p);
+    await ensureGame(r);
     await expect(
       withTransaction(db, async (trx) => {
         await rating.applyResult(trx, r);

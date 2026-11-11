@@ -2,7 +2,8 @@
 // строка здесь (& UsersTables & …) и в app.ts.
 import type { AnalyticsTables } from "./analytics/tables.ts";
 import type { AuthTables } from "./auth/tables.ts";
+import type { GamesTables } from "./games/tables.ts";
 import type { RatingTables } from "./rating/tables.ts";
 import type { UsersTables } from "./users/tables.ts";
 
-export type Database = AnalyticsTables & UsersTables & AuthTables & RatingTables;
+export type Database = AnalyticsTables & UsersTables & AuthTables & RatingTables & GamesTables;

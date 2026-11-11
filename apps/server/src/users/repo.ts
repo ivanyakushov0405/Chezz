@@ -77,6 +77,18 @@ export async function updateProfile(db: Db | Trx, id: string, patch: ProfilePatc
   return (await q.set(set).returningAll().executeTakeFirst()) ?? null;
 }
 
+/** Строки игроков под `FOR UPDATE` по возрастанию `id` (ARCHITECTURE §9.1 п.1, ADR-0008 п.1). */
+export async function lockUsers(trx: Trx, ids: readonly string[]): Promise<{ id: string; deleted_at: Date | null }[]> {
+  if (ids.length === 0) return [];
+  return forTables<UsersTables>(trx)
+    .selectFrom("users")
+    .select(["id", "deleted_at"])
+    .where("id", "in", [...new Set(ids)])
+    .orderBy("id")
+    .forUpdate()
+    .execute();
+}
+
 /** Нарушение уникальности ника (индекс users_nickname_lower_key). */
 export function isNicknameConflict(err: unknown): boolean {
   const e = err as { code?: string; constraint?: string } | null;

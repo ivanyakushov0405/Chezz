@@ -8,12 +8,13 @@ import {
   type UpdateMeBody,
 } from "@chezz/protocol";
 import type { Database } from "../database.ts";
-import type { Db } from "../platform/db.ts";
+import type { Db, Trx } from "../platform/db.ts";
 import { AppError } from "../platform/errors.ts";
 import type { TimeSource } from "../platform/time.ts";
 import {
   findById,
   isNicknameConflict,
+  lockUsers,
   setOnboarding,
   updateProfile,
   upsertFromGoogle,
@@ -52,6 +53,11 @@ export interface UsersService {
   updateMe(id: string, patch: UpdateMeBody): Promise<UserRow>;
   toPublicUser(user: UserRow): PublicUser;
   toMe(user: UserRow, extras?: MeExtras): Me;
+  /**
+   * Первое действие транзакции создания партии, вызова, удаления (ADR-0008 п.1): `FOR UPDATE` строк users
+   * по возрастанию `id`. Возвращает признак удалённого; отсутствующий id — ошибка (вызывающий передал чужое).
+   */
+  lockForGame(trx: Trx, ids: readonly string[]): Promise<{ id: string; deleted: boolean }[]>;
 }
 
 export function createUsersService(deps: { db: Db<Database>; time: TimeSource }): UsersService {
@@ -107,6 +113,12 @@ export function createUsersService(deps: { db: Db<Database>; time: TimeSource })
     },
 
     toPublicUser,
+
+    async lockForGame(trx, ids) {
+      const rows = await lockUsers(trx, ids);
+      if (rows.length !== new Set(ids).size) throw new Error("lockForGame: unknown user id");
+      return rows.map((r) => ({ id: r.id, deleted: r.deleted_at !== null }));
+    },
 
     toMe(user, extras = NO_EXTRAS) {
       return {

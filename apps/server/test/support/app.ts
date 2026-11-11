@@ -5,6 +5,7 @@ import type { DestinationStream } from "pino";
 import type { AnalyticsService } from "../../src/analytics/service.ts";
 import type { OidcProvider } from "../../src/auth/oidc.ts";
 import type { AuthService, SessionsClosedEvent } from "../../src/auth/service.ts";
+import type { GamesService } from "../../src/games/service.ts";
 import { buildApp } from "../../src/app.ts";
 import type { Database } from "../../src/database.ts";
 import type { AppConfig } from "../../src/platform/config.ts";
@@ -33,6 +34,8 @@ export interface TestApp {
   analytics: AnalyticsService;
   /** Экземпляр auth, созданный buildApp. */
   auth: AuthService;
+  /** Экземпляр games, созданный buildApp (createGame в своей транзакции). */
+  games: GamesService;
   /** События sessions_closed с момента старта (ARCHITECTURE §7.3). */
   sessionsClosed: SessionsClosedEvent[];
   /** Пул к базе воркера (для фабрик: createPlayer(app.db, …)). */
@@ -115,6 +118,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
     let metrics: MetricsService | undefined;
     let analytics: AnalyticsService | undefined;
     let auth: AuthService | undefined;
+    let games: GamesService | undefined;
     const sessionsClosed: SessionsClosedEvent[] = [];
     try {
       app = await buildApp(config, {
@@ -128,6 +132,10 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
         },
         onAnalytics: (a) => {
           analytics = a;
+        },
+        onGames: (g) => {
+          games = g;
+          time.addIdleHook(() => g.idle());
         },
         onAuth: (a) => {
           auth = a;
@@ -153,6 +161,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       time,
       analytics: analytics as AnalyticsService,
       auth: auth as AuthService,
+      games: games as GamesService,
       sessionsClosed,
       db,
       sentryEvents: async () => {

@@ -74,6 +74,8 @@ interface Connection {
   ping: PingState;
   pingTimer: TimerId | null;
   expiryTimer: TimerId | null;
+  /** Обработчики закрытия от модулей (WsContext.onClose). */
+  closeHandlers: (() => void)[];
   /** Сообщения соединения обрабатываются по одному, в порядке прихода (API §8.2). */
   queue: Promise<void>;
   closed: boolean;
@@ -139,6 +141,13 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
     decrement(perLimitKey, conn.limitKey);
     const userId = userIdOf(conn.caller);
     if (userId !== null) decrement(online, userId);
+    for (const fn of conn.closeHandlers.splice(0)) {
+      try {
+        fn();
+      } catch (err) {
+        report(err, "ws close handler failed");
+      }
+    }
   };
 
   const close = (conn: Connection, code: number): void => {
@@ -365,7 +374,17 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
         socket,
         caller,
         limitKey,
-        ctx: { caller, connection_id: id, rtt_ms: null, send: (message) => send(conn, message as ServerMessage) },
+        ctx: {
+          caller,
+          connection_id: id,
+          rtt_ms: null,
+          send: (message) => send(conn, message as ServerMessage),
+          onClose: (fn) => {
+            if (conn.closed) fn();
+            else conn.closeHandlers.push(fn);
+          },
+        },
+        closeHandlers: [],
         bucket: fullBucket(WS_MESSAGE_BUCKET, time.now()),
         ping: initialPingState(),
         pingTimer: null,
