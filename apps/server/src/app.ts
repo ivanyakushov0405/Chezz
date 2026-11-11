@@ -7,12 +7,14 @@ import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyBaseLogger, type FastifyInstance, type RouteOptions } from "fastify";
 import type { DestinationStream } from "pino";
 import { createAnalyticsService, type AnalyticsService } from "./analytics/service.ts";
+import { registerAuthRoutes } from "./auth/api.ts";
+import { createAuthService, type AuthService } from "./auth/service.ts";
 import type { Database } from "./database.ts";
 import { injectClientConfig } from "./platform/client-config.ts";
 import type { AppConfig } from "./platform/config.ts";
 import { migrateToLatest, type Db } from "./platform/db.ts";
 import { registerHealthRoute } from "./platform/health.ts";
-import { alwaysGuest, BODY_LIMIT_BYTES, installHttp, type CallerResolver } from "./platform/http.ts";
+import { BODY_LIMIT_BYTES, installHttp } from "./platform/http.ts";
 import { createMetrics, type MetricsService } from "./platform/metrics.ts";
 import { createLogger, RequestLogController } from "./platform/log.ts";
 import { createErrorReporter, type ErrorReporter } from "./platform/sentry.ts";
@@ -31,6 +33,8 @@ export interface AppDeps {
   onMetrics?: (metrics: MetricsService) => void;
   /** Получает analytics сразу после создания (тестовый startApp отдаёт его как TestApp.analytics). */
   onAnalytics?: (analytics: AnalyticsService) => void;
+  /** Получает auth сразу после создания (тестовый startApp: подписка на sessions_closed). */
+  onAuth?: (auth: AuthService) => void;
   /** Sentry сервера (main.ts — createErrorReporter из конфига; тесты — с транспортом в память). Нет — выключен. */
   reporter?: ErrorReporter;
 }
@@ -54,11 +58,16 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   });
   if (deps.onRoute) app.addHook("onRoute", deps.onRoute);
 
-  // «Кто» — от auth.service.resolveCaller с фичи auth (ADR-0005 п.7); до неё — всегда гость.
-  const resolveCaller: CallerResolver = alwaysGuest;
-
   const reporter =
     deps.reporter ?? createErrorReporter({ dsn: null, environment: config.appEnv, release: config.appVersion, origin: config.appOrigin });
+
+  // Сервисы модулей по слоям (ARCHITECTURE §7.1, ADR-0005): L0 analytics → L1 users → L5 auth.
+  // Создаются до шлюза: «Кто» — auth.resolveCaller (ADR-0005 п.7).
+  const analytics = createAnalyticsService({ db: deps.db, time: deps.time, log: app.log, reporter });
+  deps.onAnalytics?.(analytics);
+  const users = createUsersService({ db: deps.db, time: deps.time });
+  const auth = createAuthService({ db: deps.db, time: deps.time, log: app.log, reporter, users, analytics });
+  deps.onAuth?.(auth);
 
   const webDistDir = config.webDistDir;
   // index.html с <meta> конфига клиента (ADR-0010 п.3): читается один раз; нет файла — отдаётся как есть.
@@ -73,7 +82,7 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
     appOrigin: config.appOrigin,
     rateLimitIpPerMin: config.rateLimitIpPerMin,
     cookieSecret: config.cookieSecret,
-    resolveCaller,
+    resolveCaller: auth.resolveCaller,
     time: deps.time,
     reporter,
     // SPA: путь вне /api, /auth, /ws без файла — index.html (design.md E01, «HTTP-контракты app»).
@@ -87,23 +96,21 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
         }),
   });
 
-  // Сервисы модулей: L0 platform, analytics → L1 users, feedback → … (ARCHITECTURE §7.1). В E01 — нет.
-  const analytics = createAnalyticsService({ db: deps.db, time: deps.time, log: app.log, reporter });
-  deps.onAnalytics?.(analytics);
   registerHealthRoute(app, { db: deps.db, time: deps.time });
-  // L1
-  const users = createUsersService({ db: deps.db, time: deps.time });
   registerUsersRoutes(app, { users });
+  registerAuthRoutes(app, { auth });
 
   const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
   deps.onMetrics?.(metrics);
 
   app.addHook("onReady", async () => {
     await migrateToLatest(deps.db);
+    auth.start();
     // Порт метрик занят — ошибка старта (EC-17), а не молчаливое отсутствие метрик.
     await metrics.start();
   });
   app.addHook("onClose", async () => {
+    await auth.stop();
     await analytics.drain();
     await metrics.stop();
     await reporter.close(SENTRY_FLUSH_TIMEOUT_MS);

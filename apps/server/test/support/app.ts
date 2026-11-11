@@ -3,6 +3,7 @@ import { createServer } from "node:net";
 import type { FastifyInstance } from "fastify";
 import type { DestinationStream } from "pino";
 import type { AnalyticsService } from "../../src/analytics/service.ts";
+import type { AuthService, SessionsClosedEvent } from "../../src/auth/service.ts";
 import { buildApp } from "../../src/app.ts";
 import type { Database } from "../../src/database.ts";
 import type { AppConfig } from "../../src/platform/config.ts";
@@ -26,6 +27,12 @@ export interface TestApp {
   metricsUrl: string;
   /** Экземпляр analytics, созданный buildApp. */
   analytics: AnalyticsService;
+  /** Экземпляр auth, созданный buildApp. */
+  auth: AuthService;
+  /** События sessions_closed с момента старта (ARCHITECTURE §7.3). */
+  sessionsClosed: SessionsClosedEvent[];
+  /** Пул к базе воркера (для фабрик: createPlayer(app.db, …)). */
+  db: Db<Database>;
   database: {
     /** База воркера недоступна для app: соединения рвутся, новые отклоняются. */
     block(): Promise<void>;
@@ -99,6 +106,8 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
     let app: FastifyInstance | undefined;
     let metrics: MetricsService | undefined;
     let analytics: AnalyticsService | undefined;
+    let auth: AuthService | undefined;
+    const sessionsClosed: SessionsClosedEvent[] = [];
     try {
       app = await buildApp(config, {
         db,
@@ -110,6 +119,10 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
         },
         onAnalytics: (a) => {
           analytics = a;
+        },
+        onAuth: (a) => {
+          auth = a;
+          a.onSessionsClosed((e) => sessionsClosed.push(e));
         },
       });
       await app.listen({ host: "127.0.0.1", port });
@@ -129,6 +142,9 @@ export async function startApp(options: StartAppOptions = {}): Promise<TestApp> 
       wsUrl: `ws://127.0.0.1:${port}/ws`,
       time,
       analytics: analytics as AnalyticsService,
+      auth: auth as AuthService,
+      sessionsClosed,
+      db,
       sentryEvents: async () => {
         if (memory === null) return [];
         await reporter.flush(2_000);
