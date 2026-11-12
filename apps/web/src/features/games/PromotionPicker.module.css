@@ -1,0 +1,41 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-overlay);
+}
+
+.picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  inline-size: 60%;
+  padding: var(--space-3);
+  border-radius: var(--radius-m);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-m);
+}
+
+.choice {
+  position: relative;
+  aspect-ratio: 1;
+  min-inline-size: var(--layout-touch-target);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-s);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.choice:hover,
+.choice:focus-visible {
+  border-color: var(--color-accent);
+}
+
+.img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}

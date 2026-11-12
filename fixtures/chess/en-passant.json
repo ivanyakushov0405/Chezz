@@ -1,0 +1,288 @@
+[
+  {
+    "id": "en-passant-white-exd6",
+    "tz": "ТЗ §4.6",
+    "fen": "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3",
+    "moves": [
+      {
+        "uci": "e5d6",
+        "san": "exd6"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-only-last-double-step",
+    "tz": "ТЗ §4.6",
+    "fen": "rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3",
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e5f6"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-white-from-start",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "a7a6",
+        "san": "a6"
+      },
+      {
+        "uci": "e4e5",
+        "san": "e5"
+      },
+      {
+        "uci": "d7d5",
+        "san": "d5"
+      },
+      {
+        "uci": "e5d6",
+        "san": "exd6"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-black-from-start",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "a2a3",
+        "san": "a3"
+      },
+      {
+        "uci": "e7e5",
+        "san": "e5"
+      },
+      {
+        "uci": "a3a4",
+        "san": "a4"
+      },
+      {
+        "uci": "e5e4",
+        "san": "e4"
+      },
+      {
+        "uci": "d2d4",
+        "san": "d4"
+      },
+      {
+        "uci": "e4d3",
+        "san": "exd3"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-legal-list",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "a7a6",
+        "san": "a6"
+      },
+      {
+        "uci": "e4e5",
+        "san": "e5"
+      },
+      {
+        "uci": "f7f5",
+        "san": "f5"
+      }
+    ],
+    "legal": [
+      "a2a3",
+      "a2a4",
+      "b1a3",
+      "b1c3",
+      "b2b3",
+      "b2b4",
+      "c2c3",
+      "c2c4",
+      "d1e2",
+      "d1f3",
+      "d1g4",
+      "d1h5",
+      "d2d3",
+      "d2d4",
+      "e1e2",
+      "e5e6",
+      "e5f6",
+      "f1a6",
+      "f1b5",
+      "f1c4",
+      "f1d3",
+      "f1e2",
+      "f2f3",
+      "f2f4",
+      "g1e2",
+      "g1f3",
+      "g1h3",
+      "g2g3",
+      "g2g4",
+      "h2h3",
+      "h2h4"
+    ],
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-right-expires-next-move",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "a7a6",
+        "san": "a6"
+      },
+      {
+        "uci": "e4e5",
+        "san": "e5"
+      },
+      {
+        "uci": "d7d5",
+        "san": "d5"
+      },
+      {
+        "uci": "a2a3",
+        "san": "a3"
+      },
+      {
+        "uci": "a6a5",
+        "san": "a5"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e5d6"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-black-right-expires-next-move",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "a2a3",
+        "san": "a3"
+      },
+      {
+        "uci": "e7e5",
+        "san": "e5"
+      },
+      {
+        "uci": "a3a4",
+        "san": "a4"
+      },
+      {
+        "uci": "e5e4",
+        "san": "e4"
+      },
+      {
+        "uci": "d2d4",
+        "san": "d4"
+      },
+      {
+        "uci": "h7h6",
+        "san": "h6"
+      },
+      {
+        "uci": "h2h3",
+        "san": "h3"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e4d3"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-not-after-single-steps",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "d7d6",
+        "san": "d6"
+      },
+      {
+        "uci": "e4e5",
+        "san": "e5"
+      },
+      {
+        "uci": "d6d5",
+        "san": "d5"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e5d6"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-pinned-horizontally-forbidden",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/K2pP2r/8/8/8/7k w - d6 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e5d6"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "en-passant-gives-check",
+    "tz": "ТЗ §7",
+    "fen": "8/2k5/8/3pP3/8/8/8/4K3 w - d6 0 1",
+    "moves": [
+      {
+        "uci": "e5d6",
+        "san": "exd6+"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  }
+]

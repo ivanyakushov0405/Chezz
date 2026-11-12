@@ -1,0 +1,23 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field {
+  display: none;
+}
+
+.wrap[data-open] .field {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .toggle {
+    display: none;
+  }
+
+  .field {
+    display: block;
+  }
+}

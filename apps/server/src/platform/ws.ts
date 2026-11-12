@@ -10,9 +10,12 @@ export interface WsContext {
   rtt_ms: number | null;
   /** Отправить сообщение этому соединению (тип сообщения — ServerMessage из packages/protocol). */
   send(message: unknown): void;
+  /** Вызвать fn один раз при закрытии соединения (подписки модулей, E06); уже закрыто — сразу. */
+  onClose(fn: () => void): void;
 }
 
-export type WsHandler = (ctx: WsContext, message: unknown) => Promise<void>;
+/** `receivedAt` — TimeSource.now() прихода кадра в сокет, до очереди соединения (часы партии, A11). */
+export type WsHandler = (ctx: WsContext, message: unknown, receivedAt: number) => Promise<void>;
 
 /** «type сообщения → обработчик»; два обработчика одного type — ошибка при старте. */
 export type WsHandlers = Readonly<Record<string, WsHandler>>;

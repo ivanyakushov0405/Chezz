@@ -1,0 +1,37 @@
+/* Набор cburnett (DESIGN §6): картинки — public/pieces/cburnett/, лицензия — там же. */
+.cg-wrap piece.pawn.white {
+  background-image: url("/pieces/cburnett/wP.svg");
+}
+.cg-wrap piece.knight.white {
+  background-image: url("/pieces/cburnett/wN.svg");
+}
+.cg-wrap piece.bishop.white {
+  background-image: url("/pieces/cburnett/wB.svg");
+}
+.cg-wrap piece.rook.white {
+  background-image: url("/pieces/cburnett/wR.svg");
+}
+.cg-wrap piece.queen.white {
+  background-image: url("/pieces/cburnett/wQ.svg");
+}
+.cg-wrap piece.king.white {
+  background-image: url("/pieces/cburnett/wK.svg");
+}
+.cg-wrap piece.pawn.black {
+  background-image: url("/pieces/cburnett/bP.svg");
+}
+.cg-wrap piece.knight.black {
+  background-image: url("/pieces/cburnett/bN.svg");
+}
+.cg-wrap piece.bishop.black {
+  background-image: url("/pieces/cburnett/bB.svg");
+}
+.cg-wrap piece.rook.black {
+  background-image: url("/pieces/cburnett/bR.svg");
+}
+.cg-wrap piece.queen.black {
+  background-image: url("/pieces/cburnett/bQ.svg");
+}
+.cg-wrap piece.king.black {
+  background-image: url("/pieces/cburnett/bK.svg");
+}

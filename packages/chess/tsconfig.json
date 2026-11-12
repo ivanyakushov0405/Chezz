@@ -3,5 +3,5 @@
   "compilerOptions": {
     "tsBuildInfoFile": "../../node_modules/.cache/tsc/chess.tsbuildinfo"
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

@@ -3,7 +3,7 @@
 // Состояние — в замыкании фабрики (ARCHITECTURE §7.2); start/stop — в onReady/onClose.
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { collectDefaultMetrics, Gauge, Registry } from "prom-client";
+import { collectDefaultMetrics, Gauge, Registry, Summary } from "prom-client";
 
 export interface MetricsService {
   /** Поднимает сервер метрик; отклоняется, если порт занят (EC-17). Без конфига — ничего не делает. */
@@ -17,6 +17,8 @@ export interface MetricsService {
    * модуль не держит ссылку на prom-client. Повтор имени — ошибка при старте.
    */
   addGauge(def: { name: string; help: string; collect: () => number }): void;
+  /** Summary модуля со скользящим окном (OPERATIONS §12.2): модуль только вызывает observe. Повтор имени — ошибка. */
+  addSummary(def: { name: string; help: string; percentiles: number[]; max_age_seconds: number }): { observe(value: number): void };
 }
 
 export interface MetricsDeps {
@@ -71,6 +73,17 @@ export function createMetrics(deps: MetricsDeps): MetricsService {
     },
     port() {
       return server === null ? null : (server.address() as AddressInfo).port;
+    },
+    addSummary(def) {
+      const summary = new Summary({
+        name: def.name,
+        help: def.help,
+        percentiles: def.percentiles,
+        maxAgeSeconds: def.max_age_seconds,
+        ageBuckets: 5,
+        registers: [registry],
+      });
+      return { observe: (value) => summary.observe(value) };
     },
     addGauge(def) {
       new Gauge({

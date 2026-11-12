@@ -12,9 +12,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chezz/chess": "*",
     "@chezz/i18n": "*",
     "@chezz/protocol": "*",
     "@sentry/browser": "~10.78.0",
+    "chessground": "^9.2.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

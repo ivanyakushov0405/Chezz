@@ -1,0 +1,509 @@
+[
+  {
+    "id": "castling-white-kingside",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "e1g1",
+        "san": "O-O"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e1c1"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-white-queenside",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "e1c1",
+        "san": "O-O-O"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-black-kingside",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "e8g8",
+        "san": "O-O"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-black-queenside",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "e8c8",
+        "san": "O-O-O"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-legal-list-both-sides",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+    "moves": [],
+    "legal": [
+      "a1b1",
+      "a1c1",
+      "a1d1",
+      "a2a3",
+      "a2a4",
+      "b2b3",
+      "b2b4",
+      "c2c3",
+      "c2c4",
+      "d2d3",
+      "d2d4",
+      "e1c1",
+      "e1d1",
+      "e1f1",
+      "e1g1",
+      "e2e3",
+      "e2e4",
+      "f2f3",
+      "f2f4",
+      "g2g3",
+      "g2g4",
+      "h1f1",
+      "h1g1",
+      "h2h3",
+      "h2h4"
+    ],
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-black-legal-list-both-sides",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1",
+    "moves": [],
+    "legal": [
+      "a7a5",
+      "a7a6",
+      "a8b8",
+      "a8c8",
+      "a8d8",
+      "b7b5",
+      "b7b6",
+      "c7c5",
+      "c7c6",
+      "d7d5",
+      "d7d6",
+      "e7e5",
+      "e7e6",
+      "e8c8",
+      "e8d8",
+      "e8f8",
+      "e8g8",
+      "f7f5",
+      "f7f6",
+      "g7g5",
+      "g7g6",
+      "h7h5",
+      "h7h6",
+      "h8f8",
+      "h8g8"
+    ],
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-from-start-white-kingside",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "e7e5",
+        "san": "e5"
+      },
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "b8c6",
+        "san": "Nc6"
+      },
+      {
+        "uci": "f1c4",
+        "san": "Bc4"
+      },
+      {
+        "uci": "g8f6",
+        "san": "Nf6"
+      },
+      {
+        "uci": "e1g1",
+        "san": "O-O"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-from-start-black-queenside",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "d2d4",
+        "san": "d4"
+      },
+      {
+        "uci": "d7d5",
+        "san": "d5"
+      },
+      {
+        "uci": "c2c4",
+        "san": "c4"
+      },
+      {
+        "uci": "b8c6",
+        "san": "Nc6"
+      },
+      {
+        "uci": "b1c3",
+        "san": "Nc3"
+      },
+      {
+        "uci": "c8f5",
+        "san": "Bf5"
+      },
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      },
+      {
+        "uci": "d8d7",
+        "san": "Qd7"
+      },
+      {
+        "uci": "e2e3",
+        "san": "e3"
+      },
+      {
+        "uci": "e8c8",
+        "san": "O-O-O"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-start-position-blocked",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e1g1",
+      "e1c1"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-through-attacked-square-f1",
+    "tz": "ТЗ §7",
+    "fen": "4kr2/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "moves": [],
+    "legal": [
+      "a1a2",
+      "a1a3",
+      "a1a4",
+      "a1a5",
+      "a1a6",
+      "a1a7",
+      "a1a8",
+      "a1b1",
+      "a1c1",
+      "a1d1",
+      "e1c1",
+      "e1d1",
+      "e1d2",
+      "e1e2",
+      "h1f1",
+      "h1g1",
+      "h1h2",
+      "h1h3",
+      "h1h4",
+      "h1h5",
+      "h1h6",
+      "h1h7",
+      "h1h8"
+    ],
+    "illegal": [
+      "e1g1"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-into-attacked-square-g1",
+    "tz": "ТЗ §7",
+    "fen": "4k1r1/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e1g1"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-queenside-through-attacked-d1",
+    "tz": "ТЗ §7",
+    "fen": "3rk3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e1c1"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-queenside-b1-attacked-allowed",
+    "tz": "ТЗ §7",
+    "fen": "1r2k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "moves": [
+      {
+        "uci": "e1c1",
+        "san": "O-O-O"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-black-through-attacked-f8",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/8/8/8/8/8/8/4KR2 b kq - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e8g8"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-in-check-forbidden",
+    "tz": "ТЗ §7",
+    "fen": "4r1k1/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "moves": [],
+    "legal": [
+      "e1d1",
+      "e1d2",
+      "e1f1",
+      "e1f2"
+    ],
+    "illegal": [
+      "e1g1",
+      "e1c1"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-black-in-check-forbidden",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/8/8/8/8/8/8/4R1K1 b kq - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [
+      "e8g8",
+      "e8c8"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-after-king-moved-forbidden",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "e1f1",
+        "san": "Kf1"
+      },
+      {
+        "uci": "a7a6",
+        "san": "a6"
+      },
+      {
+        "uci": "f1e1",
+        "san": "Ke1"
+      },
+      {
+        "uci": "a6a5",
+        "san": "a5"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e1g1",
+      "e1c1"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-black-after-king-moved-forbidden",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "e8d8",
+        "san": "Kd8"
+      },
+      {
+        "uci": "a2a3",
+        "san": "a3"
+      },
+      {
+        "uci": "d8e8",
+        "san": "Ke8"
+      },
+      {
+        "uci": "a3a4",
+        "san": "a4"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e8g8",
+      "e8c8"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-after-kingside-rook-moved",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "h1g1",
+        "san": "Rg1"
+      },
+      {
+        "uci": "a7a6",
+        "san": "a6"
+      },
+      {
+        "uci": "g1h1",
+        "san": "Rh1"
+      },
+      {
+        "uci": "a6a5",
+        "san": "a5"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e1g1"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-black-after-queenside-rook-moved",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "a8b8",
+        "san": "Rb8"
+      },
+      {
+        "uci": "a2a3",
+        "san": "a3"
+      },
+      {
+        "uci": "b8a8",
+        "san": "Ra8"
+      },
+      {
+        "uci": "a3a4",
+        "san": "a4"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e8c8"
+    ],
+    "flag": null,
+    "expect": null
+  },
+  {
+    "id": "castling-rook-captured-loses-right",
+    "tz": "ТЗ §7",
+    "fen": "r3k2r/8/8/8/8/8/6b1/R3K2R b KQkq - 0 1",
+    "moves": [
+      {
+        "uci": "g2h1",
+        "san": "Bxh1"
+      },
+      {
+        "uci": "a1a2",
+        "san": "Ra2"
+      },
+      {
+        "uci": "h1g2",
+        "san": "Bg2"
+      },
+      {
+        "uci": "a2a1",
+        "san": "Ra1"
+      },
+      {
+        "uci": "g2f3",
+        "san": "Bf3"
+      }
+    ],
+    "legal": null,
+    "illegal": [
+      "e1g1",
+      "e1c1"
+    ],
+    "flag": null,
+    "expect": null
+  }
+]

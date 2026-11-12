@@ -66,3 +66,7 @@ export async function hasHistoryForGame(db: Db | Trx, gameId: string): Promise<b
 export async function insertHistory(trx: Trx, rows: Insertable<RatingHistoryTable>[]): Promise<void> {
   await forTables<RatingTables>(trx).insertInto("rating_history").values(rows).execute();
 }
+
+export async function findHistoryForGame(db: Db | Trx, gameId: string): Promise<Selectable<RatingHistoryTable>[]> {
+  return forTables<RatingTables>(db).selectFrom("rating_history").selectAll().where("game_id", "=", gameId).execute();
+}

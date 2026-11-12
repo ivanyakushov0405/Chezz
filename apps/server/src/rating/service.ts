@@ -4,8 +4,8 @@ import type { Category } from "@chezz/protocol";
 import type { Database } from "../database.ts";
 import type { Db, Trx } from "../platform/db.ts";
 import { DEFAULT_GLICKO, grownRd, rateMany } from "./domain/glicko2.ts";
-import { roundRating } from "./domain/display.ts";
-import { findRatings, hasHistoryForGame, insertHistory, lockRatings, updateRating, type RatingRow } from "./repo.ts";
+import { isProvisional, roundRating } from "./domain/display.ts";
+import { findHistoryForGame, findRatings, hasHistoryForGame, insertHistory, lockRatings, updateRating, type RatingRow } from "./repo.ts";
 
 /** Rating игрока в категории; `updated_at = null` — партий ещё не было. */
 export interface PlayerRating {
@@ -41,6 +41,10 @@ export interface RatingService {
    * Бросает при ошибке — вызывающий откатывает транзакцию целиком.
    */
   applyResult(trx: Trx, result: RatedResult): Promise<RatingChanges>;
+  /** Изменение рейтинга обоих в партии по RatingHistory; null — партия на рейтинг не влияла. */
+  changesForGame(gameId: string, whiteId: string, blackId: string): Promise<RatingChanges | null>;
+  /** Показ (ТЗ §4.7): целое и признак «?» (RD > 110) — форма полей `PlayerRef` (API §4.2). */
+  display(rating: PlayerRating): { rating: number; provisional: boolean };
 }
 
 const DAY_MS = 86_400_000;
@@ -68,6 +72,19 @@ export function createRatingService(deps: { db: Db<Database> }): RatingService {
     },
 
     getRatings,
+
+    async changesForGame(gameId, whiteId, blackId) {
+      const rows = await findHistoryForGame(db, gameId);
+      const w = rows.find((r) => r.user_id === whiteId);
+      const b = rows.find((r) => r.user_id === blackId);
+      if (!w || !b) return null;
+      return {
+        white: { rating_before: roundRating(w.rating_before), rating_after: roundRating(w.rating_after) },
+        black: { rating_before: roundRating(b.rating_before), rating_after: roundRating(b.rating_after) },
+      };
+    },
+
+    display: (r) => ({ rating: roundRating(r.rating), provisional: isProvisional(r.rd) }),
 
     async applyResult(trx, r) {
       if (r.whiteId === r.blackId) throw new Error("rating.applyResult: white and black are the same user");

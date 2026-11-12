@@ -1017,6 +1017,92 @@
         "n"
       ],
       "additionalProperties": false
+    },
+    "game.subscribe": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "game.subscribe"
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "game_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "type",
+        "game_id"
+      ],
+      "additionalProperties": false
+    },
+    "game.unsubscribe": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "game.unsubscribe"
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "game_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        }
+      },
+      "required": [
+        "type",
+        "game_id"
+      ],
+      "additionalProperties": false
+    },
+    "game.move": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "game.move"
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16
+        },
+        "game_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "ply": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "uci": {
+          "type": "string",
+          "pattern": "^[a-h][1-8][a-h][1-8][qrbn]?$"
+        }
+      },
+      "required": [
+        "type",
+        "game_id",
+        "ply",
+        "uci"
+      ],
+      "additionalProperties": false
     }
   },
   "ws_server": {
@@ -1186,6 +1272,696 @@
       },
       "required": [
         "type"
+      ],
+      "additionalProperties": false
+    },
+    "game.state": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "game.state"
+        },
+        "game_id": {
+          "type": "string"
+        },
+        "game": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "white": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "nickname": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "rating": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provisional": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "nickname",
+                "rating",
+                "provisional"
+              ],
+              "additionalProperties": false
+            },
+            "black": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "nickname": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "rating": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "provisional": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "nickname",
+                "rating",
+                "provisional"
+              ],
+              "additionalProperties": false
+            },
+            "category": {
+              "type": "string",
+              "enum": [
+                "bullet",
+                "blitz",
+                "rapid"
+              ]
+            },
+            "time_base": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "time_increment": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "rated": {
+              "type": "boolean"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "active",
+                "finished",
+                "aborted"
+              ]
+            },
+            "result": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "white_wins",
+                    "black_wins",
+                    "draw"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "termination": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "checkmate",
+                    "resignation",
+                    "stalemate",
+                    "threefold_repetition",
+                    "fifty_moves",
+                    "insufficient_material",
+                    "timeout",
+                    "timeout_insufficient_material",
+                    "draw_agreement",
+                    "abandonment",
+                    "no_first_move",
+                    "aborted_by_player"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "started_at": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            "ended_at": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "moves": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "san": {
+                    "type": "string"
+                  },
+                  "clock_ms": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "san",
+                  "clock_ms"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "ratings": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "white": {
+                      "type": "object",
+                      "properties": {
+                        "rating_before": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "rating_after": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "rating_before",
+                        "rating_after"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "black": {
+                      "type": "object",
+                      "properties": {
+                        "rating_before": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "rating_after": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "rating_before",
+                        "rating_after"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "white",
+                    "black"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "white",
+            "black",
+            "category",
+            "time_base",
+            "time_increment",
+            "rated",
+            "status",
+            "result",
+            "termination",
+            "started_at",
+            "ended_at",
+            "moves",
+            "ratings"
+          ],
+          "additionalProperties": false
+        },
+        "clock": {
+          "type": "object",
+          "properties": {
+            "white_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "black_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "running": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "white",
+                    "black"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "white_ms",
+            "black_ms",
+            "running"
+          ],
+          "additionalProperties": false
+        },
+        "your_color": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "white",
+                "black"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "draw_offer": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "by": {
+                  "type": "string",
+                  "enum": [
+                    "white",
+                    "black"
+                  ]
+                }
+              },
+              "required": [
+                "by"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "takeback_offer": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "by": {
+                  "type": "string",
+                  "enum": [
+                    "white",
+                    "black"
+                  ]
+                }
+              },
+              "required": [
+                "by"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "connected": {
+          "type": "object",
+          "properties": {
+            "white": {
+              "type": "boolean"
+            },
+            "black": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "white",
+            "black"
+          ],
+          "additionalProperties": false
+        },
+        "first_move_ms": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reconnect": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "color": {
+                  "type": "string",
+                  "enum": [
+                    "white",
+                    "black"
+                  ]
+                },
+                "remaining_ms": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "color",
+                "remaining_ms"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "abandonment_choice": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "remaining_ms": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "remaining_ms"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "game_id",
+        "game",
+        "clock",
+        "your_color",
+        "draw_offer",
+        "takeback_offer",
+        "connected",
+        "first_move_ms",
+        "reconnect",
+        "abandonment_choice"
+      ],
+      "additionalProperties": false
+    },
+    "game.moved": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "game.moved"
+        },
+        "game_id": {
+          "type": "string"
+        },
+        "ply": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991
+        },
+        "san": {
+          "type": "string"
+        },
+        "clock": {
+          "type": "object",
+          "properties": {
+            "white_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "black_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "running": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "white",
+                    "black"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "white_ms",
+            "black_ms",
+            "running"
+          ],
+          "additionalProperties": false
+        },
+        "draw_offer": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "by": {
+                  "type": "string",
+                  "enum": [
+                    "white",
+                    "black"
+                  ]
+                }
+              },
+              "required": [
+                "by"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "takeback_offer": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "by": {
+                  "type": "string",
+                  "enum": [
+                    "white",
+                    "black"
+                  ]
+                }
+              },
+              "required": [
+                "by"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "game_id",
+        "ply",
+        "san",
+        "clock",
+        "draw_offer",
+        "takeback_offer"
+      ],
+      "additionalProperties": false
+    },
+    "game.ended": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "game.ended"
+        },
+        "game_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "finished",
+            "aborted"
+          ]
+        },
+        "result": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "white_wins",
+                "black_wins",
+                "draw"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "termination": {
+          "type": "string",
+          "enum": [
+            "checkmate",
+            "resignation",
+            "stalemate",
+            "threefold_repetition",
+            "fifty_moves",
+            "insufficient_material",
+            "timeout",
+            "timeout_insufficient_material",
+            "draw_agreement",
+            "abandonment",
+            "no_first_move",
+            "aborted_by_player"
+          ]
+        },
+        "ratings": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "white": {
+                  "type": "object",
+                  "properties": {
+                    "rating_before": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "rating_after": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "rating_before",
+                    "rating_after"
+                  ],
+                  "additionalProperties": false
+                },
+                "black": {
+                  "type": "object",
+                  "properties": {
+                    "rating_before": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "rating_after": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "rating_before",
+                    "rating_after"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "white",
+                "black"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "game_id",
+        "status",
+        "result",
+        "termination",
+        "ratings"
       ],
       "additionalProperties": false
     }

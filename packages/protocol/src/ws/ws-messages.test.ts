@@ -90,7 +90,7 @@ describe("Pong и ClientMessage (API §9.4, §13)", () => {
 
   it("К-5 E-1: незнакомый type → отказ", () => {
     expect(ClientMessage.safeParse({ type: "pang", n: 1 }).success).toBe(false);
-    expect(ClientMessage.safeParse({ type: "game.move", game_id: GAME_ID, ply: 0, uci: "e2e4" }).success).toBe(false);
+    expect(ClientMessage.safeParse({ type: "game.resign", game_id: GAME_ID }).success).toBe(false);
   });
 
   it("К-5 E-1: без type и не объект → отказ", () => {
@@ -268,7 +268,9 @@ describe("ServerMessage (API §8.2)", () => {
 
   it("К-3, К-5: SERVER_MESSAGE_SCHEMAS содержит Welcome, Ping, WsError, SessionClosed", () => {
     for (const s of [Welcome, Ping, WsError, SessionClosed]) expect(SERVER_MESSAGE_SCHEMAS).toContain(s);
-    expect([...serverTypes()].sort()).toEqual(["error", "ping", "session.closed", "welcome"]);
+    expect([...serverTypes()].sort()).toEqual(
+      ["error", "game.ended", "game.moved", "game.state", "ping", "session.closed", "welcome"].sort(),
+    );
   });
 });
 
@@ -292,11 +294,8 @@ describe("PENDING_CATALOG после E22 (ADR-0009)", () => {
     const wsClient = [
       "lobby.subscribe",
       "lobby.unsubscribe",
-      "game.subscribe",
-      "game.unsubscribe",
       "seek.start",
       "seek.cancel",
-      "game.move",
       "game.draw_offer",
       "game.draw_accept",
       "game.draw_decline",
@@ -314,11 +313,8 @@ describe("PENDING_CATALOG после E22 (ADR-0009)", () => {
       "challenge.closed",
       "seek.state",
       "seek.suggest_challenge",
-      "game.state",
-      "game.moved",
       "game.offer",
       "game.presence",
-      "game.ended",
       "game.started",
     ];
     expect([...PENDING_CATALOG.ws_client].sort()).toEqual([...wsClient].sort());

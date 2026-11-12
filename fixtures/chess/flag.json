@@ -1,0 +1,215 @@
+[
+  {
+    "id": "flag-white-black-has-knight-draw",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/8/KQ4n1 w - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "white",
+    "expect": {
+      "result": "draw",
+      "termination": "timeout_insufficient_material"
+    }
+  },
+  {
+    "id": "flag-black-white-has-knight-draw",
+    "tz": "ТЗ §7",
+    "fen": "6q1/8/8/4k3/8/8/8/K5N1 b - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "black",
+    "expect": {
+      "result": "draw",
+      "termination": "timeout_insufficient_material"
+    }
+  },
+  {
+    "id": "flag-white-black-has-bishop-draw",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/8/KQ4b1 w - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "white",
+    "expect": {
+      "result": "draw",
+      "termination": "timeout_insufficient_material"
+    }
+  },
+  {
+    "id": "flag-black-white-has-bishop-draw",
+    "tz": "ТЗ §7",
+    "fen": "6q1/8/8/4k3/8/8/8/K5B1 b - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "black",
+    "expect": {
+      "result": "draw",
+      "termination": "timeout_insufficient_material"
+    }
+  },
+  {
+    "id": "flag-white-black-knight-after-move-draw",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/8/KQ4n1 b - - 0 1",
+    "moves": [
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": "white",
+    "expect": {
+      "result": "draw",
+      "termination": "timeout_insufficient_material"
+    }
+  },
+  {
+    "id": "flag-white-black-bare-king-draw",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/8/KQ6 w - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "white",
+    "expect": {
+      "result": "draw",
+      "termination": "timeout_insufficient_material"
+    }
+  },
+  {
+    "id": "flag-black-white-bare-king-draw",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/1q6/8/K7 b - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "black",
+    "expect": {
+      "result": "draw",
+      "termination": "timeout_insufficient_material"
+    }
+  },
+  {
+    "id": "flag-white-black-has-queen-wins",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/8/K5q1 w - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "white",
+    "expect": {
+      "result": "black_wins",
+      "termination": "timeout"
+    }
+  },
+  {
+    "id": "flag-black-white-has-queen-wins",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/8/K5Q1 b - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "black",
+    "expect": {
+      "result": "white_wins",
+      "termination": "timeout"
+    }
+  },
+  {
+    "id": "flag-white-black-has-rook-wins",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/8/K5r1 w - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "white",
+    "expect": {
+      "result": "black_wins",
+      "termination": "timeout"
+    }
+  },
+  {
+    "id": "flag-black-white-has-rook-wins",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/8/K5R1 b - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "black",
+    "expect": {
+      "result": "white_wins",
+      "termination": "timeout"
+    }
+  },
+  {
+    "id": "flag-white-black-has-pawn-wins",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/4p3/8/8/K7 w - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "white",
+    "expect": {
+      "result": "black_wins",
+      "termination": "timeout"
+    }
+  },
+  {
+    "id": "flag-black-white-has-pawn-wins",
+    "tz": "ТЗ §7",
+    "fen": "8/8/8/4k3/8/8/P7/K7 b - - 0 1",
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "black",
+    "expect": {
+      "result": "white_wins",
+      "termination": "timeout"
+    }
+  },
+  {
+    "id": "flag-white-start-position",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [],
+    "legal": null,
+    "illegal": [],
+    "flag": "white",
+    "expect": {
+      "result": "black_wins",
+      "termination": "timeout"
+    }
+  },
+  {
+    "id": "flag-black-after-moves",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e4",
+        "san": "e4"
+      },
+      {
+        "uci": "e7e5",
+        "san": "e5"
+      },
+      {
+        "uci": "g1f3",
+        "san": "Nf3"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": "black",
+    "expect": {
+      "result": "white_wins",
+      "termination": "timeout"
+    }
+  }
+]

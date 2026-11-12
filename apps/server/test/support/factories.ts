@@ -69,3 +69,80 @@ export async function createPlayer(db: Db<Database>, options: CreatePlayerOption
     .executeTakeFirstOrThrow();
   return { user_id: user.id, nickname, session_id: session.id, token, cookie: `${SESSION_COOKIE}=${token}` };
 }
+
+export interface CreateGameRowOptions {
+  /** Свой id (по умолчанию — случайный); строка с таким id уже есть — ничего не делается. */
+  id?: string;
+  white_id: string;
+  black_id: string;
+  /** Секунды (по умолчанию 3+2, блиц). */
+  time_base?: number;
+  time_increment?: number;
+  rated?: boolean;
+  /** Ходы `moves[]` (SAN + остаток после хода); по умолчанию пусто. */
+  moves?: { san: string; clock_ms: number }[];
+  started_at?: Date;
+}
+
+const categoryFor = (base: number, inc: number): "bullet" | "blitz" | "rapid" => {
+  const total = base + 40 * inc;
+  return total <= 179 ? "bullet" : total <= 479 ? "blitz" : "rapid";
+};
+
+/** `active` Game прямо в таблице (TESTING §7.6): комнату app поднимет по первой команде (бриф E06). */
+export async function createActiveGame(db: Db<Database>, options: CreateGameRowOptions): Promise<{ game_id: string }> {
+  const base = options.time_base ?? 180;
+  const inc = options.time_increment ?? 2;
+  const row = await db
+    .insertInto("games")
+    .values({
+      white_id: options.white_id,
+      black_id: options.black_id,
+      category: categoryFor(base, inc),
+      time_base: base,
+      time_increment: inc,
+      rated: options.rated ?? true,
+      status: "active",
+      result: null,
+      termination: null,
+      pgn: null,
+      moves: JSON.stringify(options.moves ?? []),
+      started_at: options.started_at ?? new Date(),
+      ended_at: null,
+    })
+    .returning("id")
+    .executeTakeFirstOrThrow();
+  return { game_id: row.id };
+}
+
+/** Законченная Game (история, лидеры, снимок законченной партии). */
+export async function createFinishedGame(
+  db: Db<Database>,
+  options: CreateGameRowOptions & { result?: "white_wins" | "black_wins" | "draw"; termination?: "checkmate" | "timeout"; ended_at?: Date },
+): Promise<{ game_id: string }> {
+  const base = options.time_base ?? 180;
+  const inc = options.time_increment ?? 2;
+  const started = options.started_at ?? new Date();
+  const row = await db
+    .insertInto("games")
+    .values({
+      ...(options.id === undefined ? {} : { id: options.id }),
+      white_id: options.white_id,
+      black_id: options.black_id,
+      category: categoryFor(base, inc),
+      time_base: base,
+      time_increment: inc,
+      rated: options.rated ?? true,
+      status: "finished",
+      result: options.result ?? "white_wins",
+      termination: options.termination ?? "checkmate",
+      pgn: "",
+      moves: JSON.stringify(options.moves ?? []),
+      started_at: started,
+      ended_at: options.ended_at ?? started,
+    })
+    .onConflict((oc) => oc.column("id").doNothing())
+    .returning("id")
+    .executeTakeFirst();
+  return { game_id: row?.id ?? options.id! };
+}

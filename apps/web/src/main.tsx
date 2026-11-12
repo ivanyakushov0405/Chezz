@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app/App.tsx";
 import { AppLocale } from "./app/AppLocale.tsx";
+import { AppWs } from "./app/AppWs.tsx";
 import { MeProvider } from "./features/auth/MeContext.tsx";
 import { currentLocale } from "./shared/i18n/locale.ts";
 import { initSentry } from "./shared/observability/sentry.ts";
@@ -21,7 +22,9 @@ createRoot(root).render(
       <MeProvider>
         <AppLocale>
           <ToastProvider>
-            <App />
+            <AppWs>
+              <App />
+            </AppWs>
           </ToastProvider>
         </AppLocale>
       </MeProvider>

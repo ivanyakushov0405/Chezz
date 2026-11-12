@@ -1,0 +1,162 @@
+[
+  {
+    "id": "stalemate-queen-move",
+    "tz": "ТЗ §7",
+    "fen": "7k/8/6K1/8/8/8/5Q2/8 w - - 0 1",
+    "moves": [
+      {
+        "uci": "f2f7",
+        "san": "Qf7"
+      }
+    ],
+    "legal": [],
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "stalemate"
+    }
+  },
+  {
+    "id": "stalemate-position-given-black",
+    "tz": "ТЗ §7",
+    "fen": "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",
+    "moves": [],
+    "legal": [],
+    "illegal": [
+      "h8g8",
+      "h8h7",
+      "h8g7"
+    ],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "stalemate"
+    }
+  },
+  {
+    "id": "stalemate-black-queen-move",
+    "tz": "ТЗ §7",
+    "fen": "K7/8/1q6/8/8/8/8/7k b - - 0 1",
+    "moves": [
+      {
+        "uci": "b6c7",
+        "san": "Qc7"
+      }
+    ],
+    "legal": null,
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "stalemate"
+    }
+  },
+  {
+    "id": "stalemate-sam-loyd-10-moves",
+    "tz": "ТЗ §7",
+    "fen": null,
+    "moves": [
+      {
+        "uci": "e2e3",
+        "san": "e3"
+      },
+      {
+        "uci": "a7a5",
+        "san": "a5"
+      },
+      {
+        "uci": "d1h5",
+        "san": "Qh5"
+      },
+      {
+        "uci": "a8a6",
+        "san": "Ra6"
+      },
+      {
+        "uci": "h5a5",
+        "san": "Qxa5"
+      },
+      {
+        "uci": "h7h5",
+        "san": "h5"
+      },
+      {
+        "uci": "h2h4",
+        "san": "h4"
+      },
+      {
+        "uci": "a6h6",
+        "san": "Rah6"
+      },
+      {
+        "uci": "a5c7",
+        "san": "Qxc7"
+      },
+      {
+        "uci": "f7f6",
+        "san": "f6"
+      },
+      {
+        "uci": "c7d7",
+        "san": "Qxd7+"
+      },
+      {
+        "uci": "e8f7",
+        "san": "Kf7"
+      },
+      {
+        "uci": "d7b7",
+        "san": "Qxb7"
+      },
+      {
+        "uci": "d8d3",
+        "san": "Qd3"
+      },
+      {
+        "uci": "b7b8",
+        "san": "Qxb8"
+      },
+      {
+        "uci": "d3h7",
+        "san": "Qh7"
+      },
+      {
+        "uci": "b8c8",
+        "san": "Qxc8"
+      },
+      {
+        "uci": "f7g6",
+        "san": "Kg6"
+      },
+      {
+        "uci": "c8e6",
+        "san": "Qe6"
+      }
+    ],
+    "legal": [],
+    "illegal": [],
+    "flag": null,
+    "expect": {
+      "result": "draw",
+      "termination": "stalemate"
+    }
+  },
+  {
+    "id": "stalemate-not-when-move-exists",
+    "tz": "ТЗ §7",
+    "fen": "7k/8/6K1/8/8/8/5Q2/8 w - - 0 1",
+    "moves": [
+      {
+        "uci": "f2f6",
+        "san": "Qf6+"
+      }
+    ],
+    "legal": [
+      "h8g8"
+    ],
+    "illegal": [],
+    "flag": null,
+    "expect": null
+  }
+]

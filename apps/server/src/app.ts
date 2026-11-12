@@ -12,6 +12,8 @@ import { createGoogleProvider, type OidcProvider } from "./auth/oidc.ts";
 import { registerOidcRoutes } from "./auth/oidc-api.ts";
 import { createAuthService, type AuthService } from "./auth/service.ts";
 import type { Database } from "./database.ts";
+import { gamesWsHandlers } from "./games/api.ts";
+import { createGamesService, type GamesService } from "./games/service.ts";
 import { injectClientConfig } from "./platform/client-config.ts";
 import type { AppConfig } from "./platform/config.ts";
 import { migrateToLatest, type Db } from "./platform/db.ts";
@@ -21,6 +23,7 @@ import { createMetrics, type MetricsService } from "./platform/metrics.ts";
 import { createLogger, RequestLogController } from "./platform/log.ts";
 import { createErrorReporter, type ErrorReporter } from "./platform/sentry.ts";
 import type { TimeSource } from "./platform/time.ts";
+import { createRatingService } from "./rating/service.ts";
 import { registerRealtimeApi } from "./realtime/api.ts";
 import { createRealtimeService } from "./realtime/service.ts";
 import { registerUsersRoutes } from "./users/api.ts";
@@ -39,6 +42,8 @@ export interface AppDeps {
   onAnalytics?: (analytics: AnalyticsService) => void;
   /** Получает auth сразу после создания (тестовый startApp: подписка на sessions_closed). */
   onAuth?: (auth: AuthService) => void;
+  /** Получает games сразу после создания (тесты: createGame в своей транзакции). */
+  onGames?: (games: GamesService) => void;
   /**
    * Обмен code у Google (по умолчанию — openid-client с config.google). Тесты подменяют только его:
    * проверка утверждений ID-токена, state, nonce, cookie — те же (TESTING §7.3; не флаг конфига).
@@ -74,15 +79,28 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   const metrics = createMetrics({ config: config.metrics, version: config.appVersion });
   deps.onMetrics?.(metrics);
 
-  // Сервисы модулей по слоям (ARCHITECTURE §7.1, ADR-0005): L0 analytics → L1 users → L5 auth.
+  // Сервисы модулей по слоям (ARCHITECTURE §7.1, ADR-0005): L0 analytics → L1 users → L2 rating → L3 games → L5 auth.
   // Создаются до шлюза: «Кто» — auth.resolveCaller (ADR-0005 п.7).
   const analytics = createAnalyticsService({ db: deps.db, time: deps.time, log: app.log, reporter });
   deps.onAnalytics?.(analytics);
   const users = createUsersService({ db: deps.db, time: deps.time });
+  const rating = createRatingService({ db: deps.db });
+  const games = createGamesService({
+    db: deps.db,
+    time: deps.time,
+    log: app.log,
+    reporter,
+    metrics,
+    analytics,
+    users,
+    rating,
+  });
+  deps.onGames?.(games);
   const auth = createAuthService({ db: deps.db, time: deps.time, log: app.log, reporter, users, analytics });
   deps.onAuth?.(auth);
-  // L6 realtime: обработчиков модулей пока нет (команды партии — E06).
+  // L6 realtime: команды партии (ADR-0005 п.8).
   const realtime = createRealtimeService({ time: deps.time, log: app.log, reporter, metrics, auth });
+  realtime.registerHandlers(gamesWsHandlers(games));
 
   const webDistDir = config.webDistDir;
   // index.html с <meta> конфига клиента (ADR-0010 п.3): читается один раз; нет файла — отдаётся как есть.
@@ -113,7 +131,11 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
 
   registerHealthRoute(app, { db: deps.db, time: deps.time });
   await registerRealtimeApi(app, realtime);
-  registerUsersRoutes(app, { users });
+  // Me.active_game_id: users не зависит от games (7.1) — части Me других модулей собирает корень сборки.
+  registerUsersRoutes(app, {
+    users,
+    meExtras: async (userId) => ({ active_game_id: await games.activeGameId(userId), open_challenge_id: null }),
+  });
   registerAuthRoutes(app, { auth });
   registerOidcRoutes(app, {
     appOrigin: config.appOrigin,
@@ -133,12 +155,14 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   app.addHook("onReady", async () => {
     await migrateToLatest(deps.db);
     auth.start();
+    await games.start();
     realtime.start();
     // Порт метрик занят — ошибка старта (EC-17), а не молчаливое отсутствие метрик.
     await metrics.start();
   });
   app.addHook("onClose", async () => {
     await realtime.stop();
+    await games.stop();
     await auth.stop();
     await analytics.drain();
     await metrics.stop();

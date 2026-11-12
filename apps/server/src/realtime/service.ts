@@ -74,6 +74,8 @@ interface Connection {
   ping: PingState;
   pingTimer: TimerId | null;
   expiryTimer: TimerId | null;
+  /** Обработчики закрытия от модулей (WsContext.onClose). */
+  closeHandlers: (() => void)[];
   /** Сообщения соединения обрабатываются по одному, в порядке прихода (API §8.2). */
   queue: Promise<void>;
   closed: boolean;
@@ -139,6 +141,13 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
     decrement(perLimitKey, conn.limitKey);
     const userId = userIdOf(conn.caller);
     if (userId !== null) decrement(online, userId);
+    for (const fn of conn.closeHandlers.splice(0)) {
+      try {
+        fn();
+      } catch (err) {
+        report(err, "ws close handler failed");
+      }
+    }
   };
 
   const close = (conn: Connection, code: number): void => {
@@ -231,7 +240,7 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
     return true;
   };
 
-  const dispatch = async (conn: Connection, data: Buffer, isBinary: boolean): Promise<void> => {
+  const dispatch = async (conn: Connection, data: Buffer, isBinary: boolean, receivedAt: number): Promise<void> => {
     if (conn.closed) return;
     let raw: unknown;
     try {
@@ -265,7 +274,7 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
       return;
     }
     try {
-      await handler(conn.ctx, message);
+      await handler(conn.ctx, message, receivedAt);
     } catch (err) {
       if (err instanceof AppError) {
         sendError(conn, ref, err.code, gameIdOf(message), err.details);
@@ -365,7 +374,17 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
         socket,
         caller,
         limitKey,
-        ctx: { caller, connection_id: id, rtt_ms: null, send: (message) => send(conn, message as ServerMessage) },
+        ctx: {
+          caller,
+          connection_id: id,
+          rtt_ms: null,
+          send: (message) => send(conn, message as ServerMessage),
+          onClose: (fn) => {
+            if (conn.closed) fn();
+            else conn.closeHandlers.push(fn);
+          },
+        },
+        closeHandlers: [],
         bucket: fullBucket(WS_MESSAGE_BUCKET, time.now()),
         ping: initialPingState(),
         pingTimer: null,
@@ -379,9 +398,10 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
       if (userId !== null) increment(online, userId);
 
       socket.on("message", (data, isBinary) => {
+        const receivedAt = time.now();
         if (!admit(conn)) return;
         const buffer = Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data as ArrayBuffer);
-        enqueue(conn, () => dispatch(conn, buffer, isBinary));
+        enqueue(conn, () => dispatch(conn, buffer, isBinary, receivedAt));
       });
       socket.on("close", () => release(conn));
       enqueue(conn, () => welcome(conn));
