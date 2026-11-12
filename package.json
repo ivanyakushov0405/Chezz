@@ -23,7 +23,7 @@
     "seed": "node apps/server/scripts/seed.ts"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.65.0",
     "@types/node": "^24.19.2",
     "@vitest/eslint-plugin": "^1.6.28",
