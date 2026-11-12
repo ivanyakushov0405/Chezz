@@ -145,6 +145,39 @@ describe("GameRoom: очередь (A9)", () => {
     expect(w.sent.at(-1)).toMatchObject({ type: "game.state" });
   });
 
+  it("К-6: ход после конца времени, запись конца упала — следующий ход тоже флаг, повтор флага завершает партию", async () => {
+    let failures = 1;
+    const ends: string[] = [];
+    const saved: number[] = [];
+    const { time, room, reported } = setup(
+      async (_id, ply) => {
+        saved.push(ply);
+        return true;
+      },
+      async (_row, outcome) => {
+        if (failures-- > 0) throw new Error("db down");
+        ends.push(outcome.termination);
+        return null;
+      },
+    );
+    const w = ctx(WHITE, "w");
+    await room.subscribe(w);
+    // Ход пришёл после конца времени (receivedAt = 1 000), но раньше таймера флага в очереди.
+    await time.advance(999);
+    const late = room.move(w, "late", 2, "g1f3", time.now() + 1);
+    await expect(late).rejects.toThrow("db down");
+    expect(ends).toEqual([]);
+    // Ещё один ход белых — снова флаг, а не ход без списания.
+    await room.move(w, "again", 2, "g1f3", time.now() + 2);
+    expect(saved).toEqual([]);
+    expect(ends).toEqual(["timeout"]);
+    expect(w.sent.filter((m) => m.type === "game.moved")).toEqual([]);
+    await time.advance(FLAG_RETRY_MS);
+    await room.idle();
+    expect(ends).toEqual(["timeout"]);
+    expect(reported).toHaveLength(1);
+  });
+
   it("К-6: сбой записи конца по флагу — повтор через FLAG_RETRY_MS завершает партию без хода", async () => {
     let failures = 1;
     const ends: string[] = [];

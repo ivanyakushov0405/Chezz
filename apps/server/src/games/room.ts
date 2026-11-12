@@ -219,8 +219,8 @@ export function createGameRoom(row: GameRow, players: { white: PlayerRef; black:
         // или загрузки комнаты — время сервера, не игрока (E-2). Флаг, сработавший раньше прихода, уже в очереди.
         const charged = chargeMove(clock, color, moves.length + 1, receivedAt, ctx.rtt_ms, row.time_increment);
         if (charged.flagged) {
-          // Ход пришёл после конца времени (SECURITY §8): флаг, ход не применяется.
-          clock = charged.state;
+          // Ход пришёл после конца времени (SECURITY §8): флаг, ход не применяется. Часы останавливает end():
+          // при сбое записи конца они должны остаться идущими (остаток 0), чтобы повтор флага и следующий ход тоже флагнули.
           await end(position.flagOutcome(color));
           refuse(ctx, ref, "game_not_active", sub);
           return;
