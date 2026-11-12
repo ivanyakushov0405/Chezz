@@ -240,7 +240,7 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
     return true;
   };
 
-  const dispatch = async (conn: Connection, data: Buffer, isBinary: boolean): Promise<void> => {
+  const dispatch = async (conn: Connection, data: Buffer, isBinary: boolean, receivedAt: number): Promise<void> => {
     if (conn.closed) return;
     let raw: unknown;
     try {
@@ -274,7 +274,7 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
       return;
     }
     try {
-      await handler(conn.ctx, message);
+      await handler(conn.ctx, message, receivedAt);
     } catch (err) {
       if (err instanceof AppError) {
         sendError(conn, ref, err.code, gameIdOf(message), err.details);
@@ -398,9 +398,10 @@ export function createRealtimeService(deps: RealtimeServiceDeps): RealtimeServic
       if (userId !== null) increment(online, userId);
 
       socket.on("message", (data, isBinary) => {
+        const receivedAt = time.now();
         if (!admit(conn)) return;
         const buffer = Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data as ArrayBuffer);
-        enqueue(conn, () => dispatch(conn, buffer, isBinary));
+        enqueue(conn, () => dispatch(conn, buffer, isBinary, receivedAt));
       });
       socket.on("close", () => release(conn));
       enqueue(conn, () => welcome(conn));

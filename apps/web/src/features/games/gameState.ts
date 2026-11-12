@@ -93,7 +93,9 @@ export function applyServerMessage(state: GameScreenState, gameId: string, messa
       };
     }
     case "error": {
-      const mine = message.game_id === gameId || (state.status === "ready" && state.view.pending !== null && message.ref === state.view.pending.ref);
+      // `rate_limited` шлюз отдаёт до разбора команды — без `ref` и `game_id` (API §8.1): ждущий ход тоже отклонён.
+      const pending = state.status === "ready" ? state.view.pending : null;
+      const mine = message.game_id === gameId || (pending !== null && (message.ref === pending.ref || message.code === "rate_limited"));
       if (!mine) return { state };
       if (state.status !== "ready") {
         return { state: message.code === "not_found" ? { status: "not-found" } : { status: "error", code: message.code } };

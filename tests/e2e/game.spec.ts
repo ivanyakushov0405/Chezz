@@ -1,7 +1,7 @@
 // E06: партия от первого хода до мата в двух браузерах, зритель (К-11; DESIGN §9.3).
 import { expect, test } from "@playwright/test";
 import { closeFactoryDb, TAG_HTTPS_COOKIE, TAG_LOCAL_DB } from "./support/auth.ts";
-import { activeGame, clickSquare, expectMoves, openGame, playerInBrowser, typeMove } from "./support/game.ts";
+import { activeGame, clickSquare, expectMoves, openGame, playerInBrowser, squareShade, typeMove } from "./support/game.ts";
 
 test.afterAll(closeFactoryDb);
 
@@ -86,6 +86,28 @@ test("К-9, К-3: ←/→ листают ходы, «К текущему» во�
     await page.reload();
     await openGame(page, gameId);
     await expectMoves(page, sans);
+  } finally {
+    await white.context.close();
+    await black.context.close();
+  }
+});
+
+test("К-9: a1 тёмная, h1 светлая при любой ориентации (DESIGN §6)", { tag: [TAG_HTTPS_COOKIE, TAG_LOCAL_DB] }, async ({ browser, baseURL }) => {
+  const white = await playerInBrowser(browser, baseURL ?? "");
+  const black = await playerInBrowser(browser, baseURL ?? "");
+  const gameId = await activeGame({ white_id: white.id, black_id: black.id });
+  try {
+    for (const [page, orientation] of [
+      [white.page, "orientation-white"],
+      [black.page, "orientation-black"],
+    ] as const) {
+      await openGame(page, gameId);
+      await expect(page.locator(".cg-wrap")).toHaveClass(new RegExp(orientation));
+      expect(await squareShade(page, "a1")).toBe("dark");
+      expect(await squareShade(page, "h1")).toBe("light");
+      expect(await squareShade(page, "a8")).toBe("light");
+      expect(await squareShade(page, "h8")).toBe("dark");
+    }
   } finally {
     await white.context.close();
     await black.context.close();

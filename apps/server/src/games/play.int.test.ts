@@ -143,6 +143,20 @@ describe("game.subscribe (К-3)", () => {
     expect(await g.next("game.state")).toMatchObject({ connected: { white: true, black: false } });
   });
 
+  it("К-3: соединение закрылось, пока комната грузилась, — подписчиком не остаётся (connected)", async () => {
+    const a = await app();
+    const [white, black] = await Promise.all([createPlayer(a.db), createPlayer(a.db)]);
+    const { game_id } = await createActiveGame(a.db, { white_id: white.user_id, black_id: black.user_id });
+    const b = (await connectWelcomed(a, { cookie: black.cookie })).client;
+    b.send({ type: "game.subscribe", game_id });
+    b.close();
+    await b.closed();
+    await a.games.idle();
+    const w = (await connectWelcomed(a, { cookie: white.cookie })).client;
+    w.send({ type: "game.subscribe", game_id });
+    expect(await w.next("game.state")).toMatchObject({ connected: { white: true, black: false } });
+  });
+
   it("К-3: законченная партия → game.state из БД, часы стоят", async () => {
     const a = await app();
     const [white, black] = await Promise.all([createPlayer(a.db), createPlayer(a.db)]);

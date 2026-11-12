@@ -38,6 +38,9 @@ interface Subscriber {
   color: Color | null;
 }
 
+/** Повтор флага после сбоя записи конца партии, мс: не чаще, чтобы не долбить упавшую БД. */
+export const FLAG_RETRY_MS = 1_000;
+
 export interface GameRoom {
   readonly id: string;
   subscribe(ctx: WsContext): Promise<void>;
@@ -136,9 +139,19 @@ export function createGameRoom(row: GameRow, players: { white: PlayerRef; black:
   /** Конец партии: транзакция, затем рассылка `game.ended`, затем deps.ended (§9.1 п.7). */
   const end = async (outcome: Outcome): Promise<void> => {
     clearFlagTimer();
+    const clockBefore = clock;
     clock = stopClock(clock, time.now());
     const endedAt = time.wallNow();
-    const ratings = await deps.finish(row, outcome, moves, endedAt);
+    let ratings: RatingChangesView | null | "already_ended";
+    try {
+      ratings = await deps.finish(row, outcome, moves, endedAt);
+    } catch (err) {
+      // Конец не записан: часы снова идут (остаток ≤ 0 — следующий ход тоже флаг, SECURITY §8),
+      // флаг повторяется через FLAG_RETRY_MS. Иначе ход после флага прошёл бы без списания.
+      clock = clockBefore;
+      scheduleFlag(FLAG_RETRY_MS);
+      throw err;
+    }
     if (ratings === "already_ended") throw new Error(`game ${row.id}: finish found the game already ended`);
     ended = { outcome, ratings, ended_at: endedAt };
     const message: GameEnded = {
@@ -154,12 +167,12 @@ export function createGameRoom(row: GameRow, players: { white: PlayerRef; black:
   };
 
   /** Таймер флага на остаток стороны, чьи часы идут (§9.1 п.6, п.8). */
-  const scheduleFlag = (): void => {
+  const scheduleFlag = (minDelayMs = 0): void => {
     clearFlagTimer();
     if (ended !== null || disposed || clock.running === null) return;
     const side = clock.running;
     const left = remainingAt(clock, side, time.now());
-    flagTimer = time.setTimer(Math.max(0, Math.ceil(left)), () => {
+    flagTimer = time.setTimer(Math.max(minDelayMs, Math.ceil(left)), () => {
       flagTimer = null;
       void enqueue(async () => {
         if (ended !== null || disposed || clock.running !== side) return;

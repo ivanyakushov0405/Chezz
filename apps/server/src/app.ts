@@ -100,7 +100,7 @@ export async function buildApp(config: AppConfig, deps: AppDeps): Promise<Fastif
   deps.onAuth?.(auth);
   // L6 realtime: команды партии (ADR-0005 п.8).
   const realtime = createRealtimeService({ time: deps.time, log: app.log, reporter, metrics, auth });
-  realtime.registerHandlers(gamesWsHandlers(games, deps.time));
+  realtime.registerHandlers(gamesWsHandlers(games));
 
   const webDistDir = config.webDistDir;
   // index.html с <meta> конфига клиента (ADR-0010 п.3): читается один раз; нет файла — отдаётся как есть.

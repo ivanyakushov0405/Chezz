@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { ManualTimeSource } from "../../test/support/time.ts";
 import type { WsContext } from "../platform/ws.ts";
 import type { GameRow } from "./repo.ts";
-import { createGameRoom, type GameRoomDeps } from "./room.ts";
+import { createGameRoom, FLAG_RETRY_MS, type GameRoomDeps } from "./room.ts";
 
 const WHITE = "11111111-1111-4111-8111-111111111111";
 const BLACK = "22222222-2222-4222-8222-222222222222";
@@ -40,7 +40,7 @@ function ctx(userId: string, id: string): WsContext & { sent: ServerMessage[] } 
   };
 }
 
-function setup(appendMove: GameRoomDeps["appendMove"]) {
+function setup(appendMove: GameRoomDeps["appendMove"], finish?: GameRoomDeps["finish"]) {
   const time = new ManualTimeSource();
   const finished: string[] = [];
   const reported: unknown[] = [];
@@ -48,10 +48,12 @@ function setup(appendMove: GameRoomDeps["appendMove"]) {
     time,
     report: (err) => void reported.push(err),
     appendMove,
-    finish: async (_row, outcome) => {
-      finished.push(outcome.termination);
-      return null;
-    },
+    finish:
+      finish ??
+      (async (_row, outcome) => {
+        finished.push(outcome.termination);
+        return null;
+      }),
     ended: () => undefined,
     observeDelivery: () => undefined,
   };
@@ -112,5 +114,54 @@ describe("GameRoom: очередь (A9)", () => {
     await room.move(w, null, 2, "g1f3", time.now());
     expect(w.sent.filter((m) => m.type === "game.moved")).toEqual([expect.objectContaining({ ply: 3, san: "Nf3" })]);
     expect(reported).toHaveLength(1);
+  });
+
+  it("К-6: сбой записи конца по флагу — ход флагнувшей стороны не проходит, флаг повторяется", async () => {
+    let failures = 1;
+    const ends: string[] = [];
+    const saved: number[] = [];
+    const { time, room, reported } = setup(
+      async (_id, ply) => {
+        saved.push(ply);
+        return true;
+      },
+      async (_row, outcome) => {
+        if (failures-- > 0) throw new Error("db down");
+        ends.push(outcome.termination);
+        return null;
+      },
+    );
+    const w = ctx(WHITE, "w");
+    await room.subscribe(w);
+    await time.advance(1_000);
+    await room.idle();
+    expect(reported).toHaveLength(1);
+    expect(ends).toEqual([]);
+    // Белые ходят после конца времени — это флаг, а не ход.
+    await room.move(w, "late", 2, "g1f3", time.now());
+    expect(saved).toEqual([]);
+    expect(ends).toEqual(["timeout"]);
+    expect(w.sent.filter((m) => m.type === "game.moved")).toEqual([]);
+    expect(w.sent.at(-1)).toMatchObject({ type: "game.state" });
+  });
+
+  it("К-6: сбой записи конца по флагу — повтор через FLAG_RETRY_MS завершает партию без хода", async () => {
+    let failures = 1;
+    const ends: string[] = [];
+    const { time, room } = setup(
+      async () => true,
+      async (_row, outcome) => {
+        if (failures-- > 0) throw new Error("db down");
+        ends.push(outcome.termination);
+        return null;
+      },
+    );
+    await room.subscribe(ctx(WHITE, "w"));
+    await time.advance(1_000);
+    await room.idle();
+    expect(ends).toEqual([]);
+    await time.advance(FLAG_RETRY_MS);
+    await room.idle();
+    expect(ends).toEqual(["timeout"]);
   });
 });

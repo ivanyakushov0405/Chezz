@@ -14,7 +14,8 @@ export interface WsContext {
   onClose(fn: () => void): void;
 }
 
-export type WsHandler = (ctx: WsContext, message: unknown) => Promise<void>;
+/** `receivedAt` — TimeSource.now() прихода кадра в сокет, до очереди соединения (часы партии, A11). */
+export type WsHandler = (ctx: WsContext, message: unknown, receivedAt: number) => Promise<void>;
 
 /** «type сообщения → обработчик»; два обработчика одного type — ошибка при старте. */
 export type WsHandlers = Readonly<Record<string, WsHandler>>;

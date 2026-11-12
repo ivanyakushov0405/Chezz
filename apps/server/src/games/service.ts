@@ -309,10 +309,17 @@ export function createGamesService(deps: GamesServiceDeps): GamesService {
     async subscribe(ctx, ref, gameId) {
       watchClose(ctx);
       dropSubscription(ctx);
+      const id = ctx.connection_id;
+      /** Соединение ещё открыто (watchClose снимает отметку при закрытии). */
+      const open = (): boolean => watched.has(id);
       const room = await roomOf(gameId);
+      if (!open()) return;
       if (room !== null) {
-        subscriptions.set(ctx.connection_id, gameId);
+        subscriptions.set(id, gameId);
         await room.subscribe(ctx);
+        // Пока команда стояла в очереди комнаты, соединение закрылось или подписалось на другое —
+        // подписчик, добавленный задачей очереди, снимается (иначе `connected` врёт).
+        if (!open() || subscriptions.get(id) !== gameId) room.unsubscribe(id);
         return;
       }
       const row = await findGame(db, gameId);
@@ -352,7 +359,13 @@ export function createGamesService(deps: GamesServiceDeps): GamesService {
       const rows = await findActiveGames(db);
       for (const row of rows) {
         if (rooms.has(row.id)) continue;
-        await openRoom(row);
+        // Одна битая партия не роняет запуск (иначе выкатка уходит в цикл перезапусков): лог + Sentry,
+        // комнату поднимет ленивая загрузка по первой команде.
+        try {
+          await openRoom(row);
+        } catch (err) {
+          report(err, "game room restore failed");
+        }
       }
       if (rows.length > 0) log.info({ games: rows.length }, "game rooms restored");
     },

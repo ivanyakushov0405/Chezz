@@ -81,6 +81,15 @@ describe("gameState (API §9.3)", () => {
     expect(v.clock).toEqual({ white_ms: 7_000, black_ms: 9_000, running: null });
   });
 
+  it("К-9: rate_limited без ref и game_id — ждущий ход снят, Toast", () => {
+    const s = withPending(ready(), { ref: "m1", ply: 0, uci: "e2e4" });
+    const r = applyServerMessage(s, GAME_ID, { type: "error", ref: null, code: "rate_limited", game_id: null, details: { retry_after_ms: 200 } }, 1);
+    expect(r.toast).toBe("rate_limited");
+    expect(view(r.state).pending).toBeNull();
+    // Без ждущего хода чужая ошибка экран не трогает.
+    expect(applyServerMessage(ready(), GAME_ID, { type: "error", ref: null, code: "rate_limited", game_id: null, details: null }, 1).toast).toBeUndefined();
+  });
+
   it("К-10: разрыв соединения — неподтверждённый ход забывается", () => {
     const s = withPending(ready(), { ref: "m1", ply: 0, uci: "e2e4" });
     expect(view(withoutPending(s)).pending).toBeNull();

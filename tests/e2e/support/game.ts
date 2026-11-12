@@ -74,3 +74,35 @@ export async function clockMs(page: Page, side: "white" | "black"): Promise<numb
   const [, h, min, sec, tenth] = m;
   return ((Number(h ?? 0) * 60 + Number(min)) * 60 + Number(sec)) * 1000 + Number(tenth ?? 0) * 100;
 }
+
+/**
+ * Цвет клетки на экране: снимок угла клетки (8% от края — мимо фигуры и координат) и яркость пикселя.
+ * DESIGN §6: тёмная — `--board-dark`, светлая — `--board-light`.
+ */
+export async function squareShade(page: Page, square: string): Promise<"dark" | "light"> {
+  const board = page.locator(".cg-wrap");
+  const box = await board.boundingBox();
+  if (box === null) throw new Error("доска не видна");
+  const black = await board.evaluate((el) => el.classList.contains("orientation-black"));
+  const file = square.charCodeAt(0) - 97;
+  const rank = Number(square[1]) - 1;
+  const col = black ? 7 - file : file;
+  const row = black ? rank : 7 - rank;
+  const size = box.width / 8;
+  const png = await page.screenshot({ clip: { x: box.x + (col + 0.08) * size, y: box.y + (row + 0.08) * size, width: 2, height: 2 } });
+  const sum = await page.evaluate(async (b64) => {
+    const img = new Image();
+    img.src = `data:image/png;base64,${b64}`;
+    await img.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext("2d");
+    if (ctx === null) throw new Error("canvas");
+    ctx.drawImage(img, 0, 0);
+    const d = ctx.getImageData(0, 0, 1, 1).data;
+    return (d[0] ?? 0) + (d[1] ?? 0) + (d[2] ?? 0);
+  }, png.toString("base64"));
+  // brown: dark #b58863 = 416, light #f0d9b5 = 638; blue/green — по той же стороне от порога.
+  return sum < 560 ? "dark" : "light";
+}
